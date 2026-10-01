@@ -1,5 +1,5 @@
 /* Suido's own look, after family.css: the controls, the board on its table, the twists and marks under the level, and the block of levels. */
-:root { --intro-room: 11.5rem; --intro-room-wide: 5.5rem; }
+:root { --intro-room: 12rem; --intro-room-wide: 5.5rem; }
 .controls { display: grid; gap: 8px; margin-top: 14px; }
 .setup { margin: 8px 0 0; }
 .controls .setup { margin: 0; }

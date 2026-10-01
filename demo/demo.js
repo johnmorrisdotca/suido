@@ -14,7 +14,7 @@ import { blockOf, blockRange, dailySuidoLevel, declaredTwists, levelAnswer, leve
 const WORDS = {
   en: {
     pageApi: "API reference",
-    pitch: "Turn the pieces of pipe until the water from the pump reaches every drain. Any end left open leaks. Every board has exactly one answer.",
+    pitch: "Turn the pieces of pipe until the water from the pump reaches every drain.",
     name: "Suido (水道) is Japanese for a waterworks: the pipes that carry water.",
     nameLink: "About the name",
     mode: "Play",
@@ -69,7 +69,7 @@ const WORDS = {
   },
   ja: {
     pageApi: "API（英語）",
-    pitch: "パイプの駒を回して、ポンプからの水をすべての排水口に届けましょう。開いたままの端からは水が漏れます。どの盤面も、答えはちょうど一つです。",
+    pitch: "パイプの駒を回して、ポンプからの水をすべての排水口に届けましょう。",
     name: "「水道」は、水を通す道、つまり水道管のことです。",
     nameLink: "名前について（英語）",
     mode: "あそびかた",

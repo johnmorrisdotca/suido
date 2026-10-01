@@ -61,7 +61,7 @@ covers the package whole.
 
 - **The demo plays with the package's own `mountSuido`** instead of code of its
   own, and shows the board sooner: on a phone it sits about 600 pixels higher on
-  the page than before (535 against 1,135), because the size and pipe-shape rows
+  the page than before (about 545 against 1,135), because the size and pipe-shape rows
   are now under the board, the lines of words are in the board's box and the
   header's reserved room fits the shortened pitch. The page keeps one steady box.
   Half-played levels kept by 1.1.0 are read as they were.
