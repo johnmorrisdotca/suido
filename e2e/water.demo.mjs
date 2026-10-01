@@ -8,7 +8,7 @@ import { at, boardFor, cell, open, state, tap } from "./demo.mjs";
 test.use({ reducedMotion: "no-preference" });
 
 test("when the last pipe is joined the water runs out along the network, cell by cell, nearest the pump first", async ({ page }) => {
-  await open(page, "?size=8&seed=33");
+  await open(page, "?mode=make&size=8x8&seed=33");
   const made = boardFor({ size: 8, seed: 33 });
   const game = newGame(made.code);
   const solved = flowOf(made.layout, made.solution);
@@ -48,7 +48,7 @@ test("when the last pipe is joined the water runs out along the network, cell by
 });
 
 test("a pipe turned away from the water empties, and the pipes beyond it with it", async ({ page }) => {
-  await open(page, "?size=6&seed=7");
+  await open(page, "?mode=make&size=6x6&seed=7");
   const made = boardFor({ size: 6, seed: 7 });
   const game = newGame(made.code);
   const solved = flowOf(made.layout, made.solution);

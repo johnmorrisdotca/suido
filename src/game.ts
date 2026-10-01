@@ -1,4 +1,4 @@
-import { decodeLayout, encodeLayout, type Layout } from "./code.ts";
+import { decodeLayout, encodeLayout, isLocked, type Layout } from "./code.ts";
 import { flowOf, type Flow } from "./flow.ts";
 import { quartersBetween, shapeOf, turn } from "./pieces.ts";
 
@@ -30,14 +30,20 @@ export function canTurn(mask: number): boolean {
   return shapeOf(mask) !== "blank" && shapeOf(mask) !== "cross";
 }
 
+/** Whether the piece on `cell` of a game can be turned: it is a piece that looks different turned, and it is not locked. */
+export function canTurnAt(game: Game, cell: number): boolean {
+  const mask = game.masks[cell];
+  return mask !== undefined && canTurn(mask) && !isLocked(game.start, cell);
+}
+
 /**
  * A tap: the piece on `cell` turned a quarter, clockwise (`by` 1) or the other
- * way (`by` -1). Returns a new game. A cell that cannot be turned, or does not
- * exist, leaves the game as it was.
+ * way (`by` -1). Returns a new game. A cell that cannot be turned (bare ground, a
+ * cross, a locked piece), or does not exist, leaves the game as it was.
  */
 export function turnAt(game: Game, cell: number, by: 1 | -1 = 1): Game {
   const mask = game.masks[cell];
-  if (mask === undefined || !canTurn(mask)) return game;
+  if (mask === undefined || !canTurnAt(game, cell)) return game;
   const masks = [...game.masks];
   const quarters = [...game.quarters];
   masks[cell] = turn(mask, by);

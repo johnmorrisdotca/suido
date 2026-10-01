@@ -1,6 +1,6 @@
 import { neighboursOf, type Layout } from "./code.ts";
-import { bits, drainFacings, HAS, LACKS, members, sidesOf } from "./facing.ts";
-import { opposite, rotationsOf } from "./pieces.ts";
+import { bits, drainFacings, HAS, LACKS, members, rotationsOfLayout, sidesOf } from "./facing.ts";
+import { opposite } from "./pieces.ts";
 
 /** What the solver found. */
 export type SolveResult = {
@@ -30,10 +30,13 @@ export type SolveResult = {
  * still face, end that branch at once. A drains board is solved the other way
  * round, because a spare piece may face any way: it grows a network from the
  * sources and the drains, settling what its openings force and trying what they
- * do not, and counts each distinct network once.
+ * do not, and counts each distinct network once. An inlet-outlet board is solved
+ * as a drains board in which a piece the water goes through opens on two sides
+ * at most. Locked pieces have the one way they are given, and walls are edges the
+ * neighbour table does not cross, so neither needs a rule of its own.
  */
 export function solve(layout: Layout, limit = 2, budget = 200_000): SolveResult {
-  return layout.kind === "drains" ? solveDrains(layout, limit, budget) : solveNetwork(layout, limit, budget);
+  return layout.kind === "network" ? solveNetwork(layout, limit, budget) : solveDrains(layout, limit, budget);
 }
 
 /** How many answers there are, counted up to `limit`. */
@@ -137,7 +140,8 @@ function solveNetwork(layout: Layout, limit: number, budget: number): SolveResul
   };
 
   const dom = new Uint16Array(count);
-  for (let cell = 0; cell < count; cell += 1) for (const mask of rotationsOf(layout.cells[cell]!)) dom[cell]! |= 1 << mask;
+  const rotations = rotationsOfLayout(layout);
+  for (let cell = 0; cell < count; cell += 1) for (const mask of rotations[cell]!) dom[cell]! |= 1 << mask;
   search(dom, Array.from({ length: count }, (_, cell) => cell), true);
   return { count: solutions.length, solutions, nodes, branches, forced, complete };
 }
@@ -145,7 +149,7 @@ function solveNetwork(layout: Layout, limit: number, budget: number): SolveResul
 function solveDrains(layout: Layout, limit: number, budget: number): SolveResult {
   const count = layout.width * layout.height;
   const near = neighboursOf(layout);
-  const rotations = layout.cells.map(rotationsOf);
+  const rotations = rotationsOfLayout(layout);
   const seed = new Uint8Array(count);
   for (const cell of [...layout.sources, ...layout.drains]) seed[cell] = 1;
   const solutions: number[][] = [];

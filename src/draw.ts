@@ -1,4 +1,4 @@
-import type { Layout } from "./code.ts";
+import { isLocked, type Layout } from "./code.ts";
 import { flowOf, type Flow } from "./flow.ts";
 import { quartersBetween, shapeOf, SIDES } from "./pieces.ts";
 import { SUIDO_STYLE } from "./style.ts";
@@ -81,6 +81,9 @@ function armSvg(local: number, state: ArmState, water: boolean): string {
   return `<g class="sd-arm" data-side="${local}" data-w="${water ? state : ""}" transform="rotate(${turn})"><path class="sd-in" pathLength="1" d="M0 -50V0"/><path class="sd-out" pathLength="1" d="M0 0V-50"/><g class="sd-leak"><path class="sd-cap" d="M-13 -48H13"/><path class="sd-drop" d="${DROP}"/></g></g>`;
 }
 
+/** A padlock, drawn about its own middle, 22 across: on the corner of a piece that cannot be turned. */
+const LOCK = `<g class="sd-lock" transform="translate(31 -31)"><path class="sd-shackle" d="M-6 -1V-6a6 6 0 0 1 12 0V-1"/><rect class="sd-lockbody" x="-9" y="-2" width="18" height="13" rx="3"/></g>`;
+
 function markSvg(role: "source" | "drain" | "plain"): string {
   if (role === "source") return `<g class="sd-mark"><circle class="sd-src" r="27"/><path class="sd-glyph" d="${GLYPH}"/></g>`;
   if (role === "drain") return `<g class="sd-mark"><circle class="sd-bowl" r="27"/><circle class="sd-fill" r="19"/></g>`;
@@ -98,7 +101,28 @@ function cellSvg(layout: Layout, state: CellState, x: number, y: number, water: 
       ? ""
       : `<path class="sd-edge" d="${edge}"/><circle class="sd-hub-edge" r="17"/><path class="sd-pipe" d="${edge}"/><circle class="sd-hub" r="13"/>${local.map((side) => armSvg(side, state.arms[side]!, water)).join("")}<circle class="sd-hubwater" r="7"/>`;
   const wet = water && state.wet;
-  return `<g class="sd-cell" data-cell="${state.cell}" data-shape="${shapeOf(base)}" data-role="${role}" data-wet="${wet}" style="--k:${wet ? state.depth : 0}" transform="translate(${x} ${y})"><rect class="sd-ground" x="-49" y="-49" width="98" height="98" rx="9"/><g class="sd-turn" style="--q:${state.quarters}"><rect class="sd-box" x="-50" y="-50" width="100" height="100"/>${piece}</g>${markSvg(role)}<rect class="sd-hit" x="-50" y="-50" width="100" height="100" fill="transparent"/></g>`;
+  const locked = isLocked(layout, state.cell);
+  const frame = locked ? `<rect class="sd-lockframe" x="-45" y="-45" width="90" height="90" rx="7"/>` : "";
+  return `<g class="sd-cell" data-cell="${state.cell}" data-shape="${shapeOf(base)}" data-role="${role}" data-locked="${locked}" data-wet="${wet}" style="--k:${wet ? state.depth : 0}" transform="translate(${x} ${y})"><rect class="sd-ground" x="-49" y="-49" width="98" height="98" rx="9"/>${frame}<g class="sd-turn" style="--q:${state.quarters}"><rect class="sd-box" x="-50" y="-50" width="100" height="100"/>${piece}</g>${markSvg(role)}${locked ? LOCK : ""}<rect class="sd-hit" x="-50" y="-50" width="100" height="100" fill="transparent"/></g>`;
+}
+
+/** The bars drawn for a board's walls, each across the edge it is on; on a board that wraps, a wall at the edge of the board is shown at both its sides. */
+function wallsSvg(layout: Layout): string {
+  const bars: string[] = [];
+  const bar = (x: number, y: number, across: boolean): string => `<rect class="sd-wall" x="${across ? x : x - 7}" y="${across ? y - 7 : y}" width="${across ? 88 : 14}" height="${across ? 14 : 88}" rx="5"/>`;
+  for (const edge of layout.walls ?? []) {
+    const cell = edge >> 1;
+    const col = cell % layout.width;
+    const row = Math.floor(cell / layout.width);
+    if ((edge & 1) === 0) {
+      bars.push(bar((col + 1) * 100, row * 100 + 6, false));
+      if (col === layout.width - 1) bars.push(bar(0, row * 100 + 6, false));
+    } else {
+      bars.push(bar(col * 100 + 6, (row + 1) * 100, true));
+      if (row === layout.height - 1) bars.push(bar(col * 100 + 6, 0, true));
+    }
+  }
+  return bars.join("");
 }
 
 const escape = (text: string): string => text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -119,7 +143,38 @@ export function drawSuido(layout: Layout, options: DrawOptions = {}): string {
   const cells = states.map((state) => cellSvg(layout, state, (state.cell % layout.width) * 100 + 50, Math.floor(state.cell / layout.width) * 100 + 50, water)).join("");
   const solved = flow.solved;
   const label = options.label ?? `Suido board, ${layout.width} by ${layout.height}`;
-  return `<svg xmlns="http://www.w3.org/2000/svg" class="suido" viewBox="0 0 ${width} ${height}" role="group" aria-label="${escape(label)}" data-solved="${solved}" style="--sd-step:${step}ms">${options.style === true ? `<style>${SUIDO_STYLE}</style>` : ""}<rect class="sd-board" width="${width}" height="${height}" rx="12"/>${cells}${layout.wrap ? `<rect class="sd-rim" x="3" y="3" width="${width - 6}" height="${height - 6}" rx="10"/>` : ""}</svg>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" class="suido" viewBox="0 0 ${width} ${height}" role="group" aria-label="${escape(label)}" data-solved="${solved}" style="--sd-step:${step}ms">${options.style === true ? `<style>${SUIDO_STYLE}</style>` : ""}<rect class="sd-board" width="${width}" height="${height}" rx="12"/>${cells}${wallsSvg(layout)}${layout.wrap ? `<rect class="sd-rim" x="3" y="3" width="${width - 6}" height="${height - 6}" rx="10"/>` : ""}</svg>`;
+}
+
+/**
+ * A board as a small picture, in a few dozen elements however big the board is: for a page that shows a
+ * whole block of levels at once. The pipes are one path, the water in them (where the pieces face as
+ * `masks` say and the water reaches) another, with the pumps, the drains, the padlocks and the walls on
+ * them. It carries no cells to tap and nothing that moves; it is `class="suido"` so it takes the same colours.
+ */
+export function drawSuidoThumb(layout: Layout, options: { masks?: readonly number[]; label?: string; style?: boolean; water?: boolean } = {}): string {
+  const masks = options.masks ?? layout.cells;
+  const flow = flowOf(layout, masks);
+  const width = layout.width * 100;
+  const height = layout.height * 100;
+  const dry: string[] = [];
+  const wet: string[] = [];
+  const marks: string[] = [];
+  const sources = new Set(layout.sources);
+  const drains = new Set(layout.drains);
+  masks.forEach((mask, cell) => {
+    if (mask === 0) return;
+    const x = (cell % layout.width) * 100 + 50;
+    const y = Math.floor(cell / layout.width) * 100 + 50;
+    const into = options.water !== false && flow.wet[cell] === true ? wet : dry;
+    for (const side of SIDES.map((_, at) => at)) if (((mask >> side) & 1) === 1) (into === wet ? wet : dry).push(`M${x} ${y}${["v-50", "h50", "v50", "h-50"][side]}`);
+    if (sources.has(cell)) marks.push(`<circle class="sd-src" cx="${x}" cy="${y}" r="27"/>`);
+    else if (drains.has(cell)) marks.push(`<circle class="sd-bowl" cx="${x}" cy="${y}" r="27"/>${options.water !== false && flow.wet[cell] === true ? `<circle class="sd-fill" style="transform:none" cx="${x}" cy="${y}" r="19"/>` : ""}`);
+    if (isLocked(layout, cell)) marks.push(`<rect class="sd-lockbody" x="${x + 22}" y="${y - 40}" width="18" height="18" rx="4"/>`);
+  });
+  const label = options.label ?? `Suido board, ${layout.width} by ${layout.height}`;
+  const all = [...dry, ...wet].join("");
+  return `<svg xmlns="http://www.w3.org/2000/svg" class="suido" viewBox="0 0 ${width} ${height}" role="img" aria-label="${escape(label)}" data-solved="${flow.solved}">${options.style === true ? `<style>${SUIDO_STYLE}</style>` : ""}<rect class="sd-board" width="${width}" height="${height}" rx="12"/><path class="sd-edge" d="${all}"/><path class="sd-pipe" d="${all}"/><path class="sd-thumbwater" d="${wet.join("")}"/>${marks.join("")}${wallsSvg(layout)}${layout.wrap ? `<rect class="sd-rim" x="3" y="3" width="${width - 6}" height="${height - 6}" rx="10"/>` : ""}</svg>`;
 }
 
 /** One piece on its own, as SVG text: for a legend, an icon, or a page that shows how the pieces look. `wet` fills it with water. */

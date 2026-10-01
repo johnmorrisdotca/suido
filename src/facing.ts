@@ -1,5 +1,11 @@
 import type { Layout } from "./code.ts";
-import { opposite } from "./pieces.ts";
+import { armsOf, opposite, rotationsOf } from "./pieces.ts";
+
+/** Every way each piece of a board may face: all of its rotations, and for a locked piece only the way it is given. */
+export function rotationsOfLayout(layout: Layout): number[][] {
+  const locked = new Set(layout.locked ?? []);
+  return layout.cells.map((mask, cell) => (locked.has(cell) ? [mask] : rotationsOf(mask)));
+}
 
 /** The sixteen pieces as one 16-bit set: those that open on a side, and those that do not. */
 export const HAS = [0, 1, 2, 3].map((side) => [...Array(16).keys()].reduce((set, mask) => (((mask >> side) & 1) === 1 ? set | (1 << mask) : set), 0));
@@ -29,7 +35,9 @@ export const sidesOf = (set: number): number => {
  * The ways a piece may face in a drains board, given the pieces already faced
  * (`val` holds the sides each opens on, -1 for one not yet faced): it must open
  * on every side a faced neighbour opens towards it (`need`), and on none where
- * a faced neighbour does not, the ground is bare, or the board ends.
+ * a faced neighbour does not, the ground is bare, or the board ends. On an
+ * inlet-outlet board a piece the water goes through opens on two sides at most,
+ * so a T or a cross has no way to face there and a wet one ends that branch.
  */
 export function drainFacings(layout: Layout, near: Int32Array, rotations: readonly (readonly number[])[], val: Int8Array, cell: number): { masks: number[]; need: number } {
   let need = 0;
@@ -42,5 +50,6 @@ export function drainFacings(layout: Layout, near: Int32Array, rotations: readon
       else bar |= 1 << side;
     }
   }
-  return { masks: rotations[cell]!.filter((mask) => (mask & need) === need && (mask & bar) === 0), need };
+  const path = layout.kind === "inlet-outlet";
+  return { masks: rotations[cell]!.filter((mask) => (mask & need) === need && (mask & bar) === 0 && (!path || armsOf(mask) <= 2)), need };
 }

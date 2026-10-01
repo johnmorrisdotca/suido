@@ -1,6 +1,6 @@
 import type { Layout } from "./code.ts";
+import { rotationsOfLayout } from "./facing.ts";
 import { flowOf } from "./flow.ts";
-import { rotationsOf } from "./pieces.ts";
 
 /** How many ways there are to face every piece, which is how much work `bruteForce` does. */
 /**
@@ -9,21 +9,22 @@ import { rotationsOf } from "./pieces.ts";
  * boards (the work is the product of every piece's facings). A network's
  * answers are the ways of facing every piece that solve it; a drains board's
  * are the distinct networks of wet pieces, with the spares left out, since a
- * spare faces any way.
+ * spare faces any way. A locked piece has only the way it is given, and a wall
+ * is read by the water itself, so neither needs a rule here.
  */
 export function facingsOf(layout: Layout): number {
-  return layout.cells.map(rotationsOf).reduce((product, one) => product * one.length, 1);
+  return rotationsOfLayout(layout).reduce((product, one) => product * one.length, 1);
 }
 
 /** How many answers the board has, by trying every way of facing every piece. */
 export function bruteForce(layout: Layout): number {
-  const options = layout.cells.map(rotationsOf);
+  const options = rotationsOfLayout(layout);
   const found = new Set<string>();
   const masks = layout.cells.map((mask) => mask);
   const walk = (cell: number): void => {
     if (cell === masks.length) {
       const flow = flowOf(layout, masks);
-      if (flow.solved) found.add(layout.kind === "drains" ? masks.map((mask, at) => (flow.wet[at] === true ? mask : -1)).join() : masks.join());
+      if (flow.solved) found.add(layout.kind !== "network" ? masks.map((mask, at) => (flow.wet[at] === true ? mask : -1)).join() : masks.join());
       return;
     }
     for (const mask of options[cell]!) {

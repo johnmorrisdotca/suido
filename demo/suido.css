@@ -1,20 +1,49 @@
-/* Suido's own look, after family.css: the controls, the board on its table, and the lines under it. */
-:root { --intro-room: 11rem; --intro-room-wide: 7.5rem; }
+/* Suido's own look, after family.css: the controls, the board on its table, the twists and marks under the level, and the block of levels. */
+:root { --intro-room: 15.5rem; --intro-room-wide: 8.5rem; }
 .controls { display: grid; gap: 8px; margin-top: 14px; }
-.setup { margin: 0; }
+.setup { margin: 8px 0 0; }
+.controls .setup { margin: 0; }
+.makeset { display: grid; gap: 8px; }
 .pump { width: 14px; height: 18px; margin-left: 3px; }
-.fam-label { min-width: 5.2rem; }
+.fam-label { min-width: 5.2rem; line-height: 1.5rem; }
+.of { color: var(--muted); font-weight: 500; }
+.open { margin: 10px 0 0; color: var(--muted); font-size: .85rem; min-height: 3.9em; line-height: 1.3; }
 input[type="range"] { flex: 1 1 180px; min-width: 0; max-width: 340px; min-height: 44px; accent-color: var(--accent); }
 #difficulty-value { min-width: 8.5rem; }
-.kind-note { margin: 0; color: var(--muted); font-size: .85rem; min-height: 2.6em; }
-.table { margin: 0 auto; max-width: min(100%, 620px); padding: 12px; border-radius: var(--radius); }
-#board { width: 100%; aspect-ratio: 1; position: relative; }
+.kind-note { margin: 0; color: var(--muted); font-size: .85rem; min-height: 3.9em; }
+
+/* The twists and the difficulty of the board under the level: a steady row, however many chips there are. */
+.levelinfo { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin-top: 10px; min-height: 4.8rem; align-content: flex-start; }
+.marks { letter-spacing: .12em; font-size: 1.05rem; color: var(--accent); min-width: 5.4em; }
+.chips { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.chips .fam-chip { min-height: 32px; font-size: .8rem; font-weight: 600; cursor: help; }
+.chips .fam-chip[data-twist="plain"] { color: var(--muted); font-weight: 500; }
+.roleline { margin: 4px 0 0; font-size: .85rem; color: var(--muted); min-height: 3.3em; }
+.roleline[data-role="teaches"] { color: var(--ink); font-weight: 600; }
+@media (min-width: 700px) { .levelinfo { min-height: 2.6rem; } .roleline { min-height: 1.4em; } }
+
+/* The board on its table: as wide as the page allows and no taller than the window, in the board's own shape. */
+.table { margin: 0 auto; width: min(100%, calc(72vh * var(--ratio, 1) + 24px), 620px); padding: 12px; border-radius: var(--radius); }
+#board { width: 100%; aspect-ratio: var(--ratio, 1); position: relative; }
+#table { --ratio: 1; }
 #board[aria-busy="true"] .suido { opacity: .45; }
 #board .suido { transition: opacity .15s; }
 .status { margin: 4px 0 8px; font-weight: 600; text-align: center; height: 2.9em; overflow: hidden; display: flex; align-items: center; justify-content: center; }
 .status[data-solved="true"] { color: var(--good); }
-.meter { margin: 8px 0 0; text-align: center; color: var(--muted); font-size: .9rem; font-variant-numeric: tabular-nums; min-height: 1.4em; }
+.meter { margin: 8px 0 0; text-align: center; color: var(--muted); font-size: .9rem; font-variant-numeric: tabular-nums; min-height: 3.3em; }
 .note { margin: 4px 0 0; text-align: center; color: var(--accent); min-height: 1.4em; font-weight: 600; }
+
+/* The block's sixteen levels, each drawn small. */
+.block { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; max-width: 640px; align-items: start; }
+@media (min-width: 700px) { .block { grid-template-columns: repeat(8, minmax(0, 1fr)); max-width: 1100px; } }
+.lv { position: relative; border: 1px solid var(--rule); background: var(--surface); border-radius: 12px; padding: 4px; display: block; min-width: 0; }
+.lv svg { display: block; width: 100%; height: auto; pointer-events: none; border-radius: 8px; }
+.lv span { position: absolute; left: 6px; top: 6px; min-width: 22px; height: 22px; padding: 0 5px; border-radius: 11px; background: var(--ink); color: var(--surface); font-size: .72rem; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; font-variant-numeric: tabular-nums; }
+.lv[data-state="locked"] { opacity: .4; cursor: default; }
+.lv[data-state="here"] { border-color: var(--ink); box-shadow: 0 0 0 2px var(--ink); }
+.lv[data-solved="true"] span { background: var(--good); color: #fff; }
+.lv:disabled { color: inherit; }
+
 .uses { list-style: none; padding: 0; margin: 0; display: grid; gap: 6px; }
 .uses code { font-family: var(--mono); font-size: .85rem; overflow-wrap: anywhere; }
 .more .uses { grid-template-columns: 1fr; }

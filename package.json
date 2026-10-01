@@ -1,7 +1,7 @@
 {
   "name": "@johnmorrisdotca/suido",
-  "version": "1.0.0",
-  "description": "Suido, a pipe puzzle for JavaScript and TypeScript: turn the pieces until the water from the pump reaches every drain, with no pipe left open. Boards as short codes, a solver that counts answers, a seeded generator whose every board has exactly one, a difficulty from 1 to 100 within each size, wrap-around edges, several pumps, spare pieces, and the water drawn as SVG that flows as the pipes join. Zero dependencies.",
+  "version": "1.1.0",
+  "description": "Suido, a pipe puzzle for JavaScript and TypeScript: turn the pieces until the water from the pump reaches every drain, with no pipe left open. 3,328 fixed levels from easy to hard, in 5×5 to 14×14 and three long pipe shapes, each with exactly one answer and its twists declared (drains, pumps, locked pieces, walls, wrap-around edges, inlet to outlet). Boards as short codes, a solver that counts answers, a seeded generator whose every board has exactly one, a difficulty from 1 to 100 within each size, and the water drawn as SVG that flows as the pipes join. Zero dependencies.",
   "keywords": [
     "puzzle",
     "pipe-puzzle",
@@ -20,7 +20,11 @@
     "zero-dependencies",
     "browser",
     "node",
-    "itsutsu"
+    "itsutsu",
+    "levels",
+    "walls",
+    "locked-pieces",
+    "inlet-outlet"
   ],
   "homepage": "https://github.com/johnmorrisdotca/suido#readme",
   "repository": {
@@ -47,6 +51,81 @@
       "types": "./dist/draw-entry.d.ts",
       "import": "./dist/draw-entry.js",
       "default": "./dist/draw-entry.js"
+    },
+    "./levels": {
+      "types": "./dist/levels.d.ts",
+      "import": "./dist/levels.js",
+      "default": "./dist/levels.js"
+    },
+    "./levels-5x5": {
+      "types": "./dist/levels/size5x5.data.d.ts",
+      "import": "./dist/levels/size5x5.data.js",
+      "default": "./dist/levels/size5x5.data.js"
+    },
+    "./levels-6x6": {
+      "types": "./dist/levels/size6x6.data.d.ts",
+      "import": "./dist/levels/size6x6.data.js",
+      "default": "./dist/levels/size6x6.data.js"
+    },
+    "./levels-7x7": {
+      "types": "./dist/levels/size7x7.data.d.ts",
+      "import": "./dist/levels/size7x7.data.js",
+      "default": "./dist/levels/size7x7.data.js"
+    },
+    "./levels-8x8": {
+      "types": "./dist/levels/size8x8.data.d.ts",
+      "import": "./dist/levels/size8x8.data.js",
+      "default": "./dist/levels/size8x8.data.js"
+    },
+    "./levels-9x9": {
+      "types": "./dist/levels/size9x9.data.d.ts",
+      "import": "./dist/levels/size9x9.data.js",
+      "default": "./dist/levels/size9x9.data.js"
+    },
+    "./levels-10x10": {
+      "types": "./dist/levels/size10x10.data.d.ts",
+      "import": "./dist/levels/size10x10.data.js",
+      "default": "./dist/levels/size10x10.data.js"
+    },
+    "./levels-11x11": {
+      "types": "./dist/levels/size11x11.data.d.ts",
+      "import": "./dist/levels/size11x11.data.js",
+      "default": "./dist/levels/size11x11.data.js"
+    },
+    "./levels-12x12": {
+      "types": "./dist/levels/size12x12.data.d.ts",
+      "import": "./dist/levels/size12x12.data.js",
+      "default": "./dist/levels/size12x12.data.js"
+    },
+    "./levels-13x13": {
+      "types": "./dist/levels/size13x13.data.d.ts",
+      "import": "./dist/levels/size13x13.data.js",
+      "default": "./dist/levels/size13x13.data.js"
+    },
+    "./levels-14x14": {
+      "types": "./dist/levels/size14x14.data.d.ts",
+      "import": "./dist/levels/size14x14.data.js",
+      "default": "./dist/levels/size14x14.data.js"
+    },
+    "./levels-5x7": {
+      "types": "./dist/levels/size5x7.data.d.ts",
+      "import": "./dist/levels/size5x7.data.js",
+      "default": "./dist/levels/size5x7.data.js"
+    },
+    "./levels-6x10": {
+      "types": "./dist/levels/size6x10.data.d.ts",
+      "import": "./dist/levels/size6x10.data.js",
+      "default": "./dist/levels/size6x10.data.js"
+    },
+    "./levels-8x14": {
+      "types": "./dist/levels/size8x14.data.d.ts",
+      "import": "./dist/levels/size8x14.data.js",
+      "default": "./dist/levels/size8x14.data.js"
+    },
+    "./marks": {
+      "types": "./dist/levels/marks.data.d.ts",
+      "import": "./dist/levels/marks.data.js",
+      "default": "./dist/levels/marks.data.js"
     }
   },
   "files": [

@@ -4,6 +4,7 @@ import { flowOf } from "./flow.ts";
 import { armsOf, opposite, rotationsOf, SHAPE_MASKS, turn } from "./pieces.ts";
 import { seededRandom, shuffled, type Random } from "./random.ts";
 import { solve } from "./solve.ts";
+import { canTurn } from "./game.ts";
 
 /** What a new board may be asked for. Everything has a default but the seed, and a seed has one too. */
 export type MakeOptions = {
@@ -13,7 +14,12 @@ export type MakeOptions = {
   size?: number;
   width?: number;
   height?: number;
-  /** `network` (every piece wet) or `drains` (every drain reached, spare pieces allowed). Default network. */
+  /**
+   * `network` (every piece wet), `drains` (every drain reached, spare pieces allowed) or `inlet-outlet`
+   * (the water runs in one path from the pump at the top left to the drain at the bottom right, through
+   * pieces that open on two sides; the rest are decoys). Default network. An inlet-outlet board has one
+   * pump and one drain and its edges do not join.
+   */
   kind?: Kind;
   /** Whether the edges join. Default false. */
   wrap?: boolean;
@@ -25,6 +31,16 @@ export type MakeOptions = {
   spares?: number;
   /** How the pipes wind, 0 to 1: low branches everywhere, high runs in long snakes. Default is drawn from the seed. */
   bias?: number;
+  /**
+   * How many pieces are locked: shown facing as the answer has them and not to be turned. Where a board
+   * would have a second answer, a locked piece is what makes it one before any pipe is moved. Default 0.
+   */
+  locked?: number;
+  /**
+   * How many walls: edges the water cannot cross, put where the pipes do not go. Where a board would have
+   * a second answer, a wall across the edge the other answer uses is what makes it one. Default 0.
+   */
+  walls?: number;
   /** The difficulty to aim for, 1 to 100 among boards of the size (see `difficultyOf`). Boards are made until one is near it. */
   difficulty?: number;
   /** How many boards to make, at most, looking for the difficulty asked for. Default 60. */
@@ -82,7 +98,14 @@ type Plan = {
   drains: number[];
   /** What stands on each cell the pipes do not use (a drains board), 0 for bare ground. */
   spare: number[];
+  /** The cells to lock, and the walls to build: kept as the board is mended, and only used where they fit. */
+  locked: Set<number>;
+  walls: Set<number>;
 };
+
+/** What stands where the water does not go on an inlet-outlet board: decoys, and what stops a decoy being a way through. */
+const DECOYS = [SHAPE_MASKS.end, SHAPE_MASKS.end, SHAPE_MASKS.straight, SHAPE_MASKS.straight, SHAPE_MASKS.elbow, SHAPE_MASKS.elbow, SHAPE_MASKS.tee, SHAPE_MASKS.tee, SHAPE_MASKS.cross];
+const BLOCKERS = [0, SHAPE_MASKS.end, SHAPE_MASKS.tee, SHAPE_MASKS.cross];
 
 /** A cell picked for each pump, spread out: each is the best of a few tries at being far from the ones before. */
 function pickSources(width: number, height: number, wrap: boolean, count: number, random: Random): number[] {
@@ -144,6 +167,11 @@ function grow(width: number, height: number, wrap: boolean, sources: number[], b
   return parent;
 }
 
+/** Which cell is next to each, with no walls: a plan's pipes never cross a wall, so only a wall's own edge number needs the walls left out. */
+function bareNear(plan: Pick<Plan, "width" | "height" | "wrap">): Int32Array {
+  return neighboursOf({ width: plan.width, height: plan.height, wrap: plan.wrap });
+}
+
 /** The side of `from` that faces `to`, which must be next to it. */
 function sideBetween(near: Int32Array, from: number, to: number): number {
   for (let side = 0; side < 4; side += 1) if (near[from * 4 + side] === to) return side;
@@ -162,7 +190,7 @@ function used(plan: Plan): boolean[] {
 
 /** The plan as pieces: the sides each cell opens on when the board is solved. */
 function solved(plan: Plan): number[] {
-  const near = neighboursOf(plan);
+  const near = bareNear(plan);
   const need = used(plan);
   const masks = plan.spare.map((mask, cell) => (need[cell] === true ? 0 : mask));
   for (let cell = 0; cell < masks.length; cell += 1) {
@@ -183,10 +211,24 @@ function scramble(masks: readonly number[], random: Random): number[] {
   });
 }
 
+/** The cells of a plan that can be locked: those the pipes use, with a piece that looks different turned. */
+function lockable(plan: Plan, truth: readonly number[]): number[] {
+  const need = used(plan);
+  return truth.flatMap((mask, cell) => (need[cell] === true && canTurn(mask) ? [cell] : []));
+}
+
 /** The board a plan makes with its pieces facing as `given` says. */
 function layoutOf(plan: Plan, given: readonly number[], truth: readonly number[]): Layout {
-  const drains = plan.kind === "drains" ? [...plan.drains].sort((a, b) => a - b) : truth.flatMap((mask, cell) => (armsOf(mask) === 1 && !plan.sources.includes(cell) ? [cell] : []));
-  return { width: plan.width, height: plan.height, kind: plan.kind, wrap: plan.wrap, cells: [...given], sources: [...plan.sources].sort((a, b) => a - b), drains };
+  const drains = plan.kind !== "network" ? [...plan.drains].sort((a, b) => a - b) : truth.flatMap((mask, cell) => (armsOf(mask) === 1 && !plan.sources.includes(cell) ? [cell] : []));
+  const layout: Layout = { width: plan.width, height: plan.height, kind: plan.kind, wrap: plan.wrap, cells: [...given], sources: [...plan.sources].sort((a, b) => a - b), drains };
+  if (plan.locked.size > 0) {
+    // A lock only holds where there is a piece worth locking, as the plan stands now.
+    const fit = new Set(lockable(plan, truth));
+    const locked = [...plan.locked].filter((cell) => fit.has(cell)).sort((a, b) => a - b);
+    if (locked.length > 0) layout.locked = locked;
+  }
+  if (plan.walls.size > 0) layout.walls = [...plan.walls].sort((a, b) => a - b);
+  return layout;
 }
 
 /** The cells' children, as lists. */
@@ -202,7 +244,7 @@ function childrenOf(parent: Int32Array): number[][] {
  * different pipe. Still a forest, with the same pumps, and a different board.
  */
 function rewire(plan: Plan, cell: number, random: Random): boolean {
-  const near = neighboursOf(plan);
+  const near = neighboursOf({ ...plan, walls: [...plan.walls] });
   const children = childrenOf(plan.parent);
   const branch = new Set<number>([cell]);
   for (const member of branch) for (const child of children[member]!) branch.add(child);
@@ -229,7 +271,7 @@ function rewire(plan: Plan, cell: number, random: Random): boolean {
 }
 
 /** The settings a call to `makeSuido` or `laySuido` resolves its options to. */
-type Settings = { width: number; height: number; kind: Kind; wrap: boolean; sources: number; drains: number; spares: number; bias: number | undefined; seed: number };
+type Settings = { width: number; height: number; kind: Kind; wrap: boolean; sources: number; drains: number; spares: number; bias: number | undefined; seed: number; locked: number; walls: number };
 
 function settingsOf(options: MakeOptions): Settings {
   const width = options.width ?? options.size ?? 7;
@@ -237,17 +279,25 @@ function settingsOf(options: MakeOptions): Settings {
   const wrap = options.wrap ?? false;
   if (!Number.isInteger(width) || !Number.isInteger(height) || width < (wrap ? 3 : 2) || height < (wrap ? 3 : 2) || width > MAX_SIDE || height > MAX_SIDE) throw new Error(`Not a board size: ${width}×${height}`);
   const cells = width * height;
-  const sources = Math.min(Math.max(1, Math.floor(options.sources ?? 1)), Math.max(1, Math.floor(cells / 6)));
+  const kind = options.kind ?? "network";
+  if (kind === "inlet-outlet") {
+    if (wrap) throw new Error("An inlet-outlet board does not wrap: its water runs from the top left to the bottom right.");
+    if ((options.sources ?? 1) !== 1 || (options.drains ?? 1) !== 1) throw new Error("An inlet-outlet board has one pump and one drain.");
+    if (width < 3 || height < 3) throw new Error(`Not an inlet-outlet board size: ${width}×${height}`);
+  }
+  const sources = kind === "inlet-outlet" ? 1 : Math.min(Math.max(1, Math.floor(options.sources ?? 1)), Math.max(1, Math.floor(cells / 6)));
   return {
     width,
     height,
-    kind: options.kind ?? "network",
+    kind,
     wrap,
     sources,
-    drains: Math.max(sources, Math.floor(options.drains ?? Math.round(Math.sqrt(cells) * 0.8))),
-    spares: Math.min(1, Math.max(0, options.spares ?? 0.5)),
+    drains: kind === "inlet-outlet" ? 1 : Math.max(sources, Math.floor(options.drains ?? Math.round(Math.sqrt(cells) * 0.8))),
+    spares: Math.min(1, Math.max(0, options.spares ?? (kind === "inlet-outlet" ? 0.85 : 0.5))),
     bias: options.bias,
     seed: (options.seed ?? 1) >>> 0,
+    locked: Math.max(0, Math.floor(options.locked ?? 0)),
+    walls: Math.max(0, Math.floor(options.walls ?? 0)),
   };
 }
 
@@ -255,6 +305,7 @@ function settingsOf(options: MakeOptions): Settings {
 function planOf(settings: Settings, random: Random): Plan | null {
   const { width, height, kind, wrap, sources, drains: drainCount, spares } = settings;
   const cells = width * height;
+  if (kind === "inlet-outlet") return pathPlanOf(settings, random);
   const bias = settings.bias ?? 0.15 + random() * 0.75;
   const pumps = pickSources(width, height, wrap, sources, random);
   const parent = grow(width, height, wrap, pumps, bias, random);
@@ -277,13 +328,38 @@ function planOf(settings: Settings, random: Random): Plan | null {
     drains = [...chosen];
   }
   const spare = Array.from({ length: cells }, () => (random() < spares ? SPARE_SHAPES[Math.floor(random() * SPARE_SHAPES.length)]! : 0));
-  return { width, height, kind, wrap, parent, sources: pumps, drains, spare };
+  return { width, height, kind, wrap, parent, sources: pumps, drains, spare, locked: new Set(), walls: new Set() };
+}
+
+/**
+ * A plan for an inlet-outlet board: the pump at the top left, the drain at the bottom right, and the way
+ * between them the path a random spanning tree grows from the pump to the drain (long and winding with a high
+ * `bias`). Every other cell is a decoy or bare ground.
+ */
+function pathPlanOf(settings: Settings, random: Random): Plan | null {
+  const { width, height, spares } = settings;
+  const cells = width * height;
+  const bias = settings.bias ?? 0.55 + random() * 0.45;
+  const parent = grow(width, height, false, [0], bias, random);
+  let length = 1;
+  for (let cell = cells - 1; cell !== 0; cell = parent[cell]!) length += 1;
+  // A way that is nearly a straight run is no puzzle: the path takes a good share of the board.
+  if (length < Math.max(width + height + 2, Math.floor(cells * 0.35))) return null;
+  const spare = Array.from({ length: cells }, () => (random() < spares ? DECOYS[Math.floor(random() * DECOYS.length)]! : 0));
+  return { width, height, kind: "inlet-outlet", wrap: false, parent, sources: [0], drains: [cells - 1], spare, locked: new Set(), walls: new Set() };
 }
 
 function madeOf(plan: Plan, random: Random, seed: number, discarded: number): Made {
   const truth = solved(plan);
-  let layout = layoutOf(plan, scramble(truth, random), truth);
-  while (flowOf(layout, layout.cells).solved) layout = layoutOf(plan, scramble(truth, random), truth);
+  /** The plan scrambled once: every piece that is not locked turned a random way. */
+  const scrambled = (): Layout => {
+    const layout = layoutOf(plan, scramble(truth, random), truth);
+    for (const cell of layout.locked ?? []) layout.cells[cell] = truth[cell]!;
+    return layout;
+  };
+  let layout = scrambled();
+  // Locks can leave nothing to turn, in which case a board is never unsolved: it is given up on after a few tries.
+  for (let tries = 0; flowOf(layout, layout.cells).solved && tries < 200; tries += 1) layout = scrambled();
   return { code: encodeLayout(layout), answer: encodeLayout({ ...layout, cells: truth }), layout, solution: truth, seed, discarded };
 }
 
@@ -302,17 +378,104 @@ export function laySuido(options: MakeOptions = {}): Made {
   }
 }
 
+/** The number of the edge on side `side` of `cell`, from the table of neighbours with no walls in it. */
+function edgeId(near: Int32Array, cell: number, side: number): number {
+  const next = near[cell * 4 + side]!;
+  return side === 1 ? cell * 2 : side === 2 ? cell * 2 + 1 : side === 3 ? next * 2 : next * 2 + 1;
+}
+
+/**
+ * The edges of a plan's forest, whether or not the water goes through them now: the ones no wall may be built
+ * on. A wall on an edge the forest does not use stays off every pipe however the pipes are moved later, since
+ * moving one only ever joins cells by an edge that is not walled.
+ */
+function forestEdges(plan: Plan, near: Int32Array): Set<number> {
+  const edges = new Set<number>();
+  for (let cell = 0; cell < plan.parent.length; cell += 1) {
+    const from = plan.parent[cell]!;
+    if (from >= 0) edges.add(edgeId(near, from, sideBetween(near, from, cell)));
+  }
+  return edges;
+}
+
+/** The edges the water runs along in an answer: between two wet pieces that open on each other. */
+function waterEdges(layout: Layout, masks: readonly number[], near: Int32Array): Set<number> {
+  const flow = flowOf(layout, masks);
+  const edges = new Set<number>();
+  for (let cell = 0; cell < masks.length; cell += 1) {
+    if (flow.wet[cell] !== true) continue;
+    for (const side of [1, 2]) {
+      const next = near[cell * 4 + side]!;
+      if (next !== -1 && flow.wet[next] === true && ((masks[cell]! >> side) & 1) === 1 && ((masks[next]! >> opposite(side)) & 1) === 1) edges.add(edgeId(near, cell, side));
+    }
+  }
+  return edges;
+}
+
+/** How many of a plan's locks hold, as the plan stands. */
+function locksHeld(plan: Plan, truth: readonly number[]): number {
+  const fit = new Set(lockable(plan, truth));
+  return [...plan.locked].filter((cell) => fit.has(cell)).length;
+}
+
+/**
+ * Makes a second answer impossible with a wall or a lock instead of moving a pipe, where the settings ask for
+ * either and have some left: a wall across an edge one of the two answers uses and the plan's pipes do not, or
+ * a lock on a piece the two answers face differently. True when it built one.
+ */
+function tighten(plan: Plan, settings: Settings, layout: Layout, one: readonly number[], two: readonly number[], random: Random): boolean {
+  const truth = solved(plan);
+  const bare = bareNear(plan);
+  const first = waterEdges(layout, one, bare);
+  const second = waterEdges(layout, two, bare);
+  const wallEdges = [...first].filter((edge) => !second.has(edge)).concat([...second].filter((edge) => !first.has(edge)));
+  const pipes = forestEdges(plan, bare);
+  const walls = settings.walls > plan.walls.size ? wallEdges.filter((edge) => !pipes.has(edge) && !plan.walls.has(edge)) : [];
+  const fit = new Set(lockable(plan, truth));
+  const locks = settings.locked > locksHeld(plan, truth) ? Array.from({ length: truth.length }, (_, cell) => cell).filter((cell) => one[cell] !== two[cell] && fit.has(cell) && !plan.locked.has(cell)) : [];
+  if (walls.length === 0 && locks.length === 0) return false;
+  if (locks.length === 0 || (walls.length > 0 && random() < 0.5)) plan.walls.add(walls[Math.floor(random() * walls.length)]!);
+  else plan.locked.add(locks[Math.floor(random() * locks.length)]!);
+  return true;
+}
+
+/** The walls and locks the settings asked for that mending did not need: walls beside the pipes, locks on pieces that turn. */
+function furnish(plan: Plan, settings: Settings, random: Random): void {
+  const truth = solved(plan);
+  const bare = bareNear(plan);
+  if (settings.walls > plan.walls.size) {
+    const pipes = forestEdges(plan, bare);
+    const need = used(plan);
+    const options: number[] = [];
+    for (let cell = 0; cell < truth.length; cell += 1) {
+      for (const side of [1, 2]) {
+        const next = bare[cell * 4 + side]!;
+        const edge = edgeId(bare, cell, side);
+        if (next !== -1 && !pipes.has(edge) && !plan.walls.has(edge) && (need[cell] === true || need[next] === true)) options.push(edge);
+      }
+    }
+    for (const edge of shuffled(options, random).slice(0, settings.walls - plan.walls.size)) plan.walls.add(edge);
+  }
+  const held = locksHeld(plan, truth);
+  if (settings.locked > held) {
+    const open = lockable(plan, truth).filter((cell) => !plan.locked.has(cell));
+    for (const cell of shuffled(open, random).slice(0, settings.locked - held)) plan.locked.add(cell);
+  }
+}
+
 /**
  * Makes a board that has exactly one answer. A random forest rarely has one
  * the first time: where the solver finds a second answer, the cells the two
  * answers disagree on are where to look, and a pipe beside one of them is
- * moved (or a spare piece taken off) until it does. A board the solver cannot
- * prove inside its budget is thrown away.
+ * moved (or a spare piece taken off) until it does. Where walls or locks are
+ * asked for, they are what is built first, and any not needed are added at the
+ * end. A board the solver cannot prove inside its budget is thrown away.
  */
 export function makeUnscored(options: MakeOptions = {}): Made {
   const settings = settingsOf(options);
   const cells = settings.width * settings.height;
   const random = seededRandom(settings.seed);
+  const furnished = settings.walls + settings.locked > 0;
   let discarded = 0;
   for (;;) {
     const plan = planOf(settings, random);
@@ -324,16 +487,22 @@ export function makeUnscored(options: MakeOptions = {}): Made {
       const made = madeOf(plan, random, settings.seed, discarded);
       const result = solve(made.layout, 2, 20_000);
       if (!result.complete) break;
-      if (result.count === 1) return made;
+      if (result.count === 1) {
+        if (!furnished) return made;
+        furnish(plan, settings, random);
+        return madeOf(plan, random, settings.seed, discarded);
+      }
+      // No answer at all cannot happen to a plan whose walls and locks fit it, and a plan that somehow has none is thrown away.
+      if (result.count < 2) break;
       // A second answer: find where the two disagree and change the board there.
       const [one, two] = result.solutions as [number[], number[]];
+      let changed = furnished && tighten(plan, settings, made.layout, one, two, random);
       const differ = shuffled(Array.from({ length: cells }, (_, cell) => cell).filter((cell) => one[cell] !== two[cell]), random);
       const need = used(plan);
-      let changed = false;
-      for (const cell of differ) {
+      for (const cell of changed ? [] : differ) {
         if (need[cell] !== true) {
           if (plan.spare[cell] === 0) continue;
-          plan.spare[cell] = 0;
+          plan.spare[cell] = plan.kind === "inlet-outlet" ? BLOCKERS[Math.floor(random() * BLOCKERS.length)]! : 0;
           changed = true;
         } else if (plan.parent[cell]! !== -1) changed = rewire(plan, cell, random);
         if (changed) break;

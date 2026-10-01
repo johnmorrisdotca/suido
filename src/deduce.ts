@@ -1,7 +1,7 @@
 import { neighboursOf, type Layout } from "./code.ts";
-import { bits, drainFacings, HAS, LACKS } from "./facing.ts";
+import { bits, drainFacings, HAS, LACKS, rotationsOfLayout } from "./facing.ts";
 import { flowOf } from "./flow.ts";
-import { opposite, rotationsOf } from "./pieces.ts";
+import { opposite } from "./pieces.ts";
 
 /** What a player can work out without guessing, as a person would: look at every piece, fix what is forced, and look again. */
 export type Deduction = {
@@ -25,14 +25,15 @@ export type Deduction = {
  * through.
  */
 export function deduce(layout: Layout, solution: readonly number[]): Deduction {
-  return layout.kind === "drains" ? deduceDrains(layout, solution) : deduceNetwork(layout);
+  return layout.kind === "network" ? deduceNetwork(layout) : deduceDrains(layout, solution);
 }
 
 function deduceNetwork(layout: Layout): Deduction {
   const count = layout.width * layout.height;
   const near = neighboursOf(layout);
   let dom = new Uint16Array(count);
-  for (let cell = 0; cell < count; cell += 1) for (const mask of rotationsOf(layout.cells[cell]!)) dom[cell]! |= 1 << mask;
+  const rotations = rotationsOfLayout(layout);
+  for (let cell = 0; cell < count; cell += 1) for (const mask of rotations[cell]!) dom[cell]! |= 1 << mask;
   const pieces = layout.cells.filter((mask) => mask !== 0).length;
   const forced = (set: Uint16Array): number => Array.from(set).filter((one, cell) => layout.cells[cell] !== 0 && bits(one) === 1).length;
   let rounds = 0;
@@ -66,7 +67,7 @@ function deduceNetwork(layout: Layout): Deduction {
 function deduceDrains(layout: Layout, solution: readonly number[]): Deduction {
   const count = layout.width * layout.height;
   const near = neighboursOf(layout);
-  const rotations = layout.cells.map(rotationsOf);
+  const rotations = rotationsOfLayout(layout);
   const seed = new Uint8Array(count);
   for (const cell of [...layout.sources, ...layout.drains]) seed[cell] = 1;
   const val = new Int8Array(count).fill(-1);

@@ -8,6 +8,8 @@ export * from "./deduce.ts";
 export * from "./difficulty.ts";
 export { DIFFICULTY_SIDES } from "./difficulty.reference.ts";
 export * from "./generate.ts";
+export * from "./twists.ts";
+export * from "./symmetry.ts";
 export { seededRandom, shuffled } from "./random.ts";
 export type { Random } from "./random.ts";
 export { VERSION } from "./version.ts";

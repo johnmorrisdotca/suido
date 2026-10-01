@@ -6,7 +6,7 @@ import { flowOf, newGame, quartersBetween, shapeOf, turn } from "../dist/index.j
 import { at, boardFor, cell, noSidewaysScroll, open, ready, solveByTapping, state, tap } from "./demo.mjs";
 
 test("a first visit makes the board its address names, with the pieces as the package makes them", async ({ page }) => {
-  const errors = await open(page, "?size=6&seed=7");
+  const errors = await open(page, "?mode=make&size=6x6&seed=7");
   const made = boardFor({ size: 6, seed: 7 });
   const shapes = await page.locator(`${at("board")} .sd-cell`).evaluateAll((cells) => cells.map((one) => one.dataset.shape));
   expect(shapes).toEqual(made.layout.cells.map(shapeOf));
@@ -22,7 +22,7 @@ test("a first visit makes the board its address names, with the pieces as the pa
 });
 
 test("a tap turns a piece a quarter clockwise and the water goes where the pieces now join", async ({ page }) => {
-  await open(page, "?size=7&seed=21");
+  await open(page, "?mode=make&size=7x7&seed=21");
   const made = boardFor({ size: 7, seed: 21 });
   const game = newGame(made.code);
   // Turn a few pieces at once in the page and beside it; the water must be where the package says.
@@ -45,7 +45,7 @@ test("a tap turns a piece a quarter clockwise and the water goes where the piece
 });
 
 test("every piece tapped to face its answer solves the board, and the page says so", async ({ page }) => {
-  await open(page, "?size=6&seed=3");
+  await open(page, "?mode=make&size=6x6&seed=3");
   const made = boardFor({ size: 6, seed: 3 });
   await solveByTapping(page, made);
   const s = await state(page);
@@ -55,7 +55,7 @@ test("every piece tapped to face its answer solves the board, and the page says 
 });
 
 test("a board that reaches the drains is solved with its spare pieces left dry", async ({ page }) => {
-  await open(page, "?size=7&kind=drains&seed=5");
+  await open(page, "?mode=make&size=7x7&kind=drains&seed=5");
   const made = boardFor({ size: 7, kind: "drains", seed: 5 });
   const flow = flowOf(made.layout, made.solution);
   expect(flow.wetPieces).toBeLessThan(made.layout.cells.filter((mask) => mask !== 0).length);
@@ -73,7 +73,7 @@ test("a board that reaches the drains is solved with its spare pieces left dry",
 });
 
 test("a board that wraps, with two pumps, is made as asked and solves", async ({ page }) => {
-  await open(page, "?size=6&wrap=1&sources=2&seed=9");
+  await open(page, "?mode=make&size=6x6&wrap=1&sources=2&seed=9");
   const made = boardFor({ size: 6, wrap: true, sources: 2, seed: 9 });
   expect(made.layout.wrap).toBe(true);
   expect(made.layout.sources).toHaveLength(2);
@@ -84,7 +84,7 @@ test("a board that wraps, with two pumps, is made as asked and solves", async ({
 
 test("shift-click, right-click and the turning button turn a piece the other way", async ({ page }) => {
   test.skip(test.info().project.use.hasTouch === true, "a mouse's buttons and the keyboard's shift");
-  await open(page, "?size=6&seed=7");
+  await open(page, "?mode=make&size=6x6&seed=7");
   const made = boardFor({ size: 6, seed: 7 });
   const index = made.layout.cells.findIndex((mask) => shapeOf(mask) === "elbow");
   await cell(page, index).click({ modifiers: ["Shift"] });
@@ -101,7 +101,7 @@ test("shift-click, right-click and the turning button turn a piece the other way
 });
 
 test("a cross and bare ground cannot be turned, and a tap on one counts nothing", async ({ page }) => {
-  await open(page, "?size=9&seed=4&kind=drains");
+  await open(page, "?mode=make&size=9x9&seed=4&kind=drains");
   const made = boardFor({ size: 9, kind: "drains", seed: 4 });
   const blank = made.layout.cells.findIndex((mask) => mask === 0);
   expect(blank).toBeGreaterThan(-1);
@@ -111,7 +111,7 @@ test("a cross and bare ground cannot be turned, and a tap on one counts nothing"
 
 test("the keyboard moves between pieces with the arrows and turns one with enter", async ({ page }) => {
   test.skip(test.info().project.use.hasTouch === true, "a keyboard");
-  await open(page, "?size=6&seed=7");
+  await open(page, "?mode=make&size=6x6&seed=7");
   const made = boardFor({ size: 6, seed: 7 });
   await cell(page, 0).focus();
   await page.keyboard.press("ArrowRight");
@@ -126,7 +126,7 @@ test("the keyboard moves between pieces with the arrows and turns one with enter
 });
 
 test("start over puts every piece back as the board gave it", async ({ page }) => {
-  await open(page, "?size=6&seed=7");
+  await open(page, "?mode=make&size=6x6&seed=7");
   const made = boardFor({ size: 6, seed: 7 });
   const start = (await state(page)).wet;
   for (let index = 0; index < 12; index += 1) await tap(page, cell(page, index));
@@ -140,7 +140,7 @@ test("start over puts every piece back as the board gave it", async ({ page }) =
 });
 
 test("a hint lights a piece that does not face its answer, and says so", async ({ page }) => {
-  await open(page, "?size=6&seed=7");
+  await open(page, "?mode=make&size=6x6&seed=7");
   const made = boardFor({ size: 6, seed: 7 });
   await tap(page, at("hint"));
   const lit = await page.locator(`${at("board")} .sd-cell[data-hint="true"]`).evaluateAll((cells) => cells.map((one) => Number(one.dataset.cell)));
@@ -151,7 +151,7 @@ test("a hint lights a piece that does not face its answer, and says so", async (
 });
 
 test("new board makes another, names it in the address, and the address makes the same one again", async ({ page }) => {
-  await open(page, "?size=5&seed=2");
+  await open(page, "?mode=make&size=5x5&seed=2");
   const before = page.url();
   await tap(page, at("new"));
   await ready(page);
@@ -166,8 +166,8 @@ test("new board makes another, names it in the address, and the address makes th
 });
 
 test("the size, kind and difficulty chosen make the board that is asked for", async ({ page }) => {
-  await open(page, "?size=5&seed=1");
-  await tap(page, `${at("sizes")} button[data-size="8"]`);
+  await open(page, "?mode=make&size=5x5&seed=1");
+  await tap(page, `${at("sizes")} button[data-size="8x8"]`);
   await ready(page);
   await expect(page.locator(`${at("board")} .sd-cell`)).toHaveCount(64);
   await tap(page, `${at("kinds")} button[data-kind="drains"]`);
@@ -182,7 +182,7 @@ test("the size, kind and difficulty chosen make the board that is asked for", as
 });
 
 test("the timer runs from the first turn to the solve and keeps the best", async ({ page }) => {
-  await open(page, "?size=5&seed=6&timer=1");
+  await open(page, "?mode=make&size=5x5&seed=6&timer=1");
   const made = boardFor({ size: 5, seed: 6 });
   await expect(page.locator(at("timer-toggle"))).toHaveAttribute("aria-pressed", "true");
   await expect(page.locator(at("meter"))).toContainText("0:00");
@@ -191,9 +191,10 @@ test("the timer runs from the first turn to the solve and keeps the best", async
 });
 
 test("nothing on the board can be selected", async ({ page }) => {
-  await open(page, "?size=6&seed=7");
+  await open(page, "?mode=make&size=6x6&seed=7");
   const select = await page.locator(`${at("board")} svg`).evaluate((svg) => getComputedStyle(svg).userSelect || getComputedStyle(svg).webkitUserSelect);
   expect(select).toBe("none");
+  await page.locator(at("board")).scrollIntoViewIfNeeded();
   const box = await page.locator(at("board")).boundingBox();
   await page.mouse.dblclick(box.x + box.width / 2, box.y + box.height / 2);
   await page.mouse.move(box.x + 5, box.y + 5);
@@ -204,12 +205,16 @@ test("nothing on the board can be selected", async ({ page }) => {
 });
 
 test("the page keeps one steady box: nothing moves when the board is played or the words change", async ({ page }) => {
-  await open(page, "?size=7&seed=21");
-  const box = async () => ({ board: await page.locator(at("board")).boundingBox(), status: await page.locator(at("status")).boundingBox(), actions: await page.locator(at("new")).boundingBox() });
+  await open(page, "?mode=make&size=7x7&seed=21");
+  // Measured from the top of the page each time: a tap scrolls a tall page, and a box that moved with it has not moved.
+  const box = async () => {
+    await page.evaluate(() => window.scrollTo(0, 0));
+    return { board: await page.locator(at("board")).boundingBox(), status: await page.locator(at("status")).boundingBox(), actions: await page.locator(at("new")).boundingBox() };
+  };
   const first = await box();
   for (const index of [1, 2, 3, 9, 16, 24]) await tap(page, cell(page, index));
   expect(await box()).toEqual(first);
-  await page.goto("http://suido.test/?size=7&seed=21&lang=ja");
+  await page.goto("http://suido.test/?mode=make&size=7x7&seed=21&lang=ja");
   await ready(page);
   const ja = await box();
   expect(ja.board.y).toBe(first.board.y);
@@ -218,7 +223,7 @@ test("the page keeps one steady box: nothing moves when the board is played or t
 });
 
 test("it reads in Japanese, and says the Japanese has not been reviewed", async ({ page }) => {
-  await open(page, "?size=6&seed=7&lang=ja");
+  await open(page, "?mode=make&size=6x6&seed=7&lang=ja");
   await expect(page.locator(at("status"))).toContainText("個のパイプに水が届いています");
   await expect(page.locator("#unreviewed")).toBeVisible();
   await page.locator('button[data-lang="en"]').click();
@@ -228,7 +233,7 @@ test("it reads in Japanese, and says the Japanese has not been reviewed", async 
 
 test("it fits the width of the screen at every size offered, with no sideways scroll", async ({ page }) => {
   for (const size of [5, 14]) {
-    await open(page, `?size=${size}&seed=1&kind=drains`);
+    await open(page, `?mode=make&size=${size}x${size}&seed=1&kind=drains`);
     await noSidewaysScroll(page);
     const svg = await page.locator(`${at("board")} svg`).boundingBox();
     const viewport = page.viewportSize();

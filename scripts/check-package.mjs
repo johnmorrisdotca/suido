@@ -71,7 +71,8 @@ const all = [${entries.map((_, i) => `m${i}`).join(", ")}];
 const names = ${JSON.stringify(entries)};
 all.forEach((m, i) => { if (Object.keys(m).length === 0) throw new Error(names[i] + " exports nothing"); });
 const { makeSuido, checkSuidoAnswer, decodeLayout, countSolutions, flowOf, VERSION } = m0;
-const { drawSuido } = m1;
+const { drawSuido, drawSuidoThumb } = m1;
+const { loadSuidoLevels, levelAnswer, levelBoard, SUIDO_SIZES, SUIDO_LEVEL_COUNTS, suidoMarks } = m2;
 const made = makeSuido({ size: 6, seed: 12 });
 if (made.code !== ${JSON.stringify(board.code)}) throw new Error("seed 12 made " + made.code);
 if (!checkSuidoAnswer(made.code, made.answer).ok) throw new Error("the answer does not check");
@@ -81,6 +82,18 @@ if (countSolutions(layout, 2) !== 1) throw new Error("the board does not have ex
 if (!flowOf(layout, made.solution).solved) throw new Error("the answer is not solved");
 if (!drawSuido(layout, { masks: made.solution }).startsWith("<svg")) throw new Error("the board is not drawn");
 if (VERSION !== ${JSON.stringify(pkg.version)}) throw new Error("VERSION is " + VERSION);
+// The levels, as a site would use them: each size loaded on its own, a level checked, drawn, and the size's own entry read.
+if (!drawSuidoThumb(layout).startsWith("<svg")) throw new Error("the small board is not drawn");
+for (const size of SUIDO_SIZES) {
+  const rows = await loadSuidoLevels(size);
+  if (rows.length !== SUIDO_LEVEL_COUNTS[size]) throw new Error(size + " has " + rows.length + " levels");
+}
+const rows = await loadSuidoLevels("8x8");
+if (!checkSuidoAnswer(rows[11][0], levelAnswer(rows[11])).ok) throw new Error("level 12 of 8x8 does not check");
+if (countSolutions(levelBoard(rows[11]), 2) !== 1) throw new Error("level 12 of 8x8 does not have exactly one answer");
+if (suidoMarks("8x8", 12) !== 1) throw new Error("level 12 of 8x8 is not marked 1");
+const direct = (await import(names.find((name) => name.endsWith("levels-8x8")))).SUIDO_8X8;
+if (direct[11][0] !== rows[11][0]) throw new Error("levels-8x8 is not the 8x8 levels");
 console.log(names.join(" "));
 `,
 );

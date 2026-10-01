@@ -27,8 +27,10 @@ function referenceOf(side: number, kind: Kind, wrap: boolean): Reference {
 
 const sets: Record<string, Reference> = {};
 for (const side of only === null ? SIDES : [only]) {
-  for (const kind of ["network", "drains"] as const) {
+  for (const kind of ["network", "drains", "inlet-outlet"] as const) {
     for (const wrap of [false, true]) {
+      // An inlet-outlet board does not wrap: its water runs from the top left to the bottom right.
+      if (kind === "inlet-outlet" && wrap) continue;
       const started = Date.now();
       sets[referenceKey(side, kind, wrap)] = referenceOf(side, kind, wrap);
       console.log(`${referenceKey(side, kind, wrap).padEnd(5)} ${side}×${side} ${kind}${wrap ? " wrap" : ""}: ${boards} boards in ${Math.round((Date.now() - started) / 1000)} s`);

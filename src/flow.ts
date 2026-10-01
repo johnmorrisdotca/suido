@@ -1,5 +1,5 @@
 import { neighboursOf, type Layout } from "./code.ts";
-import { opposite } from "./pieces.ts";
+import { armsOf, opposite } from "./pieces.ts";
 
 /** Where the water is on a board as it is turned: the whole picture, from the pump outwards. */
 export type Flow = {
@@ -21,7 +21,7 @@ export type Flow = {
   /** How many drains the board has, and how many are wet. */
   drains: number;
   wetDrains: number;
-  /** Whether the board is solved: the water reaches what its kind asks, and nothing runs out. */
+  /** Whether the board is solved: the water reaches what its kind asks, and nothing runs out (and on an inlet-outlet board, it runs in one path). */
   solved: boolean;
 };
 
@@ -66,8 +66,10 @@ export function flowOf(layout: Layout, masks: readonly number[] = layout.cells):
   const pieces = masks.filter((mask) => mask !== 0).length;
   const wetPieces = order.length;
   const wetDrains = layout.drains.filter((cell) => wet[cell] === true).length;
-  const reached = layout.kind === "drains" ? wetDrains === layout.drains.length : wetPieces === pieces;
-  return { wet, from, entry, depth, spills, order, pieces, wetPieces, drains: layout.drains.length, wetDrains, solved: reached && spills.length === 0 };
+  const reached = layout.kind === "network" ? wetPieces === pieces : wetDrains === layout.drains.length;
+  // One path, not a tree: on an inlet-outlet board no wet piece opens on more than two sides.
+  const branched = layout.kind === "inlet-outlet" && order.some((cell) => armsOf(masks[cell]!) > 2);
+  return { wet, from, entry, depth, spills, order, pieces, wetPieces, drains: layout.drains.length, wetDrains, solved: reached && spills.length === 0 && !branched };
 }
 
 /** Whether a board facing as `masks` say is solved. */

@@ -56,6 +56,8 @@ export type MeasureName = "obscure" | "rounds" | "unsettled" | "guessing" | "spa
 export const DIFFICULTY_WEIGHTS: Record<Kind, Record<MeasureName, number>> = {
   network: { obscure: 0.25, rounds: 0.3, unsettled: 0.2, guessing: 0.25, spares: 0 },
   drains: { obscure: 0.2, rounds: 0.25, unsettled: 0.15, guessing: 0.2, spares: 0.2 },
+  // Spares are the decoys of an inlet-outlet board, so it is measured as a drains board is.
+  "inlet-outlet": { obscure: 0.2, rounds: 0.25, unsettled: 0.15, guessing: 0.2, spares: 0.2 },
 };
 
 /** The measures, in the order the reference lists them. */
@@ -69,7 +71,7 @@ export function measureSuido(layout: Layout, solution: readonly number[]): Measu
   const flow = flowOf(layout, solution);
   const found = solve(layout, 2);
   const looked = deduce(layout, solution);
-  const spare = layout.kind === "drains" ? layout.cells.filter((mask) => mask !== 0).length - flow.wetPieces : 0;
+  const spare = layout.kind !== "network" ? layout.cells.filter((mask) => mask !== 0).length - flow.wetPieces : 0;
   const pieces = Math.max(1, looked.pieces);
   return {
     kind: layout.kind,
@@ -79,7 +81,7 @@ export function measureSuido(layout: Layout, solution: readonly number[]): Measu
     rounds: looked.rounds,
     unsettled: 1 - looked.settled / pieces,
     guessing: found.branches === 0 ? 0 : found.branches * 1_000_000 + found.nodes,
-    spares: layout.kind === "drains" ? spare / Math.max(1, layout.cells.filter((mask) => mask !== 0).length) : 0,
+    spares: layout.kind !== "network" ? spare / Math.max(1, layout.cells.filter((mask) => mask !== 0).length) : 0,
   };
 }
 
@@ -101,20 +103,27 @@ export function blendOf(measure: Measure, reference: Reference): number {
   return MEASURE_NAMES.reduce((sum, name) => sum + weights[name] * percentileIn(reference[name], measure[name]), 0);
 }
 
+/** The score of a measure against a reference set before it is rounded, from 1 to 100: what boards are put in order by, so that two boards of one whole score still have an order. */
+export function exactScoreOf(measure: Measure, reference: Reference): number {
+  return 1 + 99 * percentileIn(reference.blend, blendOf(measure, reference));
+}
+
 /** The score of a measure against a reference set: 1 (the plainest of its size) to 100. */
 export function scoreOf(measure: Measure, reference: Reference): number {
-  return Math.min(100, Math.max(1, Math.round(1 + 99 * percentileIn(reference.blend, blendOf(measure, reference)))));
+  return Math.min(100, Math.max(1, Math.round(exactScoreOf(measure, reference))));
 }
 
 /** The key a reference set is kept under. */
 export function referenceKey(side: number, kind: Kind, wrap: boolean): string {
-  return `${side}${kind === "drains" ? "d" : ""}${wrap ? "w" : ""}`;
+  return `${side}${kind === "network" ? "" : kind === "drains" ? "d" : "i"}${wrap ? "w" : ""}`;
 }
 
 /**
  * The reference set a board is scored against: that of the board's side (the
  * square root of its cells, to the nearest size there is a set for), kind and
- * wrap. A board of a size no set was made for is scored among the nearest.
+ * wrap. A board of a size no set was made for is scored among the nearest. A
+ * board's walls and locked pieces are not part of its set: they make it easier
+ * than the boards of its set, and its score says so.
  */
 export function referenceFor(layout: Pick<Layout, "width" | "height" | "kind" | "wrap">): Reference {
   const side = Math.sqrt(layout.width * layout.height);
@@ -125,6 +134,11 @@ export function referenceFor(layout: Pick<Layout, "width" | "height" | "kind" | 
 /** How hard a board is, 1 to 100 among boards of its size, from the board as given and one of its answers. */
 export function difficultyOf(layout: Layout, solution: readonly number[]): number {
   return scoreOf(measureSuido(layout, solution), referenceFor(layout));
+}
+
+/** The same before it is rounded to a whole number, from 1 to 100: the order boards are put in. */
+export function exactDifficultyOf(layout: Layout, solution: readonly number[]): number {
+  return exactScoreOf(measureSuido(layout, solution), referenceFor(layout));
 }
 
 /** Quantiles of a list of numbers, at `points` even steps from least to greatest, for a reference set. */

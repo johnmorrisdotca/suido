@@ -12,8 +12,10 @@
  * It runs backwards, quickly, when a pipe is broken. With reduced motion asked
  * for, it all happens at once.
  *
- * Every colour is a custom property on `.suido` (`--sd-ground`, `--sd-edge`,
- * `--sd-pipe`, `--sd-water`, `--sd-source`, `--sd-bowl`, `--sd-leak`, ...), so a
+ * Walls are bars across the edges they are on (`--sd-wall`) and a locked piece
+ * has a frame and a padlock (`--sd-lock`). Every colour is a custom property on
+ * `.suido` (`--sd-ground`, `--sd-edge`, `--sd-pipe`, `--sd-water`, `--sd-source`,
+ * `--sd-bowl`, `--sd-leak`, ...), so a
  * page's own style needs only to set the ones it wants different.
  */
 export const SUIDO_STYLE = `
@@ -21,6 +23,7 @@ export const SUIDO_STYLE = `
   --sd-step: 80ms;
   --sd-line: #d9d1bf; --sd-ground: #fbf8f1; --sd-edge: #3b4148; --sd-pipe: #aeb7c0; --sd-water: #1b8fe3;
   --sd-source: #1b5fa6; --sd-bowl: #3b6a7e; --sd-leak: #e04a2f; --sd-focus: #b5452c; --sd-hint: #f6dc8a; --sd-solved: #e8f3ec;
+  --sd-wall: #7a4f2c; --sd-lock: #8a6a2e;
   display: block; width: 100%; height: auto;
   user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; touch-action: manipulation; -webkit-tap-highlight-color: transparent;
   overflow: visible;
@@ -29,18 +32,24 @@ export const SUIDO_STYLE = `
   :root:not([data-theme="light"]) .suido {
     --sd-line: #171a18; --sd-ground: #262a27; --sd-edge: #0c0f11; --sd-pipe: #838c95; --sd-water: #4db6ff;
     --sd-source: #2f7fcf; --sd-bowl: #6aa4bd; --sd-leak: #ff6a4d; --sd-focus: #ffb199; --sd-hint: #5a4a1a; --sd-solved: #20332a;
+    --sd-wall: #c99a64; --sd-lock: #d9b565;
   }
 }
 :root[data-theme="dark"] .suido {
   --sd-line: #171a18; --sd-ground: #262a27; --sd-edge: #0c0f11; --sd-pipe: #838c95; --sd-water: #4db6ff;
   --sd-source: #2f7fcf; --sd-bowl: #6aa4bd; --sd-leak: #ff6a4d; --sd-focus: #ffb199; --sd-hint: #5a4a1a; --sd-solved: #20332a;
+  --sd-wall: #c99a64; --sd-lock: #d9b565;
 }
 .suido * { user-select: none; -webkit-user-select: none; }
 .suido .sd-board { fill: var(--sd-line); }
 .suido .sd-rim { fill: none; stroke: var(--sd-leak); stroke-width: 3; stroke-dasharray: 10 8; opacity: .55; pointer-events: none; }
 .suido .sd-cell { outline: none; cursor: pointer; --sd-half: calc(var(--sd-step) / 2); --sd-lead: calc(var(--sd-step) / 2); --sd-arrive: calc(var(--k, 0) * var(--sd-step)); }
 .suido .sd-cell[data-role="source"] { --sd-lead: 0ms; }
-.suido .sd-cell[data-shape="blank"] { cursor: default; }
+.suido .sd-cell[data-shape="blank"], .suido .sd-cell[data-locked="true"] { cursor: default; }
+.suido .sd-lockframe { fill: none; stroke: var(--sd-lock); stroke-width: 3; opacity: .75; pointer-events: none; }
+.suido .sd-shackle { fill: none; stroke: var(--sd-lock); stroke-width: 3.5; stroke-linecap: round; }
+.suido .sd-lockbody { fill: var(--sd-lock); }
+.suido .sd-wall { fill: var(--sd-wall); stroke: var(--sd-edge); stroke-width: 1.5; pointer-events: none; }
 .suido .sd-ground { fill: var(--sd-ground); stroke: none; transition: fill .2s; }
 .suido[data-solved="true"] .sd-ground { fill: var(--sd-solved); }
 .suido .sd-cell[data-hint="true"] .sd-ground { fill: var(--sd-hint); }
@@ -55,6 +64,7 @@ export const SUIDO_STYLE = `
 .suido .sd-arm[data-w="in"] .sd-in { stroke-dashoffset: 0; transition: stroke-dashoffset var(--sd-half) linear var(--sd-arrive); }
 .suido .sd-arm[data-w="out"] .sd-out, .suido .sd-arm[data-w="leak"] .sd-out { stroke-dashoffset: 0; transition: stroke-dashoffset var(--sd-half) linear calc(var(--sd-arrive) + var(--sd-lead)); }
 .suido .sd-cell[data-role="source"] .sd-arm[data-w="out"] .sd-out, .suido .sd-cell[data-role="source"] .sd-arm[data-w="leak"] .sd-out { transition-duration: var(--sd-step); }
+.suido .sd-thumbwater { fill: none; stroke: var(--sd-water); stroke-width: 14; stroke-linecap: butt; }
 .suido .sd-hubwater { fill: var(--sd-water); opacity: 0; transition: opacity .12s; }
 .suido .sd-cell[data-wet="true"] .sd-hubwater { opacity: 1; transition: opacity calc(var(--sd-half) / 2) linear calc(var(--sd-arrive) + var(--sd-lead)); }
 .suido .sd-leak { opacity: 0; transition: opacity .12s; }

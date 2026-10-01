@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 
 import { expect, test } from "@playwright/test";
 
-import { makeSuido, newGame, quartersBetween } from "../dist/index.js";
+import { flowOf, makeSuido, newGame, quartersBetween } from "../dist/index.js";
 
 const site = join(dirname(fileURLToPath(import.meta.url)), "..", "site");
 const TYPES = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".json": "application/json", ".svg": "image/svg+xml" };
@@ -85,4 +85,24 @@ export async function solveByTapping(page, made) {
 export async function noSidewaysScroll(page) {
   const [scroll, client] = await page.evaluate(() => [document.documentElement.scrollWidth, document.documentElement.clientWidth]);
   expect(scroll).toBeLessThanOrEqual(client);
+}
+
+/** The level a size has at a number, as the package has it: its board, its answer, its twists. */
+export async function levelFor(size, level) {
+  const { declaredTwists, levelBoard, levelSolution, loadSuidoLevels } = await import("../dist/levels.js");
+  const rows = await loadSuidoLevels(size);
+  const row = rows[level - 1];
+  return { code: row[0], solution: levelSolution(row), layout: levelBoard(row), twists: declaredTwists(row), rows };
+}
+
+/** Tap every piece the water goes through until it faces as the answer says, a quarter turn clockwise at a time. */
+export async function solveLevel(page, made) {
+  const game = newGame(made.code);
+  const answer = flowOf(game.start, made.solution);
+  for (let index = 0; index < game.masks.length; index += 1) {
+    if (!answer.wet[index] && game.start.kind !== "network") continue;
+    const need = quartersBetween(game.masks[index], made.solution[index]) ?? 0;
+    for (let n = 0; n < need; n += 1) await tap(page, cell(page, index));
+  }
+  await expect(page.locator(`${at("board")} svg`)).toHaveAttribute("data-solved", "true");
 }

@@ -27,7 +27,8 @@ describe("the documents", () => {
     const api = readme.slice(readme.indexOf("## API"), readme.indexOf("## ", readme.indexOf("## API") + 5));
     const main = await import("./index.ts");
     const draw = await import("./draw-entry.ts");
-    const functions = [...Object.entries({ ...main, ...draw })].filter(([name, value]) => typeof value === "function" && /^[a-z]/.test(name)).map(([name]) => name);
+    const levels = await import("./levels.ts");
+    const functions = [...Object.entries({ ...main, ...draw, ...levels })].filter(([name, value]) => typeof value === "function" && /^[a-z]/.test(name)).map(([name]) => name);
     for (const name of functions) expect(api, name).toContain(name);
   });
 
