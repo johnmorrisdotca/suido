@@ -8,6 +8,9 @@ import { action, at, cell, levelFor, noSidewaysScroll, open, ready, sdp, solveLe
 
 const chips = (page) => page.locator(`${sdp("chips")} li`).evaluateAll((items) => items.map((item) => item.dataset.twist));
 
+// Some tests tap every piece of a board one by one, and a slow runner is slowest at that in WebKit: room beyond the default 30 seconds.
+test.setTimeout(90_000);
+
 test("a first visit opens level 1 of 7×7, a plain board as the package has it, with its marks and a Plain chip", async ({ page }) => {
   const errors = await open(page, "");
   const made = await levelFor("7x7", 1);

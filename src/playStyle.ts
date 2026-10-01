@@ -42,5 +42,7 @@ export const SUIDO_PLAY_STYLE = `${SUIDO_STYLE}
 }
 @media (max-width: 520px) {
   .suido-play .sdp-status { height: 4.4em; }
+  /* Three buttons can take one row or two, by the width of a font and a language: room for two, so nothing below moves. */
+  .suido-play .sdp-controls { min-height: 5.9rem; align-content: flex-start; }
 }
 `;

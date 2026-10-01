@@ -5,6 +5,9 @@ import { expect, test } from "@playwright/test";
 import { flowOf, newGame, quartersBetween, shapeOf, turn } from "../dist/index.js";
 import { action, at, boardFor, cell, noSidewaysScroll, open, ready, sdp, solveByTapping, state, tap } from "./demo.mjs";
 
+// Some tests tap every piece of a board one by one, and a slow runner is slowest at that in WebKit: room beyond the default 30 seconds.
+test.setTimeout(90_000);
+
 test("a first visit makes the board its address names, with the pieces as the package makes them", async ({ page }) => {
   const errors = await open(page, "?mode=make&size=6x6&seed=7");
   const made = boardFor({ size: 6, seed: 7 });
