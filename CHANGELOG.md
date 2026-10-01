@@ -7,6 +7,12 @@ board and its answer, and a seed makes the board it always made.
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-10-01
+
+### Changed
+
+- **Needs Node 22 or later; Node 20 is no longer supported.** Nothing else changed.
+
 ## [1.2.0] - 2026-10-01
 
 Nothing that was exported has changed: every export, every level, every board
@@ -138,7 +144,8 @@ drawing, and a demo to play.
 - A demo in English and Japanese, with the family's cloth patches, a hint, a
   timer, and keyboard play.
 
-[Unreleased]: https://github.com/johnmorrisdotca/suido/compare/v1.2.0...HEAD
+[Unreleased]: https://github.com/johnmorrisdotca/suido/compare/v1.3.0...HEAD
+[1.3.0]: https://github.com/johnmorrisdotca/suido/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/johnmorrisdotca/suido/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/johnmorrisdotca/suido/compare/03866cf...v1.1.0
 [1.0.0]: https://github.com/johnmorrisdotca/suido/commit/03866cf
