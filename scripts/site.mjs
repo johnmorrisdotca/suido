@@ -52,25 +52,25 @@ const page = `<!doctype html>
           ${button(`class="fam-button" id="direction" data-testid="direction" aria-pressed="false"`)}
           ${button(`class="fam-button" id="timer-toggle" data-testid="timer-toggle" data-say="timer" aria-pressed="false"`)}
         </div>
-        <div class="setup fam-row">
+        <div class="setup fam-row" data-help-en="How big the board is. Choosing a size makes a new board." data-help-ja="盤の大きさです。選ぶと新しい盤を作ります。">
           <span class="fam-label" data-say="size"></span>
           <div class="fam-seg" role="group" data-say-label="size" id="sizes" data-testid="sizes"></div>
         </div>
-        <div class="setup fam-row">
+        <div class="setup fam-row" data-help-en="Whole network: every piece must carry water. Reach the drains: only the drains must be reached. Choosing makes a new board." data-help-ja="「全部つなぐ」はすべての駒に水を通します。「排水口まで」は排水口に水が届けばよいルールです。選ぶと新しい盤を作ります。">
           <span class="fam-label" data-say="kind"></span>
           <div class="fam-seg" role="group" data-say-label="kind" id="kinds" data-testid="kinds">
             ${button(`data-kind="network" data-say="kindNetwork"`)}${button(`data-kind="drains" data-say="kindDrains"`)}
           </div>
         </div>
         <p class="kind-note" id="kind-note" aria-live="polite"></p>
-        <div class="setup fam-row">
+        <div class="setup fam-row" data-help-en="Edges join lets water leave one edge and come back on the opposite one. The droplets set one, two or three pumps. Choosing makes a new board." data-help-ja="「端がつながる」は、水が盤の端から出て反対側の端から戻るようにします。しずくの数でポンプを1〜3つにします。選ぶと新しい盤を作ります。">
           <span class="fam-label" data-say="options"></span>
           ${button(`class="fam-button" id="wrap" data-testid="wrap" data-say="wrap" aria-pressed="false"`)}
           <div class="fam-seg" role="group" data-say-label="sources" id="sources" data-testid="sources">
             ${[1, 2, 3].map((count) => button(`data-sources="${count}" data-say-label="pumps${count}"`, `${count}${DROPLET}`)).join("")}
           </div>
         </div>
-        <div class="setup fam-row">
+        <div class="setup fam-row" data-help-en="Slide for an easier or a harder board. A new board is made when you let go." data-help-ja="スライダーで、やさしい盤か難しい盤かを選びます。手を離すと新しい盤を作ります。">
           <span class="fam-label" data-say="difficulty"></span>
           <input type="range" id="difficulty" data-testid="difficulty" min="1" max="100" value="50" data-say-label="difficulty" />
           <span class="fam-chip" id="difficulty-value" data-testid="difficulty-value" data-lit="true"></span>
