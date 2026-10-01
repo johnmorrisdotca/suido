@@ -1,7 +1,7 @@
 {
   "name": "@johnmorrisdotca/suido",
-  "version": "1.1.0",
-  "description": "Suido, a pipe puzzle for JavaScript and TypeScript: turn the pieces until the water from the pump reaches every drain, with no pipe left open. 3,328 fixed levels from easy to hard, in 5×5 to 14×14 and three long pipe shapes, each with exactly one answer and its twists declared (drains, pumps, locked pieces, walls, wrap-around edges, inlet to outlet). Boards as short codes, a solver that counts answers, a seeded generator whose every board has exactly one, a difficulty from 1 to 100 within each size, and the water drawn as SVG that flows as the pipes join. Zero dependencies.",
+  "version": "1.2.0",
+  "description": "Suido, a pipe puzzle for JavaScript and TypeScript: turn the pieces until the water from the pump reaches every drain, with no pipe left open. 3,328 fixed levels from easy to hard, in 5×5 to 14×14 and three long pipe shapes, each with exactly one answer and its twists declared (drains, pumps, locked pieces, walls, wrap-around edges, inlet to outlet). Boards as short codes, a solver that counts answers, a seeded generator whose every board has exactly one, a difficulty from 1 to 100 within each size, and the water drawn as SVG that flows as the pipes join, played by tap, mouse and keyboard in any page as a function call or a tag. Zero dependencies.",
   "keywords": [
     "puzzle",
     "pipe-puzzle",
@@ -24,9 +24,11 @@
     "levels",
     "walls",
     "locked-pieces",
-    "inlet-outlet"
+    "inlet-outlet",
+    "custom-element",
+    "web-component"
   ],
-  "homepage": "https://github.com/johnmorrisdotca/suido#readme",
+  "homepage": "https://johnmorrisdotca.github.io/suido/",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/johnmorrisdotca/suido.git"
@@ -37,7 +39,9 @@
   "author": "John Morris",
   "license": "MIT",
   "type": "module",
-  "sideEffects": false,
+  "sideEffects": [
+    "./dist/element-define.js"
+  ],
   "main": "./dist/index.js",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -51,6 +55,21 @@
       "types": "./dist/draw-entry.d.ts",
       "import": "./dist/draw-entry.js",
       "default": "./dist/draw-entry.js"
+    },
+    "./play": {
+      "types": "./dist/play-entry.d.ts",
+      "import": "./dist/play-entry.js",
+      "default": "./dist/play-entry.js"
+    },
+    "./element": {
+      "types": "./dist/element.d.ts",
+      "import": "./dist/element.js",
+      "default": "./dist/element.js"
+    },
+    "./element/define": {
+      "types": "./dist/element-define.d.ts",
+      "import": "./dist/element-define.js",
+      "default": "./dist/element-define.js"
     },
     "./levels": {
       "types": "./dist/levels.d.ts",
@@ -147,7 +166,9 @@
     "check": "pnpm lint && pnpm typecheck && pnpm test",
     "prepublishOnly": "pnpm check && pnpm build",
     "site": "pnpm build && node scripts/site.mjs",
-    "pictures": "pnpm site && node e2e/shots.mjs docs readme"
+    "pictures": "pnpm site && node e2e/shots.mjs docs readme",
+    "docs:make": "node scripts/docs.mjs",
+    "test:frameworks": "pnpm build && node scripts/check-frameworks.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^9.0.0",

@@ -3,7 +3,7 @@
 import { expect, test } from "@playwright/test";
 
 import { flowOf, newGame, quartersBetween, turn } from "../dist/index.js";
-import { at, boardFor, cell, open, state, tap } from "./demo.mjs";
+import { at, boardFor, cell, open, sdp, state, tap } from "./demo.mjs";
 
 test.use({ reducedMotion: "no-preference" });
 
@@ -66,7 +66,7 @@ test("a pipe turned away from the water empties, and the pipes beyond it with it
   expect(s.wet).toEqual(broken.wet);
   expect(s.wet.filter(Boolean).length).toBeLessThan(solved.wetPieces);
   expect(s.solved).toBe(false);
-  await expect(page.locator(at("status"))).toContainText("open end");
+  await expect(page.locator(sdp("status"))).toContainText("open end");
   // The pipe the water left is empty again once its transition has run.
   await page.waitForTimeout(500);
   const emptied = await page.evaluate((index) => [...document.querySelectorAll(`.sd-cell[data-cell="${index}"] .sd-in, .sd-cell[data-cell="${index}"] .sd-out`)].every((path) => parseFloat(getComputedStyle(path).strokeDashoffset) === 1), near);

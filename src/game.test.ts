@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { checkSuidoAnswer } from "./check.ts";
-import { canTurn, flowOfGame, gameCode, hintFor, isGameSolved, newGame, tapsToAnswer, turnAt } from "./game.ts";
+import { canTurn, flowOfGame, gameCode, gameFromProgress, gameProgress, hintFor, isGameSolved, newGame, tapsToAnswer, turnAt } from "./game.ts";
 import { makeUnscored } from "./generate.ts";
 import { quartersBetween, shapeOf, turn } from "./pieces.ts";
 
@@ -89,5 +89,26 @@ describe("a game", () => {
       now = turnAt(now, cell);
       for (let n = quartersBetween(now.masks[cell]!, board.solution[cell]!)!; n > 0; n -= 1) now = turnAt(now, cell);
     }
+  });
+});
+
+describe("a game kept half played", () => {
+  it("comes back as it was left, turns and all, from its short string", () => {
+    const made = makeUnscored({ size: 6, seed: 3 });
+    let game = newGame(made.code)!;
+    for (const cell of [0, 7, 7, 14, 21]) game = turnAt(game, cell);
+    const kept = gameProgress(game);
+    expect(kept).toMatch(/^[0-3]{36}:\d+$/);
+    const back = gameFromProgress(made.code, kept)!;
+    expect(back.masks).toEqual(game.masks);
+    expect(back.turns).toBe(game.turns);
+    expect(gameCode(back)).toBe(gameCode(game));
+  });
+
+  it("is refused for a progress that is not that board's", () => {
+    const made = makeUnscored({ size: 6, seed: 3 });
+    expect(gameFromProgress(made.code, "0123:4")).toBeNull();
+    expect(gameFromProgress(made.code, "nonsense")).toBeNull();
+    expect(gameFromProgress("not a board", "0:0")).toBeNull();
   });
 });

@@ -42,6 +42,10 @@ export async function ready(page) {
 }
 
 export const at = (id) => `[data-testid="${id}"]`;
+/** A part of the mounted board's own words: its status, its meter, its note, its chips. */
+export const sdp = (name) => `[data-testid="board"] .sdp-${name}`;
+/** One of the mounted board's own buttons: restart, hint, turning. */
+export const action = (name) => `[data-testid="board"] [data-action="${name}"]`;
 export const cell = (page, index) => page.locator(`${at("board")} .sd-cell[data-cell="${index}"]`);
 
 /** Tap, as a finger would where the page is touched and as a mouse where it is not. */
@@ -65,8 +69,8 @@ export async function state(page) {
       solved: svg.getAttribute("data-solved") === "true",
       wet: [...svg.querySelectorAll(".sd-cell")].map((cell) => cell.getAttribute("data-wet") === "true"),
       quarters: [...svg.querySelectorAll(".sd-cell")].map((cell) => Number(cell.querySelector(".sd-turn").style.getPropertyValue("--q"))),
-      status: document.querySelector('[data-testid="status"]').textContent,
-      meter: document.querySelector('[data-testid="meter"]').textContent,
+      status: document.querySelector('[data-testid="board"] .sdp-status').textContent,
+      meter: document.querySelector('[data-testid="board"] .sdp-meter').textContent,
     };
   });
 }
@@ -105,4 +109,18 @@ export async function solveLevel(page, made) {
     for (let n = 0; n < need; n += 1) await tap(page, cell(page, index));
   }
   await expect(page.locator(`${at("board")} svg`)).toHaveAttribute("data-solved", "true");
+}
+
+/** A page holding only what is given, with the element defined from the built package. */
+export async function bare(page, html, { lang = "en" } = {}) {
+  const errors = [];
+  page.on("pageerror", (error) => errors.push(String(error)));
+  page.on("console", (message) => message.type() === "error" && errors.push(message.text()));
+  await serve(page);
+  await page.route("http://suido.test/bare.html", (route) =>
+    route.fulfill({ contentType: "text/html", body: `<!doctype html><html lang="${lang}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><style>body{margin:12px;background:#2f5d4a;color:#fff;font-family:system-ui}</style></head><body>${html}<script type="module">import "./dist/element-define.js";</script></body></html>` }),
+  );
+  await page.goto("http://suido.test/bare.html");
+  await page.waitForFunction(() => customElements.get("suido-board") !== undefined);
+  return errors;
 }

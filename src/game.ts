@@ -94,3 +94,20 @@ export function hintFor(game: Game, answer: readonly number[]): number | null {
   }
   return null;
 }
+
+/**
+ * A game half played, as a short string to keep: one digit for each piece (the quarter turns clockwise it has had
+ * from the way the board gave it, 0 to 3), a colon, and the number of taps made. `gameFromProgress` brings it back.
+ */
+export function gameProgress(game: Game): string {
+  return `${game.quarters.map((quarters) => ((quarters % 4) + 4) % 4).join("")}:${game.turns}`;
+}
+
+/** The game a board's code and a kept `gameProgress` make, or null when the code is not a board or the progress is not one of that board's. */
+export function gameFromProgress(code: string, progress: string): Game | null {
+  const game = newGame(code);
+  const match = /^([0-3]*):(\d+)$/.exec(progress);
+  if (game === null || match === null || match[1]!.length !== game.masks.length) return null;
+  const quarters = [...match[1]!].map(Number);
+  return { ...game, masks: game.masks.map((mask, cell) => turn(mask, quarters[cell])), quarters, turns: Number(match[2]) };
+}

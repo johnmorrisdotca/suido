@@ -69,10 +69,17 @@ writeFileSync(
   `${entries.map((entry, i) => `import * as m${i} from ${JSON.stringify(entry)};`).join("\n")}
 const all = [${entries.map((_, i) => `m${i}`).join(", ")}];
 const names = ${JSON.stringify(entries)};
-all.forEach((m, i) => { if (Object.keys(m).length === 0) throw new Error(names[i] + " exports nothing"); });
+// An entry that only defines the tag on a page (the /define one) exports nothing, and is imported for its effect.
+all.forEach((m, i) => { if (Object.keys(m).length === 0 && !names[i].endsWith("/define")) throw new Error(names[i] + " exports nothing"); });
 const { makeSuido, checkSuidoAnswer, decodeLayout, countSolutions, flowOf, VERSION } = m0;
 const { drawSuido, drawSuidoThumb } = m1;
-const { loadSuidoLevels, levelAnswer, levelBoard, SUIDO_SIZES, SUIDO_LEVEL_COUNTS, suidoMarks } = m2;
+const { loadSuidoLevels, levelAnswer, levelBoard, SUIDO_SIZES, SUIDO_LEVEL_COUNTS, suidoMarks, dailySuidoLevel } = all[names.indexOf(${JSON.stringify(`${pkg.name}/levels`)})];
+const { mountSuido, suidoSay } = all[names.indexOf(${JSON.stringify(`${pkg.name}/play`)})];
+if (typeof mountSuido !== "function" || suidoSay("ja", "restart") !== "最初から") throw new Error("the play entry is not what it should be");
+const { SuidoBoard } = all[names.indexOf(${JSON.stringify(`${pkg.name}/element`)})];
+if (!SuidoBoard.observedAttributes.includes("level")) throw new Error("the element does not read a level");
+const today = dailySuidoLevel("8x8", "2026-10-01");
+if (!Number.isInteger(today) || today < 1 || today > SUIDO_LEVEL_COUNTS["8x8"]) throw new Error("the level of the day is " + today);
 const made = makeSuido({ size: 6, seed: 12 });
 if (made.code !== ${JSON.stringify(board.code)}) throw new Error("seed 12 made " + made.code);
 if (!checkSuidoAnswer(made.code, made.answer).ok) throw new Error("the answer does not check");
@@ -100,7 +107,7 @@ console.log(names.join(" "));
 writeFileSync(
   join(project, "cjs.cjs"),
   `const names = ${JSON.stringify(entries)};
-for (const name of names) { const m = require(name); if (Object.keys(m).length === 0) throw new Error(name + " exports nothing"); }
+for (const name of names) { const m = require(name); if (Object.keys(m).length === 0 && !name.endsWith("/define")) throw new Error(name + " exports nothing"); }
 const { makeSuido, checkSuidoAnswer } = require(${JSON.stringify(pkg.name)});
 const made = makeSuido({ size: 6, seed: 12 });
 if (!checkSuidoAnswer(made.code, made.answer).ok) throw new Error("the answer does not check by require");

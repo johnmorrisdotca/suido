@@ -23,7 +23,7 @@ async function shot({ width, height = 844, colorScheme, lang = "en", size, level
   const flow = flowOf(made.layout, made.solution);
   const cells = share === 1 ? [...Array(game.masks.length).keys()] : flow.order.slice(0, Math.floor(flow.order.length * share));
   for (const cell of cells) {
-    for (let n = quartersBetween(game.masks[cell], made.solution[cell]) ?? 0; n > 0; n -= 1) await page.locator(`.sd-cell[data-cell="${cell}"]`).click({ force: true });
+    for (let n = quartersBetween(game.masks[cell], made.solution[cell]) ?? 0; n > 0; n -= 1) await page.locator(`[data-testid="board"] .sd-cell[data-cell="${cell}"]`).click({ force: true });
   }
   // The level's chips and board in view: the top of the page for a desk, the line above the board for a phone.
   await page.evaluate((top) => (top ? window.scrollTo(0, 0) : document.querySelector("#role").scrollIntoView()), width >= 700);

@@ -5,9 +5,9 @@ title: "Translation: "
 labels: translation
 ---
 
-Every Japanese string is in the demo's table of words, `demo/demo.js` (`WORDS.ja`), beside its English (`WORDS.en`).
+Every string of the board is listed beside its English in `docs/strings-ja.md`. The demo page's own words are in `demo/demo.js` (`WORDS.ja`), beside its English (`WORDS.en`); the board's are in `src/strings.ts` (`SUIDO_STRINGS`).
 
-**Which string** (its name in that table, such as `kindDrains` or `leaks`):
+**Which string** (its name in that table, such as `leaks` or `twistWalls`):
 
 **What it says now:**
 

@@ -1,7 +1,7 @@
 <h1 align="center">Suido <sub>水道</sub></h1>
 
 <p align="center"><strong>A pipe puzzle for JavaScript and TypeScript.</strong><br>
-Turn the pieces until the water from the pump reaches every drain and nothing is left open. 3,328 fixed levels from easy to hard, in 5×5 to 14×14 and three long pipe shapes, each with exactly one answer, with walls, locked pieces, wrap-around edges, several pumps, drains and inlet-to-outlet paths. Boards as short codes, a solver that counts answers, a seeded generator whose every board has exactly one, a difficulty from 1 to 100 within each size, and the water drawn as SVG that flows along the pipes as they join. No dependencies.</p>
+Turn the pieces until the water from the pump reaches every drain and nothing is left open. 3,328 fixed levels from easy to hard, in 5×5 to 14×14 and three long pipe shapes, each with exactly one answer, with walls, locked pieces, wrap-around edges, several pumps, drains and inlet-to-outlet paths. Boards as short codes, a solver that counts answers, a seeded generator whose every board has exactly one, a difficulty from 1 to 100 within each size, and the water drawn as SVG that flows along the pipes as they join, played by tap, mouse and keyboard in any page with one call or one tag. No dependencies.</p>
 
 <p align="center">
   <a href="https://github.com/johnmorrisdotca/suido/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/johnmorrisdotca/suido/actions/workflows/ci.yml/badge.svg"></a>
@@ -10,11 +10,11 @@ Turn the pieces until the water from the pump reaches every drain and nothing is
   <img alt="No dependencies" src="https://img.shields.io/badge/dependencies-0-2f5d4a">
 </p>
 
-<p align="center"><a href="https://johnmorrisdotca.github.io/suido/"><strong>Play the levels →</strong></a></p>
+<p align="center"><a href="https://johnmorrisdotca.github.io/suido/"><strong>Play the levels →</strong></a> · <a href="https://johnmorrisdotca.github.io/suido/api.html">API reference</a></p>
 
 <p align="center">
-  <img src="docs/desktop.jpg" alt="Level 95 of 9×9, which teaches edges that join, solved: the water from the pump runs through every pipe and across the dashed rim to every drain, with the difficulty marks and the twist chip above it" width="620">
-  <img src="docs/phone.jpg" alt="Level 63 of the long 8×14 board on a phone in dark mode, with Japanese words: a piece with a padlock, the water part-way along the pipes, and a few open ends still leaking" width="200">
+  <img src="docs/desktop.jpg" alt="Level 95 of 9×9, which teaches edges that join, solved: the water from the pump runs through every pipe and across the dashed rim to every drain, with the difficulty marks and the lesson above the board and, under it, the twist chip, the line "Solved in 101 turns", par and the Start over, Hint and turning buttons" width="620">
+  <img src="docs/phone.jpg" alt="Level 63 of the long 8×14 board on a phone in dark mode, with Japanese words: a piece with a padlock, the water part-way along the pipes, a few open ends still leaking, and under the board the twist chip and the lines of turns and par" width="200">
 </p>
 
 Suido is the old pipe-rotating puzzle, played with a tap. Every cell holds a
@@ -59,6 +59,121 @@ makeSuido({ size: 8, kind: "inlet-outlet", locked: 3, walls: 4, seed: 7 });   //
 - **Anyone making pipe puzzles of their own**, who wants a solver that counts
   answers, a generator that makes boards with exactly one, and a measure of how
   hard each is.
+
+## Features
+
+- **Fixed, numbered levels.** Thousands of boards in thirteen sizes (5×5 to 14×14 and three long pipe shapes), each with exactly one answer, easy to hard, in blocks of sixteen that open one after another. A level keeps its number, so a time on it can be compared with anybody's. See [Levels](#levels).
+- **A level of the day**, the same for everybody, from the date alone: `dailySuidoLevel(size, date)`. No server, no seed.
+- **Twists a level declares**: drains, several pumps, locked pieces, walls, wrap-around edges and inlet-to-outlet paths, as options of the generator too.
+- **A generator and a solver.** A seeded generator whose every board has exactly one answer, a solver that counts answers, and a difficulty from 1 to 100 within each size.
+- **A check a server can trust.** `checkSuidoAnswer` reads a finished board in O(cells), with no search, and says the first thing wrong.
+- **Boards and games as short strings**, so a board, its answer and a game half played can be kept in a database column.
+- **The water flows.** The board is drawn as SVG text in an entry of its own, and painted in place so the water is seen to run along the pipes as they join and to run back out of one turned away.
+- **Played in any page** by tap, mouse and keyboard, with a hint, Start over and the twists as chips, as one function call (`mountSuido`) or one tag (`<suido-board>`).
+- **English and Japanese**, in the board's words and the demo.
+- **No dependencies**, no network requests, no sound, and nothing stored outside the page it is in.
+
+## Use it in your project
+
+Suido is three things, each usable without the others: **the puzzle** (boards, rules, solver, generator and levels, as plain functions over strings), **the drawing** (SVG text and the painter of the water), and **the page** (a mounted board or a tag). The table under [Playing it in a page](#playing-it-in-a-page) says which entry holds which. The examples play 7×7, level 12.
+
+### 1. The API alone, on a server
+
+```ts
+import { checkSuidoAnswer } from "@johnmorrisdotca/suido";
+import { dailySuidoLevel, levelAnswer, loadSuidoLevels } from "@johnmorrisdotca/suido/levels";
+
+const rows = await loadSuidoLevels("7x7");
+const today = dailySuidoLevel("7x7", new Date());   // the level of the day at 7×7: 1 to 256
+const row = rows[today! - 1];                       // send row[0], the board, to the browser; keep the answer
+checkSuidoAnswer(row[0], answerFromThePlayer);      // { ok: true } or { ok: false, reason }, in O(cells)
+levelAnswer(row);                                   // what the player's answer must come to
+```
+
+Importing the main entry on a server is safe: it touches no page.
+
+### 2. One tag, no bundler
+
+```html
+<script type="module" src="https://cdn.jsdelivr.net/npm/@johnmorrisdotca/suido@1/dist/element-define.js"></script>
+<suido-board size="7x7" level="12" chips hints></suido-board>
+<script>
+  document.querySelector("suido-board").addEventListener("suido-solve", (event) => console.log(event.detail.code));
+</script>
+```
+
+### 3. A bundler, and a framework
+
+`import "@johnmorrisdotca/suido/element/define"` once, in code that runs in the browser, and `<suido-board>` is a tag like any other. The tag draws itself in the page's own DOM, so the page's CSS reaches it. Its attributes are read again when they change, and it speaks through DOM events (`suido-change`, `suido-turn`, `suido-hint`, `suido-turning`, `suido-solve`) that carry a `detail`.
+
+```jsx
+// React 19
+import { useEffect, useRef } from "react";
+import "@johnmorrisdotca/suido/element/define";
+
+export function Level({ size, level, onSolved }) {
+  const board = useRef(null);
+  useEffect(() => {
+    const listen = (event) => onSolved(event.detail.code, event.detail.turns);
+    board.current?.addEventListener("suido-solve", listen);
+    return () => board.current?.removeEventListener("suido-solve", listen);
+  }, [onSolved]);
+  return <suido-board ref={board} size={size} level={String(level)} hints />;
+}
+```
+
+```vue
+<!-- Vue 3: tell the compiler the tag is not a Vue component -->
+<script setup>
+import "@johnmorrisdotca/suido/element/define";
+defineProps({ size: String, level: Number });
+</script>
+<template>
+  <suido-board :size="size" :level="level" hints @suido-solve="(event) => console.log(event.detail.code)" />
+</template>
+<!-- in vite.config: vue({ template: { compilerOptions: { isCustomElement: (tag) => tag.startsWith("suido-") } } }) -->
+```
+
+```svelte
+<!-- Svelte 5 -->
+<script>
+  import "@johnmorrisdotca/suido/element/define";
+  let { size, level } = $props();
+  let board;
+  $effect(() => {
+    const listen = (event) => console.log(event.detail.code);
+    board.addEventListener("suido-solve", listen);
+    return () => board.removeEventListener("suido-solve", listen);
+  });
+</script>
+<suido-board bind:this={board} size={size} level={level} hints></suido-board>
+```
+
+```ts
+// Angular: a standalone component with CUSTOM_ELEMENTS_SCHEMA
+import { Component, CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
+import "@johnmorrisdotca/suido/element/define";
+
+@Component({
+  selector: "app-level",
+  standalone: true,
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
+  template: `<suido-board size="7x7" level="12" hints (suido-solve)="solved($event)"></suido-board>`,
+})
+export class Level {
+  solved(event: Event) { console.log((event as CustomEvent).detail.code); }
+}
+```
+
+In Next.js or any server-rendering framework, import the define entry from a client component, so the tag is defined in the browser. Or skip the tag and call `mountSuido(element, options)` from `@johnmorrisdotca/suido/play` in an effect: the handle it returns has `destroy()`.
+
+`pnpm test:frameworks` builds these recipes from the packed tarball in a scratch project for each of the five and solves a level in each, in Chromium and WebKit; it needs the network and a few minutes, so it is run before a release and in CI rather than with `pnpm check`.
+
+### What a developer gets
+
+- **Typed results**, with a doc comment on every export. Every function is pure and returns new values.
+- **No dependencies.** ES modules, an entry per concern, and `sideEffects` set so that only the define entry has an effect.
+- **Where it runs.** See [Browser support](#browser-support).
 
 ## The puzzle
 
@@ -124,6 +239,18 @@ checkSuidoAnswer(board, gameCode(game));          // { ok: true } when it is sol
 
 A level is addressed by its size and its number (`"7x7"`, 12); a solve is kept by its board code, so it stays true if levels are ever added. A turn count to compare is `game.turns`, and `tapsToAnswer(newGame(board)!, levelSolution(row)!)` is the par.
 
+### The level of the day
+
+```ts
+import { dailySuidoLevel, suidoDay } from "@johnmorrisdotca/suido/levels";
+
+dailySuidoLevel("7x7", new Date());      // a level number, 1 to 256: today's at 7×7
+dailySuidoLevel("7x7", "2026-10-01");    // the same level for that day, from its text
+suidoDay(new Date());                    // "2026-10-01": the day, counted in UTC
+```
+
+The levels are fixed, so the level of the day needs no seed and no server: it is a pure function of the date and the size, the same for everybody on every machine, which is what lets two people compare a time on it. A day is counted in UTC, so it turns over at the same moment worldwide. Each size has a level of its own, and every level of a size comes up once before any comes up again (the size's count of levels, in days). It ignores which blocks a player has opened: today's level is open to everybody. The demo's **Today** button opens it.
+
 ## Board codes
 
 A board is one short string, and so is its answer:
@@ -171,6 +298,46 @@ Nothing on the board can be selected, dragged or double-tapped, and a piece is a
 about the middle of its cell. Everything is drawn in code: no images, no fonts, no
 script in the drawing.
 
+## Playing it in a page
+
+```ts
+import { mountSuido } from "@johnmorrisdotca/suido/play";
+import { levelAnswer, loadSuidoLevels } from "@johnmorrisdotca/suido/levels";
+
+const rows = await loadSuidoLevels("7x7");
+const board = mountSuido(document.getElementById("here")!, {
+  code: rows[11]![0], answer: levelAnswer(rows[11]!)!,   // level 12: its board, and its one answer for the hint and the par
+  hints: true, chips: true,
+  onSolve: ({ code, turns }) => send(code, turns),     // `code` is what checkSuidoAnswer takes, with the board's own code
+});
+board?.restart(); board?.load({ code: other.code, answer: other.answer });
+```
+
+A tap turns a piece a quarter clockwise; shift with a tap, or a right click, turns it the other way (or the other way round, with `turning: "anticlockwise"`); the arrows move between pieces and enter or space turns one, with shift the other way. A locked piece, bare ground and a cross are not turned. The water is drawn dry and then painted on the next frame, so the first flow is seen, and it runs back out of a pipe turned away. The board is one box in the board's own shape, and the lines of words under it keep the room they need, so nothing moves as pieces are turned or messages come and go.
+
+Under the board, unless `controls: false`: a line saying how far the water has got and how many ends leak, or that it is solved; a line of turns, par (if there is an `answer`) and hints; a line for what a hint says; and **Start over**, **Hint** (if `hints` is on and there is an `answer`, which lights a piece to turn) and the direction a tap turns. `chips` adds a row with each twist the board has, or Plain, each with the line that explains it as its hover text. Everything a button does is also a method on the handle (`restart`, `hint`, `turn`, `load`, `set`, `destroy`).
+
+| Option | What it does |
+| --- | --- |
+| `code`, `answer` | the board, and its one answer; the answer is needed for Hint and the par, and is ignored if it is not an answer to the board |
+| `progress` | a game half played, as `gameProgress` or an event's `progress` wrote it |
+| `shown` | open on the answer, saying it was solved before, until the next turn |
+| `turning` | `clockwise` (default) or `anticlockwise` |
+| `hints` | offer Hint (default off) |
+| `controls`, `chips` | the buttons and words under the board (default on), and the twists as chips (default off) |
+| `language` | `en` or `ja`; left out, the host's `lang` or the page's, and it follows the page's |
+| `onChange`, `onTurn`, `onHint`, `onTurning`, `onSolve` | callbacks, and the same as DOM events on the host: `suido-change`, `suido-turn`, `suido-hint`, `suido-turning`, `suido-solve`. A `detail` has `code` (the game as a code), `progress` (to keep the game), `turns`, `hints`, `solved` and, for a turn or a hint, `cell` |
+
+### The element
+
+```html
+<script type="module" src="https://cdn.jsdelivr.net/npm/@johnmorrisdotca/suido@1/dist/element-define.js"></script>
+<suido-board size="7x7" level="12"></suido-board>
+<suido-board code="5x5:…" answer="5x5:…" turning="anticlockwise" chips hints></suido-board>
+```
+
+Or `import "@johnmorrisdotca/suido/element/define"` in a bundle. Attributes, each read again when it changes: `size` with `level` (the package's own levels, fetched when asked) or `code` with `answer`; `progress`; `shown`; `turning`; `hints`; `controls="off"`; `chips`; `lang`. A change of `turning`, `hints` or `lang` applies at once; a new board starts again. It fires the events above and has the methods `restart()` and `hint()`. Importing either entry on a server is safe.
+
 ## Difficulty
 
 ```ts
@@ -196,6 +363,8 @@ of a set: they make a board easier than the boards of its set, and its score say
 is the one that made the board, so `makeSuido({ ...options, seed: made.seed })` makes it again.
 
 ## API
+
+The [API reference](https://johnmorrisdotca.github.io/suido/api.html) lists every export of every entry point with its signature and its doc comment. It is made from the source by `pnpm site`, so it cannot fall behind the code.
 
 | Export | What it does |
 | --- | --- |
@@ -224,8 +393,12 @@ is the one that made the board, so `makeSuido({ ...options, seed: made.seed })` 
 | `drawSuido(layout, options)`, `drawPiece(mask, options)`, `drawSuidoThumb(layout, options)` | the board, a piece and a small board as SVG text (`@johnmorrisdotca/suido/draw`) |
 | `cellStates(layout, masks, quarters)`, `stepFor(depth)` | what every cell should look like, and the pace the water flows at |
 | `paintSuido(svg, layout, masks, quarters)` | writes the water and the turns onto a drawing in place |
+| `mountSuido(host, options)`, `ensureSuidoPlayStyle(host)` | a board played in an element, and the style it wears (`@johnmorrisdotca/suido/play`) |
+| `suidoSay(language, key, values)`, `suidoLanguageOf(tag)` | a line of the board's words in English or Japanese, and the language a `lang` is |
+| `gameProgress(game)`, `gameFromProgress(code, progress)` | a game half played as a short string to keep, and the game it comes back as |
+| `dailySuidoLevel(size, date)`, `suidoDay(date)`, `isSuidoDay(text)` | the level of the day at a size, from the date alone; a date as `YYYY-MM-DD` in UTC; whether a text is a real one |
 
-Constants: `SUIDO_STYLE`, `DIFFICULTY_WEIGHTS`, `MEASURE_NAMES`, `DIFFICULTY_SIDES`, `SHAPE_MASKS`, `MAX_SIDE`, `SUIDO_TWISTS`, `SUIDO_SIZES`, `SUIDO_LEVEL_COUNTS`, `SUIDO_BLOCK`, and
+Constants: `SUIDO_STYLE`, `SUIDO_PLAY_STYLE`, `SUIDO_STRINGS`, `SUIDO_DAILY_STRIDE`, `DIFFICULTY_WEIGHTS`, `MEASURE_NAMES`, `DIFFICULTY_SIDES`, `SHAPE_MASKS`, `MAX_SIDE`, `SUIDO_TWISTS`, `SUIDO_SIZES`, `SUIDO_LEVEL_COUNTS`, `SUIDO_BLOCK`, and
 the sides `NORTH`, `EAST`, `SOUTH`, `WEST`, `SIDES`, `SIDE_STEPS`. Every function is pure: it
 returns new values and never changes what it was given. Everything is typed, and
 there are no dependencies.
@@ -234,10 +407,88 @@ there are no dependencies.
 | --- | --- |
 | `@johnmorrisdotca/suido` | the rules, the solver, the generator, the difficulty and the game |
 | `@johnmorrisdotca/suido/draw` | the drawing, its style and the painter |
-| `@johnmorrisdotca/suido/levels` | the levels loader, the counts, the blocks and what a level declares |
+| `@johnmorrisdotca/suido/play` | `mountSuido`: a board played in any element by tap, mouse and keyboard, with its buttons, words, chips and events |
+| `@johnmorrisdotca/suido/element` | the `SuidoBoard` class behind `<suido-board>`, to extend or to define under another name |
+| `@johnmorrisdotca/suido/element/define` | defines `<suido-board>` on the page, for its effect |
+| `@johnmorrisdotca/suido/levels` | the levels loader, the counts, the blocks, the level of the day and what a level declares |
 | `@johnmorrisdotca/suido/levels-5x5`, `@johnmorrisdotca/suido/levels-6x6`, `@johnmorrisdotca/suido/levels-7x7`, `@johnmorrisdotca/suido/levels-8x8`, `@johnmorrisdotca/suido/levels-9x9`, `@johnmorrisdotca/suido/levels-10x10`, `@johnmorrisdotca/suido/levels-11x11`, `@johnmorrisdotca/suido/levels-12x12`, `@johnmorrisdotca/suido/levels-13x13`, `@johnmorrisdotca/suido/levels-14x14` | one square size's levels, as the data (`SUIDO_5X5` …), with nothing else loaded |
 | `@johnmorrisdotca/suido/levels-5x7`, `@johnmorrisdotca/suido/levels-6x10`, `@johnmorrisdotca/suido/levels-8x14` | one pipe shape's levels (`SUIDO_5X7` …) |
 | `@johnmorrisdotca/suido/marks` | every level's difficulty marks and lessons, as data |
+
+## Theming
+
+Nothing here is branded. The drawing and the playable board are coloured by custom properties, and a page sets only the ones it wants different. The colours follow the device's light or dark setting; `data-theme="light"` or `"dark"` on `<html>` forces one.
+
+**The drawing** (`drawSuido`, `drawSuidoThumb`), custom properties on `.suido`:
+
+| Property | What it colours | Light | Dark |
+| --- | --- | --- | --- |
+| `--sd-line` | the board behind the cells, which shows as the lines between them | `#d9d1bf` | `#171a18` |
+| `--sd-ground` | a cell's ground | `#fbf8f1` | `#262a27` |
+| `--sd-edge` | the dark outline round a pipe | `#3b4148` | `#0c0f11` |
+| `--sd-pipe` | a pipe with no water in it | `#aeb7c0` | `#838c95` |
+| `--sd-water` | the water | `#1b8fe3` | `#4db6ff` |
+| `--sd-source` | a pump | `#1b5fa6` | `#2f7fcf` |
+| `--sd-bowl` | a drain's bowl | `#3b6a7e` | `#6aa4bd` |
+| `--sd-leak` | an open end, and the dashed rim of a board that wraps | `#e04a2f` | `#ff6a4d` |
+| `--sd-focus` | the ring on a piece the keyboard is on | `#b5452c` | `#ffb199` |
+| `--sd-hint` | the ground of the piece a hint lit | `#f6dc8a` | `#5a4a1a` |
+| `--sd-solved` | the ground of a solved board | `#e8f3ec` | `#20332a` |
+| `--sd-wall` | a wall | `#7a4f2c` | `#c99a64` |
+| `--sd-lock` | a padlock and the frame of a locked piece | `#8a6a2e` | `#d9b565` |
+| `--sd-step` | how long the water takes through one cell: a time, not a colour, and set for you from the board's depth | `80ms` | the same |
+
+**The playable board** (`mountSuido` and `<suido-board>`) wears the drawing's properties, and six of its own on `.suido-play`:
+
+| Property | What it colours | Light | Dark |
+| --- | --- | --- | --- |
+| `--sdp-ink` | text and the pressed button | `#1f2320` | `#ece8dc` |
+| `--sdp-muted` | the line of turns, par and hints | `#6b6f68` | `#a09d93` |
+| `--sdp-rule` | borders | `#ddd6c6` | `#3a3d38` |
+| `--sdp-surface` | the buttons and chips | `#fbf8f1` | `#1d201e` |
+| `--sdp-accent` | what a hint says | `#b5452c` | `#ff8a6b` |
+| `--sdp-good` | the status line once the board is solved | `#2f7a4f` | `#6fcf97` |
+
+```css
+suido-board, .suido, .suido-play { --sd-water: #0f7fd0; --sd-leak: #c2331a; --sdp-accent: #8a1c1c; }
+```
+
+The demo's own page is the worked example: its green felt and its cloth patches are the family's stylesheet, [`demo/family.css`](./demo/family.css), which is the same file byte for byte in every sibling's demo, and a test holds it to its hash. The drawing's parts carry classes and data attributes (`sd-cell`, `sd-pipe`, `sd-wall`, `sd-lock`, `data-wet`, `data-role`, `data-locked`) for anything a property cannot reach.
+
+## Limits
+
+All of these are held by tests, and the ones with a name are exported.
+
+| Limit | Value | Where |
+| --- | --- | --- |
+| Sizes of a level | the thirteen of `SUIDO_SIZES`: 5×5 to 14×14, and 5×7, 6×10 and 8×14 | `SUIDO_SIZES`, `SUIDO_LEVEL_COUNTS` |
+| Levels | each size's own, in blocks of sixteen | `SUIDO_LEVEL_COUNTS`, `SUIDO_BLOCK` |
+| A board's side | 2 to 40 cells, and not below 3 for a board that wraps or an inlet-outlet one | `MAX_SIDE` |
+| Pumps | at least one, and no more than one for every six cells; an inlet-outlet board has exactly one | the `sources` option |
+| Difficulty | 1 to 100 among the boards of the size, kind and wrap | `difficultyOf` |
+| Making to a difficulty | up to 60 boards, until one is within 4 of it | the `attempts` and `tolerance` options |
+| A seed | any whole number; it is read as an unsigned 32-bit one | `seededRandom` |
+| Answers counted | two, so that "many" costs no more than "two" | the `limit` argument of `solve` and `countSolutions` |
+| The solver's work | 200,000 positions, then it says it cannot say | the `budget` argument of `solve` and `countSolutions` |
+| A day | `YYYY-MM-DD`, counted in UTC | `isSuidoDay` |
+
+A generator never runs on a server unless you ask it to. The check never searches: it is linear in the size of the board.
+
+## Browser support
+
+Any browser with ES2020 modules, custom elements, SVG and CSS `aspect-ratio`: Chrome and Edge 88, Safari 15, Firefox 89, all from 2021 on. The element draws in the page's own DOM, with no shadow DOM and no CSS the page cannot reach. The demo is played in a real Chromium at a phone's width (with touch) and a desk's, and in WebKit, Safari's engine, at a phone's width; Firefox is not in that run. The package itself (everything but the drawing and the page) needs no DOM: it runs in Node 22 or later (CI tests 22 and 24). Deno and Bun are not tested. With reduced motion asked for, the water and the turns happen at once.
+
+## Languages
+
+English and Japanese, chosen by the `language` option, the host's `lang` or the page's, and followed when the page's `lang` changes. The demo has a chooser of its own and takes the browser's language on a first visit. The board's words (`SUIDO_STRINGS`, read with `suidoSay`) are in both. **Japanese: included; not yet reviewed by a native reader. Corrections welcome.** Every string is listed beside its English in [docs/strings-ja.md](./docs/strings-ja.md), and there is an [issue template](https://github.com/johnmorrisdotca/suido/issues/new?template=fix-a-translation.md) for fixing one. Any other language is a table of your own, passed beside these two.
+
+## Roadmap
+
+Not here yet, and each welcome as an [issue](https://github.com/johnmorrisdotca/suido/issues):
+
+- A command line: make a board, check an answer, solve a code, and print a board as text.
+
+Left out on purpose: levels made from a seed when the page opens, because a fixed level is what lets times be compared (the generator is there for a board of your own); and any account, ranking or storage. A page keeps its own games: the events hand them over.
 
 ## Making boards
 
@@ -296,6 +547,7 @@ src/
 ├── levelCounts.ts         the sizes, how many levels each has, and which are open
 ├── levelBlocks.ts         a block of sixteen levels
 ├── levelRow.ts            a level's row read: its board, its answer, its twists
+├── daily.ts               the level of the day at a size, from the date alone
 ├── ladder.ts              what a level teaches, and how hard it is marked
 ├── levels/
 │   ├── size5x5.data.ts    a size's levels, one file each (5x5 to 14x14, 5x7, 6x10, 8x14)
@@ -315,7 +567,13 @@ src/
 ├── draw-entry.ts          the "/draw" entry: everything that draws
 ├── draw.ts                a board, a piece and a small board as SVG text, and what each cell looks like
 ├── paint.ts               the water and the turns written onto a drawing in place
-└── style.ts               the style that turns the drawing into flowing water
+├── style.ts               the style that turns the drawing into flowing water
+├── strings.ts             the board's words, in English and Japanese
+├── playStyle.ts           the style of a playable board: its box, chips, words and buttons
+├── mount.ts               mountSuido: draws a board into an element and plays it
+├── play-entry.ts          the "/play" entry: a board played in any element
+├── element.ts             the "/element" entry: the <suido-board> class
+└── element-define.ts      the "/element/define" entry: defines the tag on the page
 ```
 
 Tests sit beside the code they test (`*.test.ts`), and the solver is held to
@@ -331,6 +589,40 @@ is water and 道 (*dō*) a way or a road, so it is, literally, a water way. It i
 beats, *su-i-do*. In the puzzle water is led along a way of pipes from a pump to where it is
 wanted.
 
+## Where it comes from, and where it is used
+
+Suido was built for [Itsutsu](https://itsutsu.com), a site for board games, puzzles, card games and dice games played at your own pace. *Itsutsu* (五つ) is Japanese for "five", after five in a row, the game the site began with. The pipe puzzle was made there, board by board, each proved to have one answer and each checked on a server in O(cells); once it stood alone it seemed worth sharing.
+
+### Used by
+
+- [Itsutsu](https://itsutsu.com), for its Suido puzzle, every level and the check.
+
+Using Suido in something? Open an *Add my project* issue and we will add you.
+
+### The family
+
+Suido is one of sixteen packages, each made for the same site, each MIT, each at
+[github.com/johnmorrisdotca](https://github.com/johnmorrisdotca):
+
+- [Korokoro](https://github.com/johnmorrisdotca/korokoro) (コロコロ, the sound of something small rolling): dice, with notation, exact odds and games.
+- [Kyuubu](https://github.com/johnmorrisdotca/kyuubu) (キューブ, how Japanese says "cube"): a turning cube for the browser, 2×2 to 7×7.
+- [Hitotsu](https://github.com/johnmorrisdotca/hitotsu) (一つ, "one"): a colour-card game, named for the call a player makes with one card left.
+- [Toranpu](https://github.com/johnmorrisdotca/toranpu) (トランプ, the everyday Japanese word for a deck of playing cards): card games as pure rules.
+- [Tane](https://github.com/johnmorrisdotca/tane) (種, a seed, the kind you plant): seeded random numbers and daily seeds.
+- [Narabe](https://github.com/johnmorrisdotca/narabe) (並べ, "line them up"): a rules engine for gomoku, Reversi, Go, checkers and many more.
+- [Tenka](https://github.com/johnmorrisdotca/tenka) (天下, "under heaven"): a world-conquest game for two to six.
+- [Kumimoji](https://github.com/johnmorrisdotca/kumimoji) (組み文字, "letters put together"): a crossword tile race in English and Japanese.
+- [Tsunagi](https://github.com/johnmorrisdotca/tsunagi) (繋ぎ, "joining"): a line-joining puzzle.
+- [Jarajara](https://github.com/johnmorrisdotca/jarajara) (ジャラジャラ, the rattle of mahjong tiles being shuffled): mahjong tiles and a matching solitaire.
+- [Suido](https://github.com/johnmorrisdotca/suido) (水道, "waterworks"): a pipe puzzle.
+- [Domino](https://github.com/johnmorrisdotca/domino) (ドミノ, the Japanese word for dominoes): dominoes and Mexican Train.
+- [Kotoba](https://github.com/johnmorrisdotca/kotoba) (言葉, "words"): word lists and word-game rules.
+- [Sugoroku](https://github.com/johnmorrisdotca/sugoroku) (双六, backgammon's Japanese name): backgammon and its variants.
+- [Kazu](https://github.com/johnmorrisdotca/kazu) (数, "number"): grid number puzzles, Sudoku and five more.
+- [Meikyuu](https://github.com/johnmorrisdotca/meikyuu) (迷宮, "labyrinth"): mazes to draw a line through.
+
+**This package is Suido.** The demos of all sixteen share one header and footer, so each links the rest.
+
 ## Development
 
 ```sh
@@ -340,7 +632,20 @@ pnpm test:package   # pack, install and import it as somebody who installed it w
 pnpm site           # build the demo into site/, as the Pages workflow publishes it
 node scripts/suido-levels.ts 7x7   # make a size's levels again (about 18 minutes for every size); --marks writes the marks
 pnpm test:demo      # play the demo in Chromium and WebKit
+pnpm test:frameworks  # the README's React, Vue, Svelte, Angular and plain-page examples, built from the tarball and played (needs the network)
+pnpm docs:make      # rewrite docs/strings-ja.md after changing a word of the board
+pnpm pictures       # take the README's two pictures from the built demo
 ```
+
+## Contributing
+
+See [CONTRIBUTING.md](./CONTRIBUTING.md). The commands are under [Development](#development).
+
+Please follow the [code of conduct](./CODE_OF_CONDUCT.md). A way to make the check or the solver run for long, or markup that gets out of the drawing, is for the [security policy](./SECURITY.md), not a public issue.
+
+## Changes
+
+See [CHANGELOG.md](./CHANGELOG.md).
 
 ## Licence
 

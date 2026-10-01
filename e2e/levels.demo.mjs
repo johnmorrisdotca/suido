@@ -3,9 +3,10 @@
 import { expect, test } from "@playwright/test";
 
 import { flowOf, shapeOf } from "../dist/index.js";
-import { at, cell, levelFor, noSidewaysScroll, open, ready, solveLevel, state, tap } from "./demo.mjs";
+import { dailySuidoLevel } from "../dist/levels.js";
+import { action, at, cell, levelFor, noSidewaysScroll, open, ready, sdp, solveLevel, state, tap } from "./demo.mjs";
 
-const chips = (page) => page.locator(`${at("chips")} li`).evaluateAll((items) => items.map((item) => item.dataset.twist));
+const chips = (page) => page.locator(`${sdp("chips")} li`).evaluateAll((items) => items.map((item) => item.dataset.twist));
 
 test("a first visit opens level 1 of 7×7, a plain board as the package has it, with its marks and a Plain chip", async ({ page }) => {
   const errors = await open(page, "");
@@ -28,21 +29,21 @@ test("solving a level says so, keeps it, opens the next, and the level opens on 
   await open(page, "?mode=levels&size=5x5&level=1");
   const made = await levelFor("5x5", 1);
   await solveLevel(page, made);
-  await expect(page.locator(at("status"))).toContainText("Solved in");
+  await expect(page.locator(sdp("status"))).toContainText("Solved in");
   await expect(page.locator(`${at("block")} .lv[data-level="1"]`)).toHaveAttribute("data-solved", "true");
   await expect(page.locator(at("next"))).toBeEnabled();
   await tap(page, at("next"));
   await ready(page);
   await expect(page.locator(at("level"))).toHaveText("2 / 256");
-  await expect(page.locator(at("status"))).not.toContainText("Solved");
+  await expect(page.locator(sdp("status"))).not.toContainText("Solved");
   await page.reload();
   await ready(page);
   await tap(page, `${at("block")} .lv[data-level="1"]`);
   await ready(page);
   await expect(page.locator(at("level"))).toHaveText("1 / 256");
-  await expect(page.locator(at("status"))).toContainText("Solved before");
+  await expect(page.locator(sdp("status"))).toContainText("Solved before");
   await expect(page.locator(`${at("board")} svg`)).toHaveAttribute("data-solved", "true");
-  await tap(page, at("restart"));
+  await tap(page, action("restart"));
   await ready(page);
   expect((await state(page)).solved).toBe(false);
 });
@@ -66,7 +67,7 @@ test("a half-played level comes back as it was left", async ({ page }) => {
   await page.reload();
   await ready(page);
   expect((await state(page)).quarters).toEqual(before.quarters);
-  await expect(page.locator(at("meter"))).toContainText("3 turns");
+  await expect(page.locator(sdp("meter"))).toContainText("3 turns");
 });
 
 test("each block teaches a twist at its 15th level and tests it at its 16th: the chips and the line say so", async ({ page }) => {
@@ -99,7 +100,7 @@ test("a locked piece shows its padlock and does not turn, and a wall is drawn ac
   const turnable = made.layout.locked.find((index) => shapeOf(made.layout.cells[index]) !== "cross");
   // A locked piece is marked disabled, so a tap on it is sent to it as the page would receive one.
   await cell(page, turnable).dispatchEvent("click");
-  await expect(page.locator(at("meter"))).toContainText("0 turns");
+  await expect(page.locator(sdp("meter"))).toContainText("0 turns");
   expect((await state(page)).quarters[turnable]).toBe(0);
   await open(page, "?mode=levels&size=6x6&level=79");
   const walled = await levelFor("6x6", 79);
@@ -111,7 +112,7 @@ test("a level with every twist the ladder has can be solved by tapping: wrap, an
   for (const level of [95, 111, 31, 63, 79]) {
     await open(page, `?mode=levels&size=5x5&level=${level}`);
     await solveLevel(page, await levelFor("5x5", level));
-    await expect(page.locator(at("status"))).toHaveAttribute("data-solved", "true");
+    await expect(page.locator(sdp("status"))).toHaveAttribute("data-solved", "true");
   }
 });
 
@@ -119,9 +120,9 @@ test("an inlet-outlet level says the water runs in one path, and a wrap level ha
   await open(page, "?mode=levels&size=7x7&level=111");
   await expect(page.locator(`${at("board")} .sd-cell[data-role="source"]`)).toHaveCount(1);
   await expect(page.locator(`${at("board")} .sd-cell[data-role="drain"]`)).toHaveCount(1);
-  await expect(page.locator(at("status"))).toContainText("The water");
+  await expect(page.locator(sdp("status"))).toContainText("The water");
   await solveLevel(page, await levelFor("7x7", 111));
-  await expect(page.locator(at("status"))).toContainText("one path");
+  await expect(page.locator(sdp("status"))).toContainText("one path");
   await open(page, "?mode=levels&size=7x7&level=95");
   await expect(page.locator(`${at("board")} .sd-rim`)).toHaveCount(1);
 });
@@ -168,12 +169,12 @@ test("the size rows choose a size, and the pipe shapes are a row of their own", 
 
 test("the twists and the levels read in Japanese", async ({ page }) => {
   await open(page, "?mode=levels&size=6x6&level=63&lang=ja");
-  await expect(page.locator(`${at("chips")} li`).first()).toHaveText("固定駒");
+  await expect(page.locator(`${sdp("chips")} li`).first()).toHaveText("固定駒");
   await expect(page.locator(at("role"))).toContainText("このレベルで学ぶこと");
   await expect(page.locator(at("open"))).toContainText("16レベルのまとまり");
   await expect(page.locator(at("meter"))).toContainText("レベル 63");
   await page.locator('button[data-lang="en"]').click();
-  await expect(page.locator(`${at("chips")} li`).first()).toHaveText("Locked pieces");
+  await expect(page.locator(`${sdp("chips")} li`).first()).toHaveText("Locked pieces");
 });
 
 test("make a board makes boards with the twists asked for: an inlet and outlet, locked pieces and walls", async ({ page }) => {
@@ -193,4 +194,17 @@ test("make a board makes boards with the twists asked for: an inlet and outlet, 
   await ready(page);
   await expect(page.locator(at("level"))).toBeVisible();
   await expect(page.locator(at("new"))).toBeHidden();
+});
+
+test("Today opens the level of the day at the size chosen, the same one the package names, even when it is not open yet", async ({ page }) => {
+  await open(page, "?mode=levels&size=7x7&level=1");
+  await tap(page, at("today"));
+  await ready(page);
+  const expected = dailySuidoLevel("7x7", new Date());
+  await expect(page.locator(at("level"))).toContainText(`${expected} / 256`);
+  const made = await levelFor("7x7", expected);
+  const shapes = await page.locator(`${at("board")} .sd-cell`).evaluateAll((cells) => cells.map((one) => one.dataset.shape));
+  expect(shapes).toEqual(made.layout.cells.map(shapeOf));
+  expect(await chips(page)).toEqual(made.twists.length === 0 ? ["plain"] : made.twists);
+  await noSidewaysScroll(page);
 });

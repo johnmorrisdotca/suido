@@ -3,7 +3,7 @@
 import { expect, test } from "@playwright/test";
 
 import { flowOf, newGame, quartersBetween, shapeOf, turn } from "../dist/index.js";
-import { at, boardFor, cell, noSidewaysScroll, open, ready, solveByTapping, state, tap } from "./demo.mjs";
+import { action, at, boardFor, cell, noSidewaysScroll, open, ready, sdp, solveByTapping, state, tap } from "./demo.mjs";
 
 test("a first visit makes the board its address names, with the pieces as the package makes them", async ({ page }) => {
   const errors = await open(page, "?mode=make&size=6x6&seed=7");
@@ -41,7 +41,7 @@ test("a tap turns a piece a quarter clockwise and the water goes where the piece
     expect(s.quarters).toEqual(quarters);
     expect(s.wet).toEqual(flowOf(made.layout, masks).wet);
   }
-  await expect(page.locator(at("meter"))).toContainText(`${counted} turns`);
+  await expect(page.locator(sdp("meter"))).toContainText(`${counted} turns`);
 });
 
 test("every piece tapped to face its answer solves the board, and the page says so", async ({ page }) => {
@@ -51,7 +51,7 @@ test("every piece tapped to face its answer solves the board, and the page says 
   const s = await state(page);
   expect(s.wet.every(Boolean)).toBe(true);
   expect(s.status).toMatch(/^Solved in \d+ turns?\. Every pipe is joined and nothing is left open\.$/);
-  await expect(page.locator(at("status"))).toHaveAttribute("data-solved", "true");
+  await expect(page.locator(sdp("status"))).toHaveAttribute("data-solved", "true");
 });
 
 test("a board that reaches the drains is solved with its spare pieces left dry", async ({ page }) => {
@@ -91,8 +91,8 @@ test("shift-click, right-click and the turning button turn a piece the other way
   expect((await state(page)).quarters[index]).toBe(-1);
   await cell(page, index).click({ button: "right" });
   expect((await state(page)).quarters[index]).toBe(-2);
-  await page.locator(at("direction")).click();
-  await expect(page.locator(at("direction"))).toHaveAttribute("aria-pressed", "true");
+  await page.locator(action("turning")).click();
+  await expect(page.locator(action("turning"))).toHaveAttribute("aria-pressed", "true");
   await cell(page, index).click();
   expect((await state(page)).quarters[index]).toBe(-3);
   await cell(page, index).click({ modifiers: ["Shift"] });
@@ -106,7 +106,7 @@ test("a cross and bare ground cannot be turned, and a tap on one counts nothing"
   const blank = made.layout.cells.findIndex((mask) => mask === 0);
   expect(blank).toBeGreaterThan(-1);
   await tap(page, cell(page, blank));
-  await expect(page.locator(at("meter"))).toContainText("0 turns");
+  await expect(page.locator(sdp("meter"))).toContainText("0 turns");
 });
 
 test("the keyboard moves between pieces with the arrows and turns one with enter", async ({ page }) => {
@@ -122,7 +122,7 @@ test("the keyboard moves between pieces with the arrows and turns one with enter
   expect((await state(page)).quarters[7]).toBe(turnable ? 1 : 0);
   await page.keyboard.press("Shift+Space");
   expect((await state(page)).quarters[7]).toBe(0);
-  await expect(page.locator(at("meter"))).toContainText(`${turnable ? 2 : 0} turns`);
+  await expect(page.locator(sdp("meter"))).toContainText(`${turnable ? 2 : 0} turns`);
 });
 
 test("start over puts every piece back as the board gave it", async ({ page }) => {
@@ -130,24 +130,24 @@ test("start over puts every piece back as the board gave it", async ({ page }) =
   const made = boardFor({ size: 6, seed: 7 });
   const start = (await state(page)).wet;
   for (let index = 0; index < 12; index += 1) await tap(page, cell(page, index));
-  await tap(page, at("restart"));
+  await tap(page, action("restart"));
   await ready(page);
   const s = await state(page);
   expect(s.wet).toEqual(start);
   expect(s.wet).toEqual(flowOf(made.layout).wet);
   expect(s.quarters.every((quarters) => quarters === 0)).toBe(true);
-  await expect(page.locator(at("meter"))).toContainText("0 turns");
+  await expect(page.locator(sdp("meter"))).toContainText("0 turns");
 });
 
 test("a hint lights a piece that does not face its answer, and says so", async ({ page }) => {
   await open(page, "?mode=make&size=6x6&seed=7");
   const made = boardFor({ size: 6, seed: 7 });
-  await tap(page, at("hint"));
+  await tap(page, action("hint"));
   const lit = await page.locator(`${at("board")} .sd-cell[data-hint="true"]`).evaluateAll((cells) => cells.map((one) => Number(one.dataset.cell)));
   expect(lit).toHaveLength(1);
   expect(made.layout.cells[lit[0]]).not.toBe(made.solution[lit[0]]);
-  await expect(page.locator(at("note"))).toHaveText("Try turning the piece that is lit.");
-  await expect(page.locator(at("meter"))).toContainText("1 hint");
+  await expect(page.locator(sdp("note"))).toHaveText("Try turning the piece that is lit.");
+  await expect(page.locator(sdp("meter"))).toContainText("1 hint");
 });
 
 test("new board makes another, names it in the address, and the address makes the same one again", async ({ page }) => {
@@ -173,7 +173,7 @@ test("the size, kind and difficulty chosen make the board that is asked for", as
   await tap(page, `${at("kinds")} button[data-kind="drains"]`);
   await ready(page);
   await expect(page.locator(`${at("kinds")} button[data-kind="drains"]`)).toHaveAttribute("aria-pressed", "true");
-  await expect(page.locator(at("status"))).toContainText("drains");
+  await expect(page.locator(sdp("status"))).toContainText("drains");
   await page.locator(at("difficulty")).fill("90");
   await ready(page);
   await expect(page.locator(at("difficulty-value"))).toHaveText("90 · Fiendish");
@@ -194,8 +194,8 @@ test("nothing on the board can be selected", async ({ page }) => {
   await open(page, "?mode=make&size=6x6&seed=7");
   const select = await page.locator(`${at("board")} svg`).evaluate((svg) => getComputedStyle(svg).userSelect || getComputedStyle(svg).webkitUserSelect);
   expect(select).toBe("none");
-  await page.locator(at("board")).scrollIntoViewIfNeeded();
-  const box = await page.locator(at("board")).boundingBox();
+  await page.locator(`${at("board")} svg`).scrollIntoViewIfNeeded();
+  const box = await page.locator(`${at("board")} svg`).boundingBox();
   await page.mouse.dblclick(box.x + box.width / 2, box.y + box.height / 2);
   await page.mouse.move(box.x + 5, box.y + 5);
   await page.mouse.down();
@@ -209,7 +209,7 @@ test("the page keeps one steady box: nothing moves when the board is played or t
   // Measured from the top of the page each time: a tap scrolls a tall page, and a box that moved with it has not moved.
   const box = async () => {
     await page.evaluate(() => window.scrollTo(0, 0));
-    return { board: await page.locator(at("board")).boundingBox(), status: await page.locator(at("status")).boundingBox(), actions: await page.locator(at("new")).boundingBox() };
+    return { board: await page.locator(at("board")).boundingBox(), status: await page.locator(sdp("status")).boundingBox(), actions: await page.locator(at("new")).boundingBox() };
   };
   const first = await box();
   for (const index of [1, 2, 3, 9, 16, 24]) await tap(page, cell(page, index));
@@ -224,10 +224,10 @@ test("the page keeps one steady box: nothing moves when the board is played or t
 
 test("it reads in Japanese, and says the Japanese has not been reviewed", async ({ page }) => {
   await open(page, "?mode=make&size=6x6&seed=7&lang=ja");
-  await expect(page.locator(at("status"))).toContainText("個のパイプに水が届いています");
+  await expect(page.locator(sdp("status"))).toContainText("個のパイプに水が届いています");
   await expect(page.locator("#unreviewed")).toBeVisible();
   await page.locator('button[data-lang="en"]').click();
-  await expect(page.locator(at("status"))).toContainText("The water reaches");
+  await expect(page.locator(sdp("status"))).toContainText("The water reaches");
   await expect(page.locator("#unreviewed")).toBeHidden();
 });
 
@@ -240,4 +240,12 @@ test("it fits the width of the screen at every size offered, with no sideways sc
     expect(svg.x).toBeGreaterThanOrEqual(0);
     expect(svg.x + svg.width).toBeLessThanOrEqual(viewport.width);
   }
+});
+
+test("the board is on the first screen: its middle is above the fold at a phone's width and a desk's", async ({ page }) => {
+  await open(page, "?size=7x7&level=1");
+  await page.evaluate(() => window.scrollTo(0, 0));
+  const box = await page.locator(`${at("board")} svg`).boundingBox();
+  expect(box.y + box.height / 2).toBeLessThan(page.viewportSize().height);
+  await noSidewaysScroll(page);
 });

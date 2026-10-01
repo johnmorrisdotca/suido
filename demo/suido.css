@@ -1,5 +1,5 @@
 /* Suido's own look, after family.css: the controls, the board on its table, the twists and marks under the level, and the block of levels. */
-:root { --intro-room: 15.5rem; --intro-room-wide: 8.5rem; }
+:root { --intro-room: 11.5rem; --intro-room-wide: 5.5rem; }
 .controls { display: grid; gap: 8px; margin-top: 14px; }
 .setup { margin: 8px 0 0; }
 .controls .setup { margin: 0; }
@@ -12,26 +12,24 @@ input[type="range"] { flex: 1 1 180px; min-width: 0; max-width: 340px; min-heigh
 #difficulty-value { min-width: 8.5rem; }
 .kind-note { margin: 0; color: var(--muted); font-size: .85rem; min-height: 3.9em; }
 
-/* The twists and the difficulty of the board under the level: a steady row, however many chips there are. */
-.levelinfo { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin-top: 10px; min-height: 4.8rem; align-content: flex-start; }
-.marks { letter-spacing: .12em; font-size: 1.05rem; color: var(--accent); min-width: 5.4em; }
-.chips { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
-.chips .fam-chip { min-height: 32px; font-size: .8rem; font-weight: 600; cursor: help; }
-.chips .fam-chip[data-twist="plain"] { color: var(--muted); font-weight: 500; }
-.roleline { margin: 4px 0 0; font-size: .85rem; color: var(--muted); min-height: 3.3em; }
+/* The difficulty and the lesson of the level, one steady row above the board. */
+.levelinfo { display: flex; align-items: center; gap: 10px; margin: 8px 0 0; height: 1.6rem; }
+.marks { letter-spacing: .12em; font-size: 1.05rem; color: var(--accent); min-width: 5.4em; flex: none; }
+.roleline { font-size: .85rem; color: var(--muted); min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .roleline[data-role="teaches"] { color: var(--ink); font-weight: 600; }
-@media (min-width: 700px) { .levelinfo { min-height: 2.6rem; } .roleline { min-height: 1.4em; } }
 
-/* The board on its table: as wide as the page allows and no taller than the window, in the board's own shape. */
-.table { margin: 0 auto; width: min(100%, calc(72vh * var(--ratio, 1) + 24px), 620px); padding: 12px; border-radius: var(--radius); }
-#board { width: 100%; aspect-ratio: var(--ratio, 1); position: relative; }
+/* The board on its table: as wide as the page allows and no taller than the window, in the board's own shape. Its words are in the felt's ink. */
+.table { margin: 8px auto 0; width: min(100%, calc(72vh * var(--ratio, 1) + 24px), 620px); padding: 12px; border-radius: var(--radius); }
 #table { --ratio: 1; }
-#board[aria-busy="true"] .suido { opacity: .45; }
-#board .suido { transition: opacity .15s; }
-.status { margin: 4px 0 8px; font-weight: 600; text-align: center; height: 2.9em; overflow: hidden; display: flex; align-items: center; justify-content: center; }
-.status[data-solved="true"] { color: var(--good); }
-.meter { margin: 8px 0 0; text-align: center; color: var(--muted); font-size: .9rem; font-variant-numeric: tabular-nums; min-height: 3.3em; }
-.note { margin: 4px 0 0; text-align: center; color: var(--accent); min-height: 1.4em; font-weight: 600; }
+#board { width: 100%; min-width: 0;
+  --sdp-ink: var(--felt-ink); --sdp-surface: rgba(0,0,0,.28); --sdp-rule: rgba(255,255,255,.35); --sdp-muted: var(--felt-ink); --sdp-accent: #ffd23f; --sdp-good: #b9f1c9; }
+#board .sdp-button, #board .sdp-chip { box-shadow: inset 0 0 0 1px rgba(255,255,255,.35); border-color: transparent; }
+#board .sdp-chips, #board .sdp-chip { color: var(--felt-ink); }
+#board .sdp-chip[data-twist="plain"] { opacity: .85; }
+.meter { margin: 8px 0 0; text-align: center; color: var(--muted); font-size: .9rem; font-variant-numeric: tabular-nums; min-height: 1.5em; }
+.settings { margin-top: 18px; display: grid; gap: 4px; }
+.settings h2 { margin: 0 0 4px; font-size: 1.05rem; }
+.tag suido-board { display: block; max-width: 420px; }
 
 /* The block's sixteen levels, each drawn small. */
 .block { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; max-width: 640px; align-items: start; }
@@ -48,7 +46,7 @@ input[type="range"] { flex: 1 1 180px; min-width: 0; max-width: 340px; min-heigh
 .uses code { font-family: var(--mono); font-size: .85rem; overflow-wrap: anywhere; }
 .more .uses { grid-template-columns: 1fr; }
 @media (max-width: 520px) {
-  .status { height: 4.4em; }
   .table { padding: 8px; }
-  .fam-label { min-width: 100%; }
+  .fam-label { min-width: 3.4rem; }
+  .settings .fam-label { min-width: 100%; }
 }

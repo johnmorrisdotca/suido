@@ -1,38 +1,34 @@
 // The demo page's own script: Suido's levels, easy to hard, in thirteen sizes from 5×5 to 14×14 and three long
 // pipe shapes, each level with its twists as chips and its difficulty as marks, the sixteen levels of its block
 // drawn small to choose from, what was solved kept on this device; and a second way to play, "Make a board",
-// which makes a board from a seed as the settings ask. Everything is drawn and painted by the package's own
-// functions, with the water seen to flow as pipes join, spoken in the language the header's chooser picks.
-import { canTurnAt, hintFor, makeSuido, newGame, quartersBetween, shapeOf, tapsToAnswer, turn, turnAt, twistsOf } from "./dist/index.js";
-import { drawSuido, drawSuidoThumb, paintSuido } from "./dist/draw-entry.js";
-import { blockOf, blockRange, declaredTwists, levelBoard, levelSolution, loadSuidoLevels, nextSuidoLevel, openSuidoLevels, sizeOf, SUIDO_LEVEL_COUNTS, SUIDO_SIZES, suidoMarks, suidoRole } from "./dist/levels.js";
+// which makes a board from a seed as the settings ask. The board is played by the package's own `mountSuido`
+// (the drawing, the turning, the flowing water, the hint, the words in English and Japanese); the page itself
+// only chooses a board, keeps what was solved and times it.
+import { makeSuido, twistsOf } from "./dist/index.js";
+import { drawSuidoThumb } from "./dist/draw-entry.js";
+import { mountSuido, suidoSay } from "./dist/play-entry.js";
+import { blockOf, blockRange, dailySuidoLevel, declaredTwists, levelAnswer, levelBoard, levelSolution, loadSuidoLevels, nextSuidoLevel, openSuidoLevels, sizeOf, SUIDO_LEVEL_COUNTS, SUIDO_SIZES, suidoMarks, suidoRole } from "./dist/levels.js";
 
-// The page's own words, in the two languages it speaks. Set as text, never as HTML.
+// The page's own words, in the two languages it speaks. Set as text, never as HTML. The board's own words
+// (its lines, buttons, twists) are the package's.
 const WORDS = {
   en: {
-    pitch: "Turn the pieces of pipe until the water from the pump reaches every drain. Water flows through pipes that meet, and runs out of any end left open. Every board has exactly one answer. Play the levels from easy to hard, or make a board.",
+    pageApi: "API reference",
+    pitch: "Turn the pieces of pipe until the water from the pump reaches every drain. Any end left open leaks. Every board has exactly one answer.",
     name: "Suido (水道) is Japanese for a waterworks: the pipes that carry water.",
     nameLink: "About the name",
     mode: "Play",
     modeLevels: "Levels",
     modeMake: "Make a board",
+    boardTitle: "Board",
     size: "Size",
     shapes: "Pipes",
     level: "Level",
     previous: "Previous level",
     next: "Next level",
+    today: "Today",
     open: (open, count) => `${open} of ${count} levels open: solve every level of a block of sixteen to open the next.`,
     marks: (count) => `Difficulty ${count} of 5`,
-    plain: "Plain",
-    plainTitle: "One pump, and every piece of pipe must carry water.",
-    twists: {
-      drains: ["Drains", "Reach every drain. Pieces the water does not need may stay dry, facing any way."],
-      pumps: ["Pumps", "More than one pump, each feeding its own pipes."],
-      locked: ["Locked pieces", "A piece with a padlock cannot be turned. It already faces the right way, so build from it."],
-      walls: ["Walls", "Water cannot cross a wall: a pipe open towards one runs out."],
-      wrap: ["Edges join", "The edges of the board join: water leaving the right side comes in at the left, and the bottom at the top."],
-      "inlet-outlet": ["Inlet to outlet", "Water comes in at the top left and must leave at the bottom right, in one path with no branches. The other pieces are decoys and stay dry."],
-    },
     teaches: (names) => `This level teaches: ${names}`,
     tests: (names) => `This level tests: ${names}`,
     kind: "Kind",
@@ -56,61 +52,38 @@ const WORDS = {
     difficulty: "Difficulty",
     levelName: (value) => (value <= 20 ? "Easy" : value <= 45 ? "Gentle" : value <= 65 ? "Medium" : value <= 85 ? "Hard" : "Fiendish"),
     newBoard: "New board",
-    restart: "Start over",
-    hint: "Hint",
     timer: "Timer",
-    direction: (reverse) => (reverse ? "Turning ↺ anticlockwise" : "Turning ↻ clockwise"),
     making: "Making a board…",
-    progressNetwork: (wet, of) => `The water reaches ${wet} of ${of} pieces`,
-    progressDrains: (wet, of) => `The water reaches ${wet} of ${of} drains`,
-    progressPath: (wet) => (wet <= 1 ? "The water has not left the inlet" : `The water has run through ${wet} pieces`),
-    leaks: (count) => (count === 0 ? "no leaks" : count === 1 ? "1 open end" : `${count} open ends`),
-    solved: (turns) => `Solved in ${turns} ${turns === 1 ? "turn" : "turns"}. Every pipe is joined and nothing is left open.`,
-    solvedDrains: (turns) => `Solved in ${turns} ${turns === 1 ? "turn" : "turns"}. The water reaches every drain and nothing is left open.`,
-    solvedPath: (turns) => `Solved in ${turns} ${turns === 1 ? "turn" : "turns"}. The water runs from the inlet to the outlet in one path.`,
-    solvedBefore: "Solved before: the answer is shown. Start over to play it again.",
-    turns: (count) => `${count} ${count === 1 ? "turn" : "turns"}`,
-    par: (count) => `par ${count}`,
-    hints: (count) => `${count} ${count === 1 ? "hint" : "hints"}`,
     best: (time) => `best ${time}`,
     board: (size, difficulty, seed) => `${size} · difficulty ${difficulty} · board ${seed}`,
     levelMeter: (level, size) => `Level ${level} · ${size}`,
-    hinted: "Try turning the piece that is lit.",
-    noHint: "Every piece the water needs already faces the right way.",
-    shapesNames: { blank: "bare ground", end: "end", straight: "straight", elbow: "elbow", tee: "T piece", cross: "cross" },
-    cell: (row, col, shape, role, wet, locked) => `Row ${row}, column ${col}: ${role === "source" ? "pump, " : role === "drain" ? "drain, " : ""}${shape}${locked ? ", locked" : ""}${wet ? ", wet" : ""}`,
     blockTitle: (block, first, last) => `Block ${block}: levels ${first} to ${last}`,
     blockText: "The sixteen levels of the block you are in, as drawn: a level you have solved shows its answer, and one not open yet is dimmed. Press one to play it.",
     levelLabel: (level, state) => `Level ${level}, ${state}`,
     states: { open: "open", solved: "solved", locked: "not open yet", here: "playing now" },
     moreTitle: "Using it",
     moreText: "The board above is the package itself: the rules, the solver, the generator, the levels and the drawing. Each line below is all it takes.",
+    tagTitle: "As a tag",
+    tagText: "The same board in one element, with no framework: its twists as chips, and a hint to ask for.",
     foot: "Every level was made once and is proved on every build to have exactly one answer. Nothing here leaves your device.",
   },
   ja: {
-    pitch: "パイプの駒を回して、ポンプからの水をすべての排水口に届けましょう。水はつながったパイプを通って流れ、開いたままの端からは漏れてしまいます。どの盤面も、答えはちょうど一つです。やさしい順に並んだレベルで遊ぶことも、盤面を作ることもできます。",
+    pageApi: "API（英語）",
+    pitch: "パイプの駒を回して、ポンプからの水をすべての排水口に届けましょう。開いたままの端からは水が漏れます。どの盤面も、答えはちょうど一つです。",
     name: "「水道」は、水を通す道、つまり水道管のことです。",
     nameLink: "名前について（英語）",
     mode: "あそびかた",
     modeLevels: "レベル",
     modeMake: "盤面を作る",
+    boardTitle: "盤",
     size: "大きさ",
     shapes: "細長い盤",
     level: "レベル",
     previous: "前のレベル",
     next: "次のレベル",
+    today: "今日",
     open: (open, count) => `${count}レベル中${open}レベルが開いています。16レベルのまとまりをすべて解くと、次が開きます。`,
     marks: (count) => `難しさ ${count}／5`,
-    plain: "ふつう",
-    plainTitle: "ポンプは1つ。すべてのパイプに水を通します。",
-    twists: {
-      drains: ["排水口", "すべての排水口に水を届けます。水がいらない駒は、乾いたままで、どの向きでもかまいません。"],
-      pumps: ["ポンプ複数", "ポンプが2つ以上あり、それぞれが自分のパイプに水を流します。"],
-      locked: ["固定駒", "鍵のついた駒は回せません。向きは最初から正しいので、ここから組み立てましょう。"],
-      walls: ["壁", "水は壁を通れません。壁に向かって開いたパイプからは水が漏れます。"],
-      wrap: ["端がつながる", "盤の端がつながっています。右へ出た水は左から、下へ出た水は上から入ります。"],
-      "inlet-outlet": ["入口から出口へ", "左上の入口から入った水を、右下の出口まで、枝分かれのない一本の道で通します。ほかの駒はおとりで、乾いたままです。"],
-    },
     teaches: (names) => `このレベルで学ぶこと：${names}`,
     tests: (names) => `このレベルで試すこと：${names}`,
     kind: "種類",
@@ -134,35 +107,19 @@ const WORDS = {
     difficulty: "難しさ",
     levelName: (value) => (value <= 20 ? "かんたん" : value <= 45 ? "やさしい" : value <= 65 ? "ふつう" : value <= 85 ? "むずかしい" : "超難問"),
     newBoard: "新しい盤面",
-    restart: "最初から",
-    hint: "ヒント",
     timer: "タイマー",
-    direction: (reverse) => (reverse ? "左回り ↺ に回す" : "右回り ↻ に回す"),
     making: "盤面を作っています…",
-    progressNetwork: (wet, of) => `${of}個中${wet}個のパイプに水が届いています`,
-    progressDrains: (wet, of) => `${of}か所中${wet}か所の排水口に水が届いています`,
-    progressPath: (wet) => (wet === 0 ? "水はまだ入口から出ていません" : `水は${wet}個の駒を通りました`),
-    leaks: (count) => (count === 0 ? "漏れなし" : `開いた端 ${count}か所`),
-    solved: (turns) => `解けました。${turns}回で、すべてのパイプがつながり、開いた端もありません。`,
-    solvedDrains: (turns) => `解けました。${turns}回で、すべての排水口に水が届き、開いた端もありません。`,
-    solvedPath: (turns) => `解けました。${turns}回で、水が入口から出口まで一本の道で流れます。`,
-    solvedBefore: "解いたことがあるので、答えを出しています。もう一度遊ぶには「最初から」を押してください。",
-    turns: (count) => `${count}回`,
-    par: (count) => `最短 ${count}回`,
-    hints: (count) => `ヒント${count}回`,
     best: (time) => `最高 ${time}`,
     board: (size, difficulty, seed) => `${size} ・ 難しさ ${difficulty} ・ 盤面 ${seed}`,
     levelMeter: (level, size) => `レベル ${level} ・ ${size}`,
-    hinted: "光っている駒を回してみましょう。",
-    noHint: "水が通る駒は、すべて正しい向きです。",
-    shapesNames: { blank: "空き地", end: "行き止まり", straight: "直線", elbow: "曲がり", tee: "T字", cross: "十字" },
-    cell: (row, col, shape, role, wet, locked) => `${row}行${col}列：${role === "source" ? "ポンプ、" : role === "drain" ? "排水口、" : ""}${shape}${locked ? "、固定" : ""}${wet ? "、水あり" : ""}`,
     blockTitle: (block, first, last) => `${block}番目のまとまり：レベル${first}〜${last}`,
     blockText: "いま遊んでいる16レベルのまとまりを、そのまま描いています。解いたレベルは答えが見え、まだ開いていないレベルは薄くなります。押すとそのレベルで遊べます。",
     levelLabel: (level, state) => `レベル${level}、${state}`,
     states: { open: "開いている", solved: "解けた", locked: "まだ開いていない", here: "いま遊んでいる" },
     moreTitle: "使い方",
     moreText: "上の盤面は、このパッケージそのもの（ルール、ソルバー、盤面の生成、レベル、描画）で動いています。下の各行がそれぞれ必要なコードのすべてです。",
+    tagTitle: "タグとして",
+    tagText: "同じ盤面を、フレームワークなしの一つの要素で。仕掛けがチップで出て、ヒントも頼めます。",
     foot: "どのレベルも一度だけ作られ、ビルドのたびに答えがちょうど一つであることが確かめられています。このページの情報は、端末の外に出ません。",
   },
 };
@@ -222,25 +179,28 @@ let progress = kept.progress ?? {};
 let level = 1;
 let rows = [];
 
-const IDS = ["modes", "sizes", "shapes", "kinds", "wrap", "sources", "lockedamount", "wallsamount", "difficulty", "difficulty-value", "new", "restart", "hint", "direction", "timer-toggle", "kind-note", "board", "table", "status", "meter", "note", "previous", "next", "level-number", "level-of", "open", "marks", "chips", "role", "block", "block-title"];
+
+// A half-played level kept by 1.1.0 was { q: digits, t: turns }; it is read as the package's own string now.
+const legacy = (saved) => (typeof saved === "object" && saved !== null && typeof saved.q === "string" ? `${saved.q}:${saved.t}` : saved);
+for (const key of Object.keys(progress)) progress[key] = legacy(progress[key]);
+
+const IDS = ["modes", "sizes", "shapes", "kinds", "wrap", "sources", "lockedamount", "wallsamount", "difficulty", "difficulty-value", "new", "timer-toggle", "kind-note", "board", "table", "meter", "previous", "next", "today", "level-number", "level-of", "open", "marks", "role", "block", "block-title"];
 const els = Object.fromEntries(IDS.map((id) => [id, document.getElementById(id)]));
 const language = familyLanguage({ id: "suido", words: WORDS, onChange: () => refresh() });
 const say = (key, ...args) => {
   const word = WORDS[language.lang][key];
   return typeof word === "function" ? word(...args) : word;
 };
+/** The package's own word for a twist: its name, and what it means. */
+const twistKey = (twist) => `twist${twist.replace(/(^|-)(\w)/g, (_, __, letter) => letter.toUpperCase())}`;
+const twistName = (twist) => suidoSay(language.lang, twistKey(twist));
 
 let board = null;
-let game = null;
-let svg = null;
-let hints = 0;
-let said = null;
-let flow = null;
+let mount = null;
 let elapsed = 0;
 let startedAt = null;
 let ticking = null;
 let generation = 0;
-let showingAnswer = false;
 
 const clock = (ms) => `${Math.floor(ms / 60000)}:${String(Math.floor(ms / 1000) % 60).padStart(2, "0")}`;
 const solvedSet = () => new Set(solved[settings.size] ?? []);
@@ -289,28 +249,16 @@ function seg(parent, items, choose, labelOf, attribute) {
   );
 }
 
-/** The chips under the size and level: each twist the board has, or "Plain". */
-function chips() {
-  const twists = board?.twists ?? [];
-  const items = twists.length === 0 ? [["plain", say("plain"), say("plainTitle")]] : twists.map((twist) => [twist, say("twists")[twist][0], say("twists")[twist][1]]);
-  els.chips.replaceChildren(
-    ...items.map(([twist, name, title]) => {
-      const chip = document.createElement("li");
-      chip.className = "fam-chip";
-      chip.dataset.twist = twist;
-      chip.dataset.testid = "chip";
-      chip.title = title;
-      chip.textContent = name;
-      return chip;
-    }),
-  );
+/** The difficulty marks and the lesson of a level, above the board: what only a level has. The twists are the board's own chips. */
+function levelInfo() {
   const marks = inLevels() ? (board?.marks ?? 0) : 0;
-  els.marks.textContent = inLevels() && marks > 0 ? "●".repeat(marks) + "○".repeat(5 - marks) : "";
+  els.marks.textContent = marks > 0 ? "●".repeat(marks) + "○".repeat(5 - marks) : "";
   els.marks.setAttribute("aria-label", marks > 0 ? say("marks", marks) : "");
-  els.marks.hidden = !(inLevels() && marks > 0);
+  els.marks.hidden = marks === 0;
   const role = inLevels() ? board?.role : null;
-  els.role.textContent = role === null || role === undefined ? "" : say(role.role === "teaches" ? "teaches" : "tests", role.twists.map((twist) => say("twists")[twist][0]).join(" · "));
+  els.role.textContent = role === null || role === undefined ? "" : say(role.role === "teaches" ? "teaches" : "tests", role.twists.map((twist) => twistName(twist)).join(" · "));
   els.role.dataset.role = role?.role ?? "";
+  els.role.title = els.role.textContent;
 }
 
 /** What a level in the block's preview is: playing now, solved, open or not open yet. */
@@ -357,7 +305,19 @@ function layoutRatio() {
   return width / height;
 }
 
-/** Everything on the page that does not change with a turn: which choices are pressed, the level row, the chips and the block. Called when the board, the mode or the language changes. */
+/** What the page says beside the board: the time and the best time if the timer is on, and which level or board this is. */
+function renderMeter() {
+  const bits = [];
+  if (settings.timer) {
+    const best = kept.best?.[bestKey()];
+    bits.push(clock(elapsed + (startedAt === null ? 0 : Date.now() - startedAt)));
+    if (best !== undefined) bits.push(say("best", clock(best)));
+  }
+  if (board !== null) bits.push(inLevels() ? say("levelMeter", level, settings.size.replace("x", "×")) : say("board", settings.size.replace("x", "×"), board.difficulty, settings.seed));
+  els.meter.textContent = bits.join(" · ");
+}
+
+/** Everything on the page that does not change with a turn: which choices are pressed, the level row, the marks and the block. Called when the board, the mode or the language changes. */
 function refresh() {
   language.say();
   for (const group of document.querySelectorAll("[data-for]")) group.hidden = group.dataset.for !== settings.mode;
@@ -381,48 +341,9 @@ function refresh() {
   els.previous.disabled = level <= 1;
   els.next.disabled = level >= open;
   els.open.textContent = say("open", open, count);
-  chips();
+  levelInfo();
   block();
-  render();
-}
-
-/** What the status, the meter and the note say of the board as it stands; called after every turn. */
-function render() {
-  els.direction.setAttribute("aria-pressed", String(settings.reverse));
-  els.direction.textContent = say("direction", settings.reverse);
-  if (game === null) {
-    els.status.textContent = say("making");
-    return;
-  }
-  const done = flow.solved;
-  const leaks = flow.spills.length;
-  const kind = game.start.kind;
-  const progressText = kind === "drains" ? say("progressDrains", flow.wetDrains, flow.drains) : kind === "inlet-outlet" ? say("progressPath", flow.wetPieces) : say("progressNetwork", flow.wetPieces, flow.pieces);
-  const solvedText = showingAnswer ? say("solvedBefore") : say(kind === "drains" ? "solvedDrains" : kind === "inlet-outlet" ? "solvedPath" : "solved", game.turns);
-  els.status.textContent = done ? solvedText : `${progressText} · ${say("leaks", leaks)}`;
-  els.status.dataset.solved = String(done);
-  const bits = [say("turns", game.turns), say("par", board.par), say("hints", hints)];
-  if (settings.timer) {
-    const best = kept.best?.[bestKey()];
-    bits.push(clock(elapsed + (startedAt === null ? 0 : Date.now() - startedAt)));
-    if (best !== undefined) bits.push(say("best", clock(best)));
-  }
-  bits.push(inLevels() ? say("levelMeter", level, settings.size.replace("x", "×")) : say("board", settings.size.replace("x", "×"), board.difficulty, settings.seed));
-  els.meter.textContent = bits.join(" · ");
-  els.note.textContent = said === null ? "" : say(said);
-  label();
-}
-
-/** The words a screen reader says for every cell. */
-function label() {
-  const cells = svg.querySelectorAll(".sd-cell");
-  const words = WORDS[language.lang];
-  const { width } = game.start;
-  cells.forEach((cell, index) => {
-    const locked = cell.dataset.locked === "true";
-    cell.setAttribute("aria-label", words.cell(Math.floor(index / width) + 1, (index % width) + 1, words.shapesNames[shapeOf(game.masks[index])], cell.dataset.role, flow.wet[index], locked));
-    if (locked) cell.setAttribute("aria-disabled", "true");
-  });
+  renderMeter();
 }
 
 function stopTicking() {
@@ -430,58 +351,56 @@ function stopTicking() {
   ticking = null;
 }
 
-/** Draws a new board's SVG, then paints the water onto it on the next frame, so the first flow is seen. */
-function show() {
-  els.table.style.setProperty("--ratio", String(layoutRatio()));
-  els.board.innerHTML = drawSuido(game.start, { masks: game.masks, water: false });
-  svg = els.board.firstElementChild;
-  svg.querySelectorAll(".sd-cell").forEach((cell, index) => {
-    cell.setAttribute("role", "button");
-    cell.setAttribute("tabindex", index === 0 ? "0" : "-1");
-  });
-  els.board.removeAttribute("aria-busy");
-  els.board.dataset.painted = "false";
-  flow = paintSuido(svg, game.start, game.masks, game.quarters);
-  // The drawing starts dry: this frame paints the water in, and the style makes it run.
-  svg.setAttribute("data-solved", "false");
-  svg.querySelectorAll(".sd-cell").forEach((cell) => cell.setAttribute("data-wet", "false"));
-  requestAnimationFrame(() => requestAnimationFrame(() => paintAndRender()));
+/** A turn starts the clock, if the timer is on; the first one of a game. */
+function turned() {
+  if (startedAt === null && settings.timer && !mount.flow().solved) startedAt = Date.now();
+  if (settings.timer && ticking === null) ticking = setInterval(renderMeter, 500);
 }
 
-function paintAndRender() {
-  flow = paintSuido(svg, game.start, game.masks, game.quarters);
-  els.board.dataset.painted = "true";
+/** What a mounted board says: remembered if it is a level half played, and a solve opens blocks and fills the block's picture. */
+function changed(detail) {
+  if (inLevels()) {
+    if (detail.solved || detail.turns === 0) delete progress[progressKey()];
+    else progress[progressKey()] = detail.progress;
+  }
+  keep();
+}
+
+function solvedNow() {
+  if (startedAt !== null) {
+    elapsed += Date.now() - startedAt;
+    startedAt = null;
+    kept.best = { ...(kept.best ?? {}) };
+    if (kept.best[bestKey()] === undefined || elapsed < kept.best[bestKey()]) kept.best[bestKey()] = elapsed;
+  }
+  if (inLevels()) solved = { ...solved, [settings.size]: [...new Set([...(solved[settings.size] ?? []), level])] };
+  stopTicking();
+  keep();
   refresh();
 }
 
-/** A game on the board, from the start or from pieces already turned (`masks`, `turns`). */
-function begin(restored) {
-  game = newGame(board.code);
-  if (restored !== undefined) {
-    game.masks = [...restored.masks];
-    game.quarters = game.masks.map((mask, cell) => quartersBetween(game.start.cells[cell], mask) ?? 0);
-    game.turns = restored.turns;
-  }
-  board.par = tapsToAnswer(newGame(board.code), board.solution);
-  hints = 0;
-  said = null;
+/** A board on the page: from the start, from pieces already turned (`progress`), or open on its answer (`shown`). */
+function begin(entry) {
+  els.table.style.setProperty("--ratio", String(layoutRatio()));
   elapsed = 0;
   startedAt = null;
   stopTicking();
-  show();
-}
-
-/** The pieces a half-played level was left with, as the digits kept for it. */
-function restoreOf(saved) {
-  const start = newGame(board.code);
-  const masks = start.masks.map((mask, cell) => turn(mask, Number(saved.q[cell]) || 0));
-  return { masks, turns: saved.t };
-}
-
-function remember() {
-  if (!inLevels()) return;
-  if (flow.solved || game.turns === 0) delete progress[progressKey()];
-  else progress[progressKey()] = { q: game.quarters.map((quarters) => ((quarters % 4) + 4) % 4).join(""), t: game.turns };
+  if (mount === null) {
+    mount = mountSuido(els.board, {
+      ...entry,
+      hints: true,
+      chips: true,
+      turning: settings.reverse ? "anticlockwise" : "clockwise",
+      onTurn: () => turned(),
+      onTurning: (turning) => {
+        settings.reverse = turning === "anticlockwise";
+        keep();
+      },
+      onChange: (detail) => changed(detail),
+      onSolve: () => solvedNow(),
+    });
+  } else mount.load(entry);
+  refresh();
 }
 
 /** Makes the board the settings ask for, after the page has had a moment to say it is doing so. */
@@ -492,7 +411,6 @@ function makeBoard(keepSeed = false) {
   }
   const mine = (generation += 1);
   els.board.setAttribute("aria-busy", "true");
-  els.status.textContent = say("making");
   setTimeout(() => {
     if (mine !== generation) return;
     const { width, height } = sizeOf(settings.size);
@@ -503,15 +421,15 @@ function makeBoard(keepSeed = false) {
     const made = makeSuido({ width, height, kind: settings.kind, wrap: path ? false : settings.wrap, sources: path ? 1 : settings.sources, locked: count(settings.locked), walls: count(settings.walls), difficulty: settings.exact ? undefined : settings.difficulty, seed: settings.seed });
     settings.exact = false;
     settings.seed = made.seed;
-    board = { code: made.code, solution: made.solution, twists: twistsOf(made.layout), difficulty: made.difficulty, marks: 0, role: null, par: 0 };
+    board = { code: made.code, twists: twistsOf(made.layout), difficulty: made.difficulty, marks: 0, role: null };
     address();
     keep();
-    begin();
+    begin({ code: made.code, answer: made.answer });
   }, 20);
 }
 
 /** Opens a level of a size, loading the size's levels if they are not loaded: `wanted` null is the level to go on with. */
-async function openLevel(size, wanted) {
+async function openLevel(size, wanted, any = false) {
   settings.mode = "levels";
   settings.size = size;
   const mine = (generation += 1);
@@ -523,18 +441,16 @@ async function openLevel(size, wanted) {
   // A level named in the address opens, open or not, as a link to one does; otherwise only the open levels.
   const linked = wanted === null && params.has("level") && params.has("mode");
   const asked = wanted ?? (linked ? Number(params.get("level")) : (kept.levels?.[size] ?? nextSuidoLevel(size, solvedSet())));
-  level = Math.min(Math.max(1, Number.isInteger(asked) ? asked : 1), linked ? count : open);
+  level = Math.min(Math.max(1, Number.isInteger(asked) ? asked : 1), linked || any ? count : open);
   params.delete("level");
   kept.levels = { ...(kept.levels ?? {}), [size]: level };
   const row = rows[level - 1];
-  const layout = levelBoard(row);
-  board = { code: row[0], solution: levelSolution(row), twists: declaredTwists(row), difficulty: 0, marks: suidoMarks(size, level), role: suidoRole(size, level), par: 0, layout };
+  board = { code: row[0], twists: declaredTwists(row), difficulty: 0, marks: suidoMarks(size, level), role: suidoRole(size, level) };
   address();
   keep();
   const done = solvedSet().has(level);
   const saved = progress[progressKey()];
-  showingAnswer = done;
-  begin(done ? { masks: board.solution, turns: 0 } : saved !== undefined ? restoreOf(saved) : undefined);
+  begin({ code: row[0], answer: levelAnswer(row), shown: done, progress: done ? undefined : saved });
 }
 
 function chooseSize(size) {
@@ -553,66 +469,6 @@ function setMode(mode) {
   if (mode === "levels") openLevel(settings.size, null);
   else makeBoard();
 }
-
-function turnCell(index, reverse) {
-  if (game === null || els.board.getAttribute("aria-busy") === "true" || !canTurnAt(game, index)) return;
-  showingAnswer = false;
-  if (startedAt === null && settings.timer && !flow.solved) startedAt = Date.now();
-  if (settings.timer && ticking === null) ticking = setInterval(render, 500);
-  game = turnAt(game, index, reverse ? -1 : 1);
-  svg.querySelectorAll(".sd-cell[data-hint]").forEach((cell) => cell.removeAttribute("data-hint"));
-  said = null;
-  flow = paintSuido(svg, game.start, game.masks, game.quarters);
-  if (flow.solved) {
-    if (startedAt !== null) {
-      elapsed += Date.now() - startedAt;
-      startedAt = null;
-      kept.best = { ...(kept.best ?? {}) };
-      if (kept.best[bestKey()] === undefined || elapsed < kept.best[bestKey()]) kept.best[bestKey()] = elapsed;
-    }
-    if (inLevels()) solved = { ...solved, [settings.size]: [...new Set([...(solved[settings.size] ?? []), level])] };
-    stopTicking();
-  }
-  remember();
-  keep();
-  // A solve opens blocks and fills the block's picture, which a turn does not.
-  if (flow.solved) refresh();
-  else render();
-}
-
-// Taps, as a finger or a mouse makes them; a right click, or shift, or the turning button, goes the other way.
-els.board.addEventListener("click", (event) => {
-  const cell = event.target.closest?.(".sd-cell");
-  if (cell === null || cell === undefined) return;
-  turnCell(Number(cell.dataset.cell), event.shiftKey !== settings.reverse);
-});
-els.board.addEventListener("contextmenu", (event) => {
-  const cell = event.target.closest?.(".sd-cell");
-  if (cell === null || cell === undefined) return;
-  event.preventDefault();
-  turnCell(Number(cell.dataset.cell), !settings.reverse);
-});
-// The keyboard: the arrows move between pieces, enter or space turns one (with shift, the other way).
-els.board.addEventListener("keydown", (event) => {
-  const cell = event.target.closest?.(".sd-cell");
-  if (cell === null || cell === undefined) return;
-  const index = Number(cell.dataset.cell);
-  const { width, height } = game.start;
-  const move = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[event.key];
-  if (move !== undefined) {
-    event.preventDefault();
-    const col = (index % width) + move[0];
-    const row = Math.floor(index / width) + move[1];
-    if (col < 0 || row < 0 || col >= width || row >= height) return;
-    const next = svg.querySelectorAll(".sd-cell")[row * width + col];
-    cell.setAttribute("tabindex", "-1");
-    next.setAttribute("tabindex", "0");
-    next.focus();
-  } else if (event.key === "Enter" || event.key === " ") {
-    event.preventDefault();
-    turnCell(index, event.shiftKey !== settings.reverse);
-  }
-});
 
 /** Gives the buttons the page was written with their handlers: their words come from the page's `data-say`. */
 function choices(parent, attribute, choose) {
@@ -655,29 +511,8 @@ els.difficulty.addEventListener("change", () => makeBoard());
 els.new.addEventListener("click", () => makeBoard());
 els.previous.addEventListener("click", () => openLevel(settings.size, level - 1));
 els.next.addEventListener("click", () => openLevel(settings.size, level + 1));
-els.restart.addEventListener("click", () => {
-  if (board === null) return;
-  showingAnswer = false;
-  delete progress[progressKey()];
-  begin();
-});
-els.hint.addEventListener("click", () => {
-  if (game === null) return;
-  const cell = hintFor(game, board.solution);
-  svg.querySelectorAll(".sd-cell[data-hint]").forEach((one) => one.removeAttribute("data-hint"));
-  if (cell === null) said = "noHint";
-  else {
-    hints += 1;
-    said = "hinted";
-    svg.querySelectorAll(".sd-cell")[cell].setAttribute("data-hint", "true");
-  }
-  render();
-});
-els.direction.addEventListener("click", () => {
-  settings.reverse = !settings.reverse;
-  keep();
-  render();
-});
+// Today's level at this size: the same board for everybody, open or not, as a level named in the address is.
+els.today.addEventListener("click", () => openLevel(settings.size, dailySuidoLevel(settings.size, new Date()), true));
 els["timer-toggle"].addEventListener("click", () => {
   settings.timer = !settings.timer;
   if (!settings.timer) {
