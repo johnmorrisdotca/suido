@@ -72,7 +72,7 @@ const WORDS = {
     pitch: "パイプの駒を回して、ポンプからの水をすべての排水口に届けましょう。",
     name: "「水道」は、水を通す道、つまり水道管のことです。",
     nameLink: "名前について（英語）",
-    mode: "あそびかた",
+    mode: "遊び方",
     modeLevels: "レベル",
     modeMake: "盤面を作る",
     boardTitle: "盤",

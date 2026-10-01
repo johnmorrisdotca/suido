@@ -6,6 +6,8 @@ import { flowOf, newGame, quartersBetween, turn } from "../dist/index.js";
 import { at, boardFor, cell, open, sdp, state, tap } from "./demo.mjs";
 
 test.use({ reducedMotion: "no-preference" });
+// Every piece of an 8×8 board is tapped one by one, and a runner is slow at that in WebKit: the default 30 seconds is the margin it lives on.
+test.setTimeout(90_000);
 
 test("when the last pipe is joined the water runs out along the network, cell by cell, nearest the pump first", async ({ page }) => {
   await open(page, "?mode=make&size=8x8&seed=33");
