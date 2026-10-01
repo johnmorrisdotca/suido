@@ -67,7 +67,8 @@
     "test:demo": "pnpm site && playwright test",
     "check": "pnpm lint && pnpm typecheck && pnpm test",
     "prepublishOnly": "pnpm check && pnpm build",
-    "site": "pnpm build && node scripts/site.mjs"
+    "site": "pnpm build && node scripts/site.mjs",
+    "pictures": "pnpm site && node e2e/shots.mjs docs readme"
   },
   "devDependencies": {
     "@eslint/js": "^9.0.0",

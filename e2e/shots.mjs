@@ -1,5 +1,5 @@
 // Pictures of the demo for a person to look at: `node e2e/shots.mjs <folder> <name>`. Not a test.
-// `node e2e/shots.mjs docs readme` takes the two pictures the README shows.
+// `node e2e/shots.mjs docs readme` (or `pnpm pictures`) takes the two pictures the README shows, from the built demo in `site/`.
 import { join } from "node:path";
 import process from "node:process";
 
@@ -26,7 +26,7 @@ async function shot({ width, height = 844, colorScheme, lang = "en", settings, s
     for (let n = quartersBetween(game.masks[cell], made.solution[cell]) ?? 0; n > 0; n -= 1) await page.locator(`.sd-cell[data-cell="${cell}"]`).click();
   }
   await page.waitForTimeout(300);
-  await page.screenshot({ path, fullPage, ...(path.endsWith(".jpg") ? { type: "jpeg", quality: 82 } : {}) });
+  await page.screenshot({ path, fullPage, ...(path.endsWith(".jpg") ? { type: "jpeg", quality: 76 } : {}) });
   await context.close();
 }
 
