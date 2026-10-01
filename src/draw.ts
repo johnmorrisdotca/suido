@@ -1,0 +1,133 @@
+import type { Layout } from "./code.ts";
+import { flowOf, type Flow } from "./flow.ts";
+import { quartersBetween, shapeOf, SIDES } from "./pieces.ts";
+import { SUIDO_STYLE } from "./style.ts";
+
+/**
+ * DRAWING a board as SVG text: a string, to put in a page, a file or an image,
+ * with nothing to load and nothing run. Every cell is a square of ground with
+ * its piece laid on it, drawn in a box 100 across and centred, so a turn is a
+ * rotation about the cell's middle. Every picture here is made in code.
+ *
+ * The same drawing is also the page's live board: `cellStates` says what every
+ * cell should look like (how far turned, whether wet, which arms the water
+ * comes in by, goes out of, or leaks from), and `paintSuido` (in `./paint`)
+ * writes that onto the drawing when a piece is turned, so the water is seen to
+ * flow along the pipes and to run back out of one that is turned away.
+ */
+
+/** What the water does at one opening of a piece. */
+export type ArmState = "in" | "out" | "leak" | "";
+
+/** How one cell is to look. */
+export type CellState = {
+  cell: number;
+  /** Quarter turns clockwise from the piece as the board gave it, as the drawing turns it. */
+  quarters: number;
+  wet: boolean;
+  /** Cells the water went through to reach it, 0 for a pump; -1 for a dry cell. */
+  depth: number;
+  /** What the water does at each of the piece's four sides as drawn (the sides it had as the board gave it, not as it faces now): "in" where it comes in, "out" where it goes on, "leak" where it runs out of an open end, "" for no water or no opening. */
+  arms: [ArmState, ArmState, ArmState, ArmState];
+};
+
+/** What to draw with. */
+export type DrawOptions = {
+  /** How every piece faces now; the board's own, if left out. */
+  masks?: readonly number[];
+  /** How far each piece has been turned in all, so a drawing can keep turning the way it was tapped; found from `masks` if left out. */
+  quarters?: readonly number[];
+  /** A description for screen readers. */
+  label?: string;
+  /** Put `SUIDO_STYLE` inside the drawing, so it stands alone as an image. A page with the style in already leaves this off. */
+  style?: boolean;
+  /** How long the water takes to go through one cell, in milliseconds. Default: fast enough that the whole board fills in about two seconds. */
+  step?: number;
+  /** Whether to draw the water. Default true. */
+  water?: boolean;
+};
+
+/** The longest the water is let take to fill a whole board, in milliseconds, when no step is given. */
+const FILL_MS = 2000;
+
+/** The milliseconds the water takes through one cell, so that the deepest cell is reached in `FILL_MS` at most. */
+export function stepFor(deepest: number): number {
+  return Math.max(12, Math.min(90, Math.round(FILL_MS / Math.max(1, deepest + 1))));
+}
+
+/** The state of every cell of a board whose pieces face as `masks` say. */
+export function cellStates(layout: Layout, masks: readonly number[] = layout.cells, quarters?: readonly number[], flow: Flow = flowOf(layout, masks)): CellState[] {
+  const spills = new Set(flow.spills.map((spill) => spill.cell * 4 + spill.side));
+  return layout.cells.map((base, cell) => {
+    const turned = quarters?.[cell] ?? quartersBetween(base, masks[cell]!) ?? 0;
+    const arms: [ArmState, ArmState, ArmState, ArmState] = ["", "", "", ""];
+    if (flow.wet[cell] === true) {
+      for (let local = 0; local < 4; local += 1) {
+        if (((base >> local) & 1) === 0) continue;
+        const world = (((local + turned) % 4) + 4) % 4;
+        arms[local] = spills.has(cell * 4 + world) ? "leak" : world === flow.entry[cell] ? "in" : "out";
+      }
+    }
+    return { cell, quarters: turned, wet: flow.wet[cell] === true, depth: flow.depth[cell]!, arms };
+  });
+}
+
+const ARM_PATH = ["M0 0V-50", "M0 0H50", "M0 0V50", "M0 0H-50"];
+const DROP = "M0 -42C-5 -35 -7 -31 -7 -27a7 7 0 0 0 14 0c0-4-2-8-7-15z";
+const GLYPH = "M0 -17C-9 -4 -12 1 -12 6a12 12 0 0 0 24 0c0-5-3-10-12-23z";
+
+function armSvg(local: number, state: ArmState, water: boolean): string {
+  const turn = local * 90;
+  return `<g class="sd-arm" data-side="${local}" data-w="${water ? state : ""}" transform="rotate(${turn})"><path class="sd-in" pathLength="1" d="M0 -50V0"/><path class="sd-out" pathLength="1" d="M0 0V-50"/><g class="sd-leak"><path class="sd-cap" d="M-13 -48H13"/><path class="sd-drop" d="${DROP}"/></g></g>`;
+}
+
+function markSvg(role: "source" | "drain" | "plain"): string {
+  if (role === "source") return `<g class="sd-mark"><circle class="sd-src" r="27"/><path class="sd-glyph" d="${GLYPH}"/></g>`;
+  if (role === "drain") return `<g class="sd-mark"><circle class="sd-bowl" r="27"/><circle class="sd-fill" r="19"/></g>`;
+  return "";
+}
+
+/** One cell: its ground, its piece turned as its state says, its mark if it has one, and a box to tap. */
+function cellSvg(layout: Layout, state: CellState, x: number, y: number, water: boolean): string {
+  const base = layout.cells[state.cell]!;
+  const role = layout.sources.includes(state.cell) ? "source" : layout.drains.includes(state.cell) ? "drain" : "plain";
+  const local = SIDES.map((_, side) => side).filter((side) => ((base >> side) & 1) === 1);
+  const edge = local.map((side) => ARM_PATH[side]!).join("");
+  const piece =
+    local.length === 0
+      ? ""
+      : `<path class="sd-edge" d="${edge}"/><circle class="sd-hub-edge" r="17"/><path class="sd-pipe" d="${edge}"/><circle class="sd-hub" r="13"/>${local.map((side) => armSvg(side, state.arms[side]!, water)).join("")}<circle class="sd-hubwater" r="7"/>`;
+  const wet = water && state.wet;
+  return `<g class="sd-cell" data-cell="${state.cell}" data-shape="${shapeOf(base)}" data-role="${role}" data-wet="${wet}" style="--k:${wet ? state.depth : 0}" transform="translate(${x} ${y})"><rect class="sd-ground" x="-49" y="-49" width="98" height="98" rx="9"/><g class="sd-turn" style="--q:${state.quarters}"><rect class="sd-box" x="-50" y="-50" width="100" height="100"/>${piece}</g>${markSvg(role)}<rect class="sd-hit" x="-50" y="-50" width="100" height="100" fill="transparent"/></g>`;
+}
+
+const escape = (text: string): string => text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+
+/**
+ * A board as SVG text. The pieces face as `options.masks` say, with the water
+ * in them as it runs from the pumps through every opening that meets another.
+ * The drawing is `class="suido"`; its colours and its flowing are `SUIDO_STYLE`.
+ */
+export function drawSuido(layout: Layout, options: DrawOptions = {}): string {
+  const masks = options.masks ?? layout.cells;
+  const flow = flowOf(layout, masks);
+  const water = options.water !== false;
+  const step = options.step ?? stepFor(Math.max(0, ...flow.depth));
+  const width = layout.width * 100;
+  const height = layout.height * 100;
+  const states = cellStates(layout, masks, options.quarters, flow);
+  const cells = states.map((state) => cellSvg(layout, state, (state.cell % layout.width) * 100 + 50, Math.floor(state.cell / layout.width) * 100 + 50, water)).join("");
+  const solved = flow.solved;
+  const label = options.label ?? `Suido board, ${layout.width} by ${layout.height}`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" class="suido" viewBox="0 0 ${width} ${height}" role="group" aria-label="${escape(label)}" data-solved="${solved}" style="--sd-step:${step}ms">${options.style === true ? `<style>${SUIDO_STYLE}</style>` : ""}<rect class="sd-board" width="${width}" height="${height}" rx="12"/>${cells}${layout.wrap ? `<rect class="sd-rim" x="3" y="3" width="${width - 6}" height="${height - 6}" rx="10"/>` : ""}</svg>`;
+}
+
+/** One piece on its own, as SVG text: for a legend, an icon, or a page that shows how the pieces look. `wet` fills it with water. */
+export function drawPiece(mask: number, options: { wet?: boolean; label?: string; style?: boolean } = {}): string {
+  const base = { width: 1, height: 1, kind: "network" as const, wrap: false, cells: [mask], sources: [], drains: [] };
+  const arms = [0, 1, 2, 3].map((side) => (((mask >> side) & 1) === 1 && options.wet === true ? "out" : "")) as CellState["arms"];
+  const state: CellState = { cell: 0, quarters: 0, wet: options.wet === true, depth: 0, arms };
+  const label = options.label ?? shapeOf(mask);
+  return `<svg xmlns="http://www.w3.org/2000/svg" class="suido" viewBox="0 0 100 100" role="img" aria-label="${escape(label)}" style="--sd-step:0ms">${options.style === true ? `<style>${SUIDO_STYLE}</style>` : ""}${cellSvg(base, state, 50, 50, true)}</svg>`;
+}
+

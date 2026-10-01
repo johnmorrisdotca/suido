@@ -1,0 +1,25 @@
+/* Suido's own look, after family.css: the controls, the board on its table, and the lines under it. */
+:root { --intro-room: 11rem; --intro-room-wide: 7.5rem; }
+.controls { display: grid; gap: 8px; margin-top: 14px; }
+.setup { margin: 0; }
+.pump { width: 14px; height: 18px; margin-left: 3px; }
+.fam-label { min-width: 5.2rem; }
+input[type="range"] { flex: 1 1 180px; min-width: 0; max-width: 340px; min-height: 44px; accent-color: var(--accent); }
+#difficulty-value { min-width: 8.5rem; }
+.kind-note { margin: 0; color: var(--muted); font-size: .85rem; min-height: 2.6em; }
+.table { margin: 0 auto; max-width: min(100%, 620px); padding: 12px; border-radius: var(--radius); }
+#board { width: 100%; aspect-ratio: 1; position: relative; }
+#board[aria-busy="true"] .suido { opacity: .45; }
+#board .suido { transition: opacity .15s; }
+.status { margin: 4px 0 8px; font-weight: 600; text-align: center; height: 2.9em; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+.status[data-solved="true"] { color: var(--good); }
+.meter { margin: 8px 0 0; text-align: center; color: var(--muted); font-size: .9rem; font-variant-numeric: tabular-nums; min-height: 1.4em; }
+.note { margin: 4px 0 0; text-align: center; color: var(--accent); min-height: 1.4em; font-weight: 600; }
+.uses { list-style: none; padding: 0; margin: 0; display: grid; gap: 6px; }
+.uses code { font-family: var(--mono); font-size: .85rem; overflow-wrap: anywhere; }
+.more .uses { grid-template-columns: 1fr; }
+@media (max-width: 520px) {
+  .status { height: 4.4em; }
+  .table { padding: 8px; }
+  .fam-label { min-width: 100%; }
+}
