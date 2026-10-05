@@ -7,6 +7,8 @@ board and its answer, and a seed makes the board it always made.
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-10-05
+
 Every export, every level, every board code and every answer of 1.3.0 is as it was, and a seed makes the board it always made. New: huge boards, big pieces,
 and squares of four pieces that turn together.
 
