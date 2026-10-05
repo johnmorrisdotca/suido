@@ -1,3 +1,4 @@
+import { blockInfo, blockQuartersBetween, placeAfter, type Block } from "./blocks.ts";
 import { isLocked, type Layout } from "./code.ts";
 import { flowOf, type Flow } from "./flow.ts";
 import { quartersBetween, shapeOf, SIDES } from "./pieces.ts";
@@ -55,20 +56,28 @@ export function stepFor(deepest: number): number {
   return Math.max(12, Math.min(90, Math.round(FILL_MS / Math.max(1, deepest + 1))));
 }
 
-/** The state of every cell of a board whose pieces face as `masks` say. */
+/**
+ * The state of every piece of a board whose pieces face as `masks` say. A piece is named by the cell it was
+ * given in, which is where it is unless it is in a block that turns as one (`blocks.ts`): the block carries it
+ * round, so its water is read where it is now, and its quarters are the block's.
+ */
 export function cellStates(layout: Layout, masks: readonly number[] = layout.cells, quarters?: readonly number[], flow: Flow = flowOf(layout, masks)): CellState[] {
   const spills = new Set(flow.spills.map((spill) => spill.cell * 4 + spill.side));
+  const info = blockInfo(layout);
+  const turnsOfBlock = info.blocks.map((block) => blockQuartersBetween(layout.cells, masks, block) ?? 0);
   return layout.cells.map((base, cell) => {
-    const turned = quarters?.[cell] ?? quartersBetween(base, masks[cell]!) ?? 0;
+    const at = info.of[cell] ?? -1;
+    const turned = quarters?.[cell] ?? (at >= 0 ? turnsOfBlock[at]! : (quartersBetween(base, masks[cell]!) ?? 0));
+    const place = at >= 0 ? placeAfter(info.blocks[at]!, cell, turned) : cell;
     const arms: [ArmState, ArmState, ArmState, ArmState] = ["", "", "", ""];
-    if (flow.wet[cell] === true) {
+    if (flow.wet[place] === true) {
       for (let local = 0; local < 4; local += 1) {
         if (((base >> local) & 1) === 0) continue;
         const world = (((local + turned) % 4) + 4) % 4;
-        arms[local] = spills.has(cell * 4 + world) ? "leak" : world === flow.entry[cell] ? "in" : "out";
+        arms[local] = spills.has(place * 4 + world) ? "leak" : world === flow.entry[place] ? "in" : "out";
       }
     }
-    return { cell, quarters: turned, wet: flow.wet[cell] === true, depth: flow.depth[cell]!, arms };
+    return { cell, quarters: turned, wet: flow.wet[place] === true, depth: flow.depth[place]!, arms };
   });
 }
 
@@ -91,7 +100,7 @@ function markSvg(role: "source" | "drain" | "plain"): string {
 }
 
 /** One cell: its ground, its piece turned as its state says, its mark if it has one, and a box to tap. */
-function cellSvg(layout: Layout, state: CellState, x: number, y: number, water: boolean): string {
+function cellSvg(layout: Layout, state: CellState, x: number, y: number, water: boolean, block: Block | null = null): string {
   const base = layout.cells[state.cell]!;
   const role = layout.sources.includes(state.cell) ? "source" : layout.drains.includes(state.cell) ? "drain" : "plain";
   const local = SIDES.map((_, side) => side).filter((side) => ((base >> side) & 1) === 1);
@@ -103,7 +112,37 @@ function cellSvg(layout: Layout, state: CellState, x: number, y: number, water: 
   const wet = water && state.wet;
   const locked = isLocked(layout, state.cell);
   const frame = locked ? `<rect class="sd-lockframe" x="-45" y="-45" width="90" height="90" rx="7"/>` : "";
-  return `<g class="sd-cell" data-cell="${state.cell}" data-shape="${shapeOf(base)}" data-role="${role}" data-locked="${locked}" data-wet="${wet}" style="--k:${wet ? state.depth : 0}" transform="translate(${x} ${y})"><rect class="sd-ground" x="-49" y="-49" width="98" height="98" rx="9"/>${frame}<g class="sd-turn" style="--q:${state.quarters}"><rect class="sd-box" x="-50" y="-50" width="100" height="100"/>${piece}</g>${markSvg(role)}${locked ? LOCK : ""}<rect class="sd-hit" x="-50" y="-50" width="100" height="100" fill="transparent"/></g>`;
+  // A piece in a block turns about the middle of the block, so its box is the whole block, as the piece sees it.
+  const at = block === null ? -1 : block.cells.indexOf(state.cell);
+  const [boxX, boxY, boxSize] = block === null ? [-50, -50, 100] : [-50 - (at === 1 || at === 2 ? 100 : 0), -50 - (at === 2 || at === 3 ? 100 : 0), 200];
+  const inBlock = block === null ? "" : ` data-block="${block.index}"`;
+  return `<g class="sd-cell" data-cell="${state.cell}"${inBlock} data-shape="${shapeOf(base)}" data-role="${role}" data-locked="${locked}" data-wet="${wet}" style="--k:${wet ? state.depth : 0}" transform="translate(${x} ${y})"><rect class="sd-ground" x="-49" y="-49" width="98" height="98" rx="9"/>${frame}<g class="sd-turn" style="--q:${state.quarters}"><rect class="sd-box" x="${boxX}" y="${boxY}" width="${boxSize}" height="${boxSize}"/>${piece}</g>${markSvg(role)}${locked ? LOCK : ""}<rect class="sd-hit" x="-50" y="-50" width="100" height="100" fill="transparent"/></g>`;
+}
+
+/**
+ * The plates under the blocks of a board, each the ground of its four cells: a big piece is one solid plate with a heavy
+ * rim, and a block of four pieces that turn together a plate with a dashed rim. Drawn before every cell, so a piece
+ * turned into the place of one drawn after it is still seen.
+ */
+function platesSvg(layout: Layout): string {
+  return blockInfo(layout)
+    .blocks.map((block) => {
+      const col = block.anchor % layout.width;
+      const row = Math.floor(block.anchor / layout.width);
+      return `<rect class="sd-plate" data-kind="${block.big ? "big" : "turn"}" data-block="${block.index}" x="${col * 100 + 2}" y="${row * 100 + 2}" width="196" height="196" rx="13"/>`;
+    })
+    .join("");
+}
+
+/** The marks that say where each block turns: a ring with an arrow in it at the corner where its four cells meet. Drawn over the cells, and never pressed: a tap goes through to the cells under it. */
+function pivotsSvg(layout: Layout): string {
+  return blockInfo(layout)
+    .blocks.map((block) => {
+      const col = block.anchor % layout.width;
+      const row = Math.floor(block.anchor / layout.width);
+      return `<g class="sd-pivot" data-kind="${block.big ? "big" : "turn"}" data-block="${block.index}" transform="translate(${col * 100 + 100} ${row * 100 + 100})"><circle class="sd-pivot-disc" r="17"/><path class="sd-pivot-arrow" d="M-6.5 -4.2A7.7 7.7 0 1 1 -6.5 4.2"/><path class="sd-pivot-head" d="M-10.6 3.4L-5.4 8.4L-3.6 1.4Z"/></g>`;
+    })
+    .join("");
 }
 
 /** The bars drawn for a board's walls, each across the edge it is on; on a board that wraps, a wall at the edge of the board is shown at both its sides. */
@@ -140,10 +179,11 @@ export function drawSuido(layout: Layout, options: DrawOptions = {}): string {
   const width = layout.width * 100;
   const height = layout.height * 100;
   const states = cellStates(layout, masks, options.quarters, flow);
-  const cells = states.map((state) => cellSvg(layout, state, (state.cell % layout.width) * 100 + 50, Math.floor(state.cell / layout.width) * 100 + 50, water)).join("");
+  const info = blockInfo(layout);
+  const cells = states.map((state) => cellSvg(layout, state, (state.cell % layout.width) * 100 + 50, Math.floor(state.cell / layout.width) * 100 + 50, water, info.of[state.cell]! >= 0 ? info.blocks[info.of[state.cell]!]! : null)).join("");
   const solved = flow.solved;
   const label = options.label ?? `Suido board, ${layout.width} by ${layout.height}`;
-  return `<svg xmlns="http://www.w3.org/2000/svg" class="suido" viewBox="0 0 ${width} ${height}" role="group" aria-label="${escape(label)}" data-solved="${solved}" style="--sd-step:${step}ms">${options.style === true ? `<style>${SUIDO_STYLE}</style>` : ""}<rect class="sd-board" width="${width}" height="${height}" rx="12"/>${cells}${wallsSvg(layout)}${layout.wrap ? `<rect class="sd-rim" x="3" y="3" width="${width - 6}" height="${height - 6}" rx="10"/>` : ""}</svg>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" class="suido" viewBox="0 0 ${width} ${height}" role="group" aria-label="${escape(label)}" data-solved="${solved}" style="--sd-step:${step}ms">${options.style === true ? `<style>${SUIDO_STYLE}</style>` : ""}<rect class="sd-board" width="${width}" height="${height}" rx="12"/>${platesSvg(layout)}${cells}${pivotsSvg(layout)}${wallsSvg(layout)}${layout.wrap ? `<rect class="sd-rim" x="3" y="3" width="${width - 6}" height="${height - 6}" rx="10"/>` : ""}</svg>`;
 }
 
 /**
@@ -174,7 +214,7 @@ export function drawSuidoThumb(layout: Layout, options: { masks?: readonly numbe
   });
   const label = options.label ?? `Suido board, ${layout.width} by ${layout.height}`;
   const all = [...dry, ...wet].join("");
-  return `<svg xmlns="http://www.w3.org/2000/svg" class="suido" viewBox="0 0 ${width} ${height}" role="img" aria-label="${escape(label)}" data-solved="${flow.solved}">${options.style === true ? `<style>${SUIDO_STYLE}</style>` : ""}<rect class="sd-board" width="${width}" height="${height}" rx="12"/><path class="sd-edge" d="${all}"/><path class="sd-pipe" d="${all}"/><path class="sd-thumbwater" d="${wet.join("")}"/>${marks.join("")}${wallsSvg(layout)}${layout.wrap ? `<rect class="sd-rim" x="3" y="3" width="${width - 6}" height="${height - 6}" rx="10"/>` : ""}</svg>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" class="suido" viewBox="0 0 ${width} ${height}" role="img" aria-label="${escape(label)}" data-solved="${flow.solved}">${options.style === true ? `<style>${SUIDO_STYLE}</style>` : ""}<rect class="sd-board" width="${width}" height="${height}" rx="12"/>${platesSvg(layout)}<path class="sd-edge" d="${all}"/><path class="sd-pipe" d="${all}"/><path class="sd-thumbwater" d="${wet.join("")}"/>${marks.join("")}${wallsSvg(layout)}${layout.wrap ? `<rect class="sd-rim" x="3" y="3" width="${width - 6}" height="${height - 6}" rx="10"/>` : ""}</svg>`;
 }
 
 /** One piece on its own, as SVG text: for a legend, an icon, or a page that shows how the pieces look. `wet` fills it with water. */

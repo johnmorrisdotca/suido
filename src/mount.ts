@@ -1,3 +1,4 @@
+import { blockAt, blockInfo, placeAfter } from "./blocks.ts";
 import { checkSuidoAnswer } from "./check.ts";
 import { decodeLayout } from "./code.ts";
 import { drawSuido } from "./draw.ts";
@@ -8,6 +9,7 @@ import { quartersBetween, shapeOf } from "./pieces.ts";
 import { SUIDO_PLAY_STYLE } from "./playStyle.ts";
 import { suidoLanguageOf, suidoSay, type SuidoLanguage } from "./strings.ts";
 import { twistsOf, type Twist } from "./twists.ts";
+import { attachSuidoView, needsZoom, SUIDO_FIT, type SuidoView, type SuidoViewer } from "./view.ts";
 
 /**
  * A PLAYABLE SUIDO BOARD IN ANY PAGE: `mountSuido(host, options)` draws a board
@@ -26,6 +28,10 @@ import { twistsOf, type Twist } from "./twists.ts";
  * for every change to the board, `suido-turn` for a turn, `suido-hint`,
  * `suido-turning` when the way a tap turns is changed, and `suido-solve` once,
  * with the game as a code ready for `checkSuidoAnswer`.
+ *
+ * A board whose pieces would be smaller than a thumb across the box it is in (twenty by twenty on a phone) can
+ * be zoomed and moved about: a row of three buttons under it (Zoom out, Zoom in, Whole board), a pinch, the
+ * wheel with control held, and a drag once it is zoomed in (`view.ts`). `zoom: "off"` leaves the board as it is.
  *
  * Needs a page. The rules it plays by are `game.ts`'s, the drawing is
  * `drawSuido`'s, and both are usable alone.
@@ -66,6 +72,8 @@ export type SuidoMountOptions = {
   controls?: boolean;
   /** A row of chips under the board: each twist the board has, or Plain, each with the line that explains it as its hover text. Default false. */
   chips?: boolean;
+  /** `auto` (the default): a board too big for a thumb to press its pieces can be zoomed and moved about. `off`: never. */
+  zoom?: "auto" | "off";
   /** The language the words are in. Left out, the host's own `lang`, or the page's, and it follows the page's. */
   language?: SuidoLanguage;
   onChange?: (detail: SuidoEventDetail) => void;
@@ -94,6 +102,10 @@ export type SuidoMount = {
   restart: () => void;
   /** Light a piece to turn, as the Hint button does. */
   hint: () => void;
+  /** The view of the board: how far in it is, and where. Whole (zoom 1) unless it has been zoomed. */
+  view: () => SuidoView;
+  /** Zoom the board in or out a step, or back to the whole of it, as the buttons do. */
+  zoom: (how: "in" | "out" | "fit") => void;
   /** Take the board down: its listeners, its frames and everything it put in the host. */
   destroy: () => void;
 };
@@ -148,6 +160,8 @@ export function mountSuido(host: HTMLElement, options: SuidoMountOptions): Suido
   let svg: SVGSVGElement | null = null;
   let frame = 0;
   let generation = 0;
+  let viewer: SuidoViewer | null = null;
+  const zooming = options.zoom !== "off";
 
   // The parts.
   host.classList.add("suido-play");
@@ -160,7 +174,11 @@ export function mountSuido(host: HTMLElement, options: SuidoMountOptions): Suido
   const note = create(document, "p", "sdp-note");
   note.setAttribute("aria-live", "polite");
   const controls = create(document, "div", "sdp-controls");
+  const zoomBar = create(document, "div", "sdp-zoom");
+  zoomBar.setAttribute("role", "group");
+  zoomBar.hidden = true;
   host.append(boardBox);
+  if (zooming) host.append(zoomBar);
   if (withChips) host.append(chips);
   if (withControls) host.append(status, meter, note, controls);
 
@@ -172,6 +190,14 @@ export function mountSuido(host: HTMLElement, options: SuidoMountOptions): Suido
     controls.append(one);
     return one;
   };
+  const zoomButtons = (["out", "in", "fit"] as const).map((how) => {
+    const one = create(document, "button", "sdp-button");
+    one.type = "button";
+    one.dataset.zoom = how;
+    one.addEventListener("click", () => api.zoom(how));
+    zoomBar.append(one);
+    return one;
+  });
   const restartButton = button("restart", () => api.restart());
   const hintButton = button("hint", () => api.hint());
   const turningButton = button("turning", () => api.set({ turning: turning === "clockwise" ? "anticlockwise" : "clockwise" }));
@@ -183,6 +209,8 @@ export function mountSuido(host: HTMLElement, options: SuidoMountOptions): Suido
     host.dispatchEvent(new CustomEvent(name, { detail: info, bubbles: true }));
   };
   const cells = (): SVGGElement[] => (svg === null ? [] : [...svg.querySelectorAll<SVGGElement>(".sd-cell")]);
+  /** What a hint has lit: pieces, and the plate of a block. */
+  const lights = (): Element[] => (svg === null ? [] : [...svg.querySelectorAll('[data-hint="true"]')]);
 
   function renderChips(): void {
     if (!withChips) return;
@@ -205,11 +233,16 @@ export function mountSuido(host: HTMLElement, options: SuidoMountOptions): Suido
   function label(): void {
     const { width } = game.start;
     const join = language === "ja" ? "、" : ", ";
+    const info = blockInfo(game.start);
     cells().forEach((cell, index) => {
       const role = cell.dataset.role;
       const locked = cell.dataset.locked === "true";
-      const what = [role === "source" ? say("cellPump") : role === "drain" ? say("cellDrain") : "", say(`shape${shapeOf(game.masks[index]!).replace(/^./, (letter) => letter.toUpperCase())}`), locked ? say("cellLocked") : "", flow.wet[index] === true ? say("cellWet") : ""].filter((word) => word !== "");
-      cell.setAttribute("aria-label", say("cell", { row: Math.floor(index / width) + 1, col: (index % width) + 1, what: what.join(join) }));
+      // A piece in a block is where its block has carried it; the words say where it is now.
+      const at = info.of[index] ?? -1;
+      const place = at >= 0 ? placeAfter(info.blocks[at]!, index, game.quarters[index]!) : index;
+      const block = at < 0 ? "" : say(info.blocks[at]!.big ? "cellBig" : "cellBlock");
+      const what = [role === "source" ? say("cellPump") : role === "drain" ? say("cellDrain") : "", say(`shape${shapeOf(game.start.cells[index]!).replace(/^./, (letter) => letter.toUpperCase())}`), block, locked ? say("cellLocked") : "", flow.wet[place] === true ? say("cellWet") : ""].filter((word) => word !== "");
+      cell.setAttribute("aria-label", say("cell", { row: Math.floor(place / width) + 1, col: (place % width) + 1, what: what.join(join) }));
       if (locked) cell.setAttribute("aria-disabled", "true");
     });
   }
@@ -219,6 +252,12 @@ export function mountSuido(host: HTMLElement, options: SuidoMountOptions): Suido
     host.dataset.turns = String(game.turns);
     host.dataset.hints = String(hints);
     label();
+    zoomBar.setAttribute("aria-label", say("zoomLabel"));
+    zoomButtons.forEach((one, at) => {
+      const how = (["out", "in", "fit"] as const)[at]!;
+      one.textContent = say(how === "out" ? "zoomOut" : how === "in" ? "zoomIn" : "zoomFit");
+      one.disabled = how === "out" || how === "fit" ? (viewer?.get().zoom ?? 1) <= 1 : false;
+    });
     if (!withControls) return;
     restartButton.textContent = say("restart");
     hintButton.textContent = say("hint");
@@ -245,15 +284,16 @@ export function mountSuido(host: HTMLElement, options: SuidoMountOptions): Suido
     host.style.setProperty("--sdp-ratio", String(game.start.width / game.start.height));
     boardBox.innerHTML = drawSuido(game.start, { masks: game.masks, quarters: game.quarters, water: false, label: say("board", { width: game.start.width, height: game.start.height }) });
     svg = boardBox.firstElementChild as SVGSVGElement;
+    viewer?.destroy();
+    viewer = zooming ? attachSuidoView(boardBox, svg, game.start, { onChange: () => words() }) : null;
     cells().forEach((cell, index) => {
       cell.setAttribute("role", "button");
       cell.setAttribute("tabindex", index === 0 ? "0" : "-1");
     });
     host.removeAttribute("aria-busy");
     host.dataset.painted = "false";
-    flow = paintSuido(svg, game.start, game.masks, game.quarters);
+    flow = flowOfGame(game);
     svg.setAttribute("data-solved", "false");
-    cells().forEach((cell) => cell.setAttribute("data-wet", "false"));
     words();
     frame = window.requestAnimationFrame(() =>
       window.requestAnimationFrame(() => {
@@ -291,7 +331,7 @@ export function mountSuido(host: HTMLElement, options: SuidoMountOptions): Suido
     if (host.getAttribute("aria-busy") === "true" || svg === null || !canTurnAt(game, index)) return;
     shown = false;
     game = turnAt(game, index, back ? -1 : 1);
-    cells().forEach((cell) => cell.removeAttribute("data-hint"));
+    lights().forEach((lit) => lit.removeAttribute("data-hint"));
     said = null;
     flow = paintSuido(svg, game.start, game.masks, game.quarters);
     words();
@@ -332,12 +372,19 @@ export function mountSuido(host: HTMLElement, options: SuidoMountOptions): Suido
       if (next === undefined) return;
       cell.setAttribute("tabindex", "-1");
       next.setAttribute("tabindex", "0");
-      next.focus();
+      next.focus({ preventScroll: true });
+      viewer?.show(row * width + col);
     } else if (event.key === "Enter" || event.key === " ") {
       event.preventDefault();
       turnCell(index, event.shiftKey !== reverse());
     }
   };
+  const sizing = !zooming || typeof ResizeObserver === "undefined" ? null : new ResizeObserver(() => {
+    const big = needsZoom(game.start, boardBox.clientWidth);
+    if (zoomBar.hidden === big) zoomBar.hidden = !big;
+    host.dataset.zoomable = String(big);
+  });
+  sizing?.observe(boardBox);
   boardBox.addEventListener("click", onClick);
   boardBox.addEventListener("contextmenu", onContext);
   boardBox.addEventListener("keydown", onKey);
@@ -376,6 +423,8 @@ export function mountSuido(host: HTMLElement, options: SuidoMountOptions): Suido
       }
       words();
     },
+    view: () => viewer?.get() ?? SUIDO_FIT,
+    zoom: (how) => (how === "in" ? viewer?.zoomIn() : how === "out" ? viewer?.zoomOut() : viewer?.fit()),
     turn: (cell, back = false) => turnCell(cell, back),
     restart: () => {
       begin({ code, answer: answerCode });
@@ -384,12 +433,16 @@ export function mountSuido(host: HTMLElement, options: SuidoMountOptions): Suido
     hint: () => {
       if (solution === null || svg === null) return;
       const cell = hintFor(game, solution);
-      cells().forEach((one) => one.removeAttribute("data-hint"));
+      lights().forEach((lit) => lit.removeAttribute("data-hint"));
       if (cell === null) said = "noHint";
       else {
         hints += 1;
         said = "hinted";
-        cells()[cell]?.setAttribute("data-hint", "true");
+        // A hint in a block lights the whole block, which is what turns.
+        const block = blockAt(game.start, cell);
+        for (const lit of block?.cells ?? [cell]) cells()[lit]?.setAttribute("data-hint", "true");
+        if (block !== null) svg.querySelector(`.sd-plate[data-block="${block.index}"]`)?.setAttribute("data-hint", "true");
+        viewer?.show(cell);
       }
       words();
       tell("suido-hint", detail(cell === null ? {} : { cell }), callbacks.onHint);
@@ -397,6 +450,9 @@ export function mountSuido(host: HTMLElement, options: SuidoMountOptions): Suido
     destroy: () => {
       generation += 1;
       window.cancelAnimationFrame(frame);
+      sizing?.disconnect();
+      viewer?.destroy();
+      viewer = null;
       boardBox.removeEventListener("click", onClick);
       boardBox.removeEventListener("contextmenu", onContext);
       boardBox.removeEventListener("keydown", onKey);
@@ -404,7 +460,7 @@ export function mountSuido(host: HTMLElement, options: SuidoMountOptions): Suido
       host.replaceChildren();
       host.classList.remove("suido-play");
       host.style.removeProperty("--sdp-ratio");
-      for (const name of ["solved", "turns", "hints", "painted"]) delete host.dataset[name];
+      for (const name of ["solved", "turns", "hints", "painted", "zoomable"]) delete host.dataset[name];
     },
   };
 

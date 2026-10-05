@@ -1,7 +1,8 @@
 import { neighboursOf, type Layout } from "./code.ts";
-import { bits, drainFacings, HAS, LACKS, rotationsOfLayout } from "./facing.ts";
+import { hasBlocks } from "./blocks.ts";
+import { drainFacings, rotationsOfLayout } from "./facing.ts";
 import { flowOf } from "./flow.ts";
-import { opposite } from "./pieces.ts";
+import { refreshCells, unitsOf, wayHolds, type CellSets } from "./units.ts";
 
 /** What a player can work out without guessing, as a person would: look at every piece, fix what is forced, and look again. */
 export type Deduction = {
@@ -25,43 +26,51 @@ export type Deduction = {
  * through.
  */
 export function deduce(layout: Layout, solution: readonly number[]): Deduction {
+  if (layout.kind !== "network" && hasBlocks(layout)) throw new Error("Only a network can have big pieces or blocks that turn.");
   return layout.kind === "network" ? deduceNetwork(layout) : deduceDrains(layout, solution);
 }
 
 function deduceNetwork(layout: Layout): Deduction {
   const count = layout.width * layout.height;
   const near = neighboursOf(layout);
-  let dom = new Uint16Array(count);
-  const rotations = rotationsOfLayout(layout);
-  for (let cell = 0; cell < count; cell += 1) for (const mask of rotations[cell]!) dom[cell]! |= 1 << mask;
+  const units = unitsOf(layout);
+  let dom = new Uint8Array(units.count);
+  let sets: CellSets = { open: new Uint8Array(count), shut: new Uint8Array(count), bare: new Uint8Array(count) };
+  for (let unit = 0; unit < units.count; unit += 1) {
+    dom[unit] = (1 << units.facings[unit]!.length) - 1;
+    refreshCells(units, sets, unit, dom[unit]!);
+  }
   const pieces = layout.cells.filter((mask) => mask !== 0).length;
-  const forced = (set: Uint16Array): number => Array.from(set).filter((one, cell) => layout.cells[cell] !== 0 && bits(one) === 1).length;
+  /** The cells whose facing is settled and that hold a piece. */
+  const forced = (known: CellSets): number => {
+    let found = 0;
+    for (let cell = 0; cell < count; cell += 1) if (known.open[cell] !== 0 && (known.open[cell]! & known.shut[cell]!) === 0) found += 1;
+    return found;
+  };
   let rounds = 0;
   let glance = 0;
   for (;;) {
-    const next = Uint16Array.from(dom);
+    const next = Uint8Array.from(dom);
+    const after: CellSets = { open: Uint8Array.from(sets.open), shut: Uint8Array.from(sets.shut), bare: Uint8Array.from(sets.bare) };
     let changed = false;
-    for (let cell = 0; cell < count; cell += 1) {
-      let keep = dom[cell]!;
-      for (let side = 0; side < 4; side += 1) {
-        const other = near[cell * 4 + side]!;
-        const back = opposite(side);
-        if (!(other !== -1 && (dom[other]! & HAS[back]!) !== 0)) keep &= LACKS[side]!;
-        if (!(other === -1 || (dom[other]! & LACKS[back]!) !== 0)) keep &= HAS[side]!;
-      }
-      if (keep === 0) return { pieces, glance, settled: forced(dom), rounds };
-      if (keep !== dom[cell]) {
-        next[cell] = keep;
+    for (let unit = 0; unit < units.count; unit += 1) {
+      let keep = dom[unit]!;
+      for (let way = 0; way < units.facings[unit]!.length; way += 1) if (((keep >> way) & 1) === 1 && !wayHolds(units, near, sets, unit, way)) keep &= ~(1 << way);
+      if (keep === 0) return { pieces, glance, settled: forced(sets), rounds };
+      if (keep !== dom[unit]) {
+        next[unit] = keep;
+        refreshCells(units, after, unit, keep);
         changed = true;
       }
     }
     if (!changed) break;
     dom = next;
+    sets = after;
     rounds += 1;
-    if (rounds === 1) glance = forced(dom);
+    if (rounds === 1) glance = forced(sets);
   }
-  if (rounds === 0) glance = forced(dom);
-  return { pieces, glance, settled: forced(dom), rounds };
+  if (rounds === 0) glance = forced(sets);
+  return { pieces, glance, settled: forced(sets), rounds };
 }
 
 function deduceDrains(layout: Layout, solution: readonly number[]): Deduction {

@@ -40,7 +40,7 @@ describe("the solver counts answers as trying every way does", () => {
     expect(compared).toBeGreaterThan(300);
     // The comparison is not only of boards with no answer.
     expect((seen[1] ?? 0) + (seen[2] ?? 0) + (seen[3] ?? 0)).toBeGreaterThan(5);
-  });
+  }, 60_000);
 
   it("on boards laid out the way the generator lays them, with every number of answers", () => {
     let compared = 0;

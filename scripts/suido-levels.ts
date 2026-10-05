@@ -6,7 +6,7 @@
  *     node scripts/suido-levels.ts --probe 10x10 how hard each kind of level measures at a size (writes nothing)
  *
  * For each size it makes a POOL of boards: thousands of plain ones and hundreds
- * of each kind with twists (`makeUnscored`, every one with exactly one answer),
+ * of each kind with twists (`makeUnscored`, every one with exactly one answer; fewer at the huge sizes, which have sixty-four levels),
  * each from a seed taken from the size, the kind and its number, so the same run
  * writes the same files. A board is dropped when it starts solved, has no more
  * than two turns to make, or is the same puzzle as one already kept turned or
@@ -87,9 +87,17 @@ const COMBO: Record<number, string> = { 8: "wrap+locked", 9: "walls+locked", 10:
 /** Every kind in the order it is introduced, with the block it comes in at. */
 const INTRODUCED: [string, number][] = [...Object.entries(TEACH), ...Object.entries(COMBO)].map(([block, name]) => [name, Number(block)]);
 
-/** The kind of level the `slot`th place (1 to 16) of a block asks for. */
-export function profileAt(block: number, slot: number): string {
+/**
+ * What the four blocks of a huge size teach: drains, pumps, then wrap. Not locked pieces or walls, which only make a
+ * board easier than the boards it is ranked among, so they cannot reach the top of a size's range, which is where the
+ * last block sits.
+ */
+const TEACH_HUGE: Record<number, string> = { 2: "drains", 3: "pumps", 4: "wrap" };
+
+/** The kind of level the `slot`th place (1 to 16) of a block asks for; `huge` for a size of four blocks. */
+export function profileAt(block: number, slot: number, huge = false): string {
   if (block === 1) return "plain";
+  if (huge) return slot >= SUIDO_BLOCK - 1 ? TEACH_HUGE[block]! : "plain";
   if (block <= 7) return slot >= SUIDO_BLOCK - 1 ? TEACH[block]! : "plain";
   if (slot >= SUIDO_BLOCK - 1) return COMBO[Math.min(block, 16)]!;
   // From the eighth block, twists in the places before the 15th too: one more each block, up to six.
@@ -146,13 +154,15 @@ function fileFor(size: string, rows: readonly LevelRow[]): string {
 function poolSizes(size: string): { plain: number; twist: number } {
   const { width, height } = sizeOf(size)!;
   const cells = width * height;
+  // The huge sizes have sixty-four levels and a board takes a good while to make, so a smaller pool is made: it is more than enough for one level to a place in the measure.
+  if (cells >= 400) return { plain: 600, twist: 160 };
   return cells <= 100 ? { plain: 3200, twist: 700 } : { plain: 2600, twist: 450 };
 }
 
 function make(size: string): void {
   const started = performance.now();
   const count = SUIDO_LEVEL_COUNTS[size]!;
-  const slots = Array.from({ length: count }, (_, at) => profileAt(Math.floor(at / SUIDO_BLOCK) + 1, (at % SUIDO_BLOCK) + 1));
+  const slots = Array.from({ length: count }, (_, at) => profileAt(Math.floor(at / SUIDO_BLOCK) + 1, (at % SUIDO_BLOCK) + 1, count <= SUIDO_BLOCK * 4));
   const kinds = [...new Set(slots)];
   const sizes = poolSizes(size);
   const seen = new Set<string>();

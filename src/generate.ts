@@ -1,3 +1,5 @@
+import { bigMasksOf, placeBlocks, type Placed } from "./bigPieces.ts";
+import { blockCells, turnBlock } from "./blocks.ts";
 import { encodeLayout, MAX_SIDE, neighboursOf, type Kind, type Layout } from "./code.ts";
 import { difficultyOf } from "./difficulty.ts";
 import { flowOf } from "./flow.ts";
@@ -41,6 +43,16 @@ export type MakeOptions = {
    * a second answer, a wall across the edge the other answer uses is what makes it one. Default 0.
    */
   walls?: number;
+  /**
+   * How many big pieces: squares of four cells that are one piece, turned in place a quarter at a time (see
+   * `BIG_KINDS`). Only a network has them. Fewer are made where the board has no room. Default 0.
+   */
+  bigs?: number;
+  /**
+   * How many blocks that turn as one: squares of four ordinary pieces that a tap turns together, the pieces
+   * moving round the square as they turn. Only a network has them. Default 0.
+   */
+  blocks?: number;
   /** The difficulty to aim for, 1 to 100 among boards of the size (see `difficultyOf`). Boards are made until one is near it. */
   difficulty?: number;
   /** How many boards to make, at most, looking for the difficulty asked for. Default 60. */
@@ -101,14 +113,22 @@ type Plan = {
   /** The cells to lock, and the walls to build: kept as the board is mended, and only used where they fit. */
   locked: Set<number>;
   walls: Set<number>;
+  /** The squares that turn as one (`blocks.ts`), which block each cell is in (-1 for none), the edges a big piece's pipes run along and no move may take away, and the edges no pipe may use. */
+  placed: Placed[];
+  inBlock: Int32Array;
+  pinned: Set<number>;
+  banned: Set<number>;
 };
+
+/** What a plan's pipes must keep to, so that every big piece comes out as it was placed: the cells each cell's pipe is joined to, and the edges nothing may use. */
+type Rules = { forced: number[][]; banned: Set<number> };
 
 /** What stands where the water does not go on an inlet-outlet board: decoys, and what stops a decoy being a way through. */
 const DECOYS = [SHAPE_MASKS.end, SHAPE_MASKS.end, SHAPE_MASKS.straight, SHAPE_MASKS.straight, SHAPE_MASKS.elbow, SHAPE_MASKS.elbow, SHAPE_MASKS.tee, SHAPE_MASKS.tee, SHAPE_MASKS.cross];
 const BLOCKERS = [0, SHAPE_MASKS.end, SHAPE_MASKS.tee, SHAPE_MASKS.cross];
 
 /** A cell picked for each pump, spread out: each is the best of a few tries at being far from the ones before. */
-function pickSources(width: number, height: number, wrap: boolean, count: number, random: Random): number[] {
+function pickSources(width: number, height: number, wrap: boolean, count: number, random: Random, avoid: Int32Array | null = null): number[] {
   const out: number[] = [];
   const gap = (a: number, b: number): number => {
     let dx = Math.abs((a % width) - (b % width));
@@ -124,7 +144,7 @@ function pickSources(width: number, height: number, wrap: boolean, count: number
     let far = -1;
     for (let tries = 0; tries < (out.length === 0 ? 1 : 8); tries += 1) {
       const cell = Math.floor(random() * width * height);
-      if (out.includes(cell)) continue;
+      if (out.includes(cell) || (avoid !== null && avoid[cell]! >= 0)) continue;
       const apart = out.length === 0 ? 0 : Math.min(...out.map((other) => gap(cell, other)));
       if (apart > far) {
         far = apart;
@@ -142,12 +162,20 @@ function pickSources(width: number, height: number, wrap: boolean, count: number
  * (a depth-first walk: long snakes, few ends), with 0 a random one (a Prim
  * tree: bushy, many ends and tees); between, a mix.
  */
-function grow(width: number, height: number, wrap: boolean, sources: number[], bias: number, random: Random): Int32Array {
+function grow(width: number, height: number, wrap: boolean, sources: number[], bias: number, random: Random, rules: Rules | null = null): Int32Array | null {
   const near = neighboursOf({ width, height, wrap });
   const parent = new Int32Array(width * height).fill(-2);
   const frontier: number[] = [];
+  let conflict = false;
+  /** A cell reached: its edges go on the frontier, and every cell its pipe is joined to is reached with it. */
   const add = (cell: number): void => {
     for (const side of shuffled([0, 1, 2, 3], random)) frontier.push(cell * 4 + side);
+    for (const joined of rules?.forced[cell] ?? []) {
+      if (parent[joined] === -2) {
+        parent[joined] = cell;
+        add(joined);
+      } else if (parent[joined] === -1 || (parent[cell] !== joined && parent[joined] !== cell)) conflict = true;
+    }
   };
   for (const source of sources) {
     parent[source] = -1;
@@ -161,10 +189,11 @@ function grow(width: number, height: number, wrap: boolean, sources: number[], b
     const from = Math.floor(edge / 4);
     const next = near[edge]!;
     if (next === -1 || parent[next] !== -2) continue;
+    if (rules !== null && rules.banned.has(edgeId(near, from, edge % 4))) continue;
     parent[next] = from;
     add(next);
   }
-  return parent;
+  return conflict ? null : parent;
 }
 
 /** Which cell is next to each, with no walls: a plan's pipes never cross a wall, so only a wall's own edge number needs the walls left out. */
@@ -214,12 +243,12 @@ function scramble(masks: readonly number[], random: Random): number[] {
 /** The cells of a plan that can be locked: those the pipes use, with a piece that looks different turned. */
 function lockable(plan: Plan, truth: readonly number[]): number[] {
   const need = used(plan);
-  return truth.flatMap((mask, cell) => (need[cell] === true && canTurn(mask) ? [cell] : []));
+  return truth.flatMap((mask, cell) => (need[cell] === true && canTurn(mask) && plan.inBlock[cell]! < 0 ? [cell] : []));
 }
 
 /** The board a plan makes with its pieces facing as `given` says. */
 function layoutOf(plan: Plan, given: readonly number[], truth: readonly number[]): Layout {
-  const drains = plan.kind !== "network" ? [...plan.drains].sort((a, b) => a - b) : truth.flatMap((mask, cell) => (armsOf(mask) === 1 && !plan.sources.includes(cell) ? [cell] : []));
+  const drains = plan.kind !== "network" ? [...plan.drains].sort((a, b) => a - b) : truth.flatMap((mask, cell) => (armsOf(mask) === 1 && !plan.sources.includes(cell) && plan.inBlock[cell]! < 0 ? [cell] : []));
   const layout: Layout = { width: plan.width, height: plan.height, kind: plan.kind, wrap: plan.wrap, cells: [...given], sources: [...plan.sources].sort((a, b) => a - b), drains };
   if (plan.locked.size > 0) {
     // A lock only holds where there is a piece worth locking, as the plan stands now.
@@ -228,6 +257,10 @@ function layoutOf(plan: Plan, given: readonly number[], truth: readonly number[]
     if (locked.length > 0) layout.locked = locked;
   }
   if (plan.walls.size > 0) layout.walls = [...plan.walls].sort((a, b) => a - b);
+  const bigs = plan.placed.filter((block) => block.kind !== null).map((block) => block.anchor);
+  const turning = plan.placed.filter((block) => block.kind === null).map((block) => block.anchor);
+  if (bigs.length > 0) layout.bigs = bigs;
+  if (turning.length > 0) layout.blocks = turning;
   return layout;
 }
 
@@ -245,6 +278,10 @@ function childrenOf(parent: Int32Array): number[][] {
  */
 function rewire(plan: Plan, cell: number, random: Random): boolean {
   const near = neighboursOf({ ...plan, walls: [...plan.walls] });
+  const bare = bareNear(plan);
+  // The pipe a big piece is made of is not taken away, and a pipe is never run where none may be.
+  const edgeOf = (a: number, b: number): number => edgeId(bare, a, sideBetween(bare, a, b));
+  if (plan.parent[cell]! >= 0 && plan.pinned.has(edgeOf(cell, plan.parent[cell]!))) return false;
   const children = childrenOf(plan.parent);
   const branch = new Set<number>([cell]);
   for (const member of branch) for (const child of children[member]!) branch.add(child);
@@ -253,6 +290,7 @@ function rewire(plan: Plan, cell: number, random: Random): boolean {
     for (let side = 0; side < 4; side += 1) {
       const outside = near[inside * 4 + side]!;
       if (outside === -1 || branch.has(outside) || (inside === cell && outside === plan.parent[cell])) continue;
+      if (plan.banned.has(edgeOf(inside, outside))) continue;
       options.push([inside, outside]);
     }
   }
@@ -271,7 +309,7 @@ function rewire(plan: Plan, cell: number, random: Random): boolean {
 }
 
 /** The settings a call to `makeSuido` or `laySuido` resolves its options to. */
-type Settings = { width: number; height: number; kind: Kind; wrap: boolean; sources: number; drains: number; spares: number; bias: number | undefined; seed: number; locked: number; walls: number };
+type Settings = { width: number; height: number; kind: Kind; wrap: boolean; sources: number; drains: number; spares: number; bias: number | undefined; seed: number; locked: number; walls: number; bigs: number; blocks: number };
 
 function settingsOf(options: MakeOptions): Settings {
   const width = options.width ?? options.size ?? 7;
@@ -285,6 +323,7 @@ function settingsOf(options: MakeOptions): Settings {
     if ((options.sources ?? 1) !== 1 || (options.drains ?? 1) !== 1) throw new Error("An inlet-outlet board has one pump and one drain.");
     if (width < 3 || height < 3) throw new Error(`Not an inlet-outlet board size: ${width}×${height}`);
   }
+  if (kind !== "network" && (options.bigs ?? 0) + (options.blocks ?? 0) > 0) throw new Error("Only a network can have big pieces or blocks that turn.");
   const sources = kind === "inlet-outlet" ? 1 : Math.min(Math.max(1, Math.floor(options.sources ?? 1)), Math.max(1, Math.floor(cells / 6)));
   return {
     width,
@@ -298,6 +337,8 @@ function settingsOf(options: MakeOptions): Settings {
     seed: (options.seed ?? 1) >>> 0,
     locked: Math.max(0, Math.floor(options.locked ?? 0)),
     walls: Math.max(0, Math.floor(options.walls ?? 0)),
+    bigs: Math.max(0, Math.floor(options.bigs ?? 0)),
+    blocks: Math.max(0, Math.floor(options.blocks ?? 0)),
   };
 }
 
@@ -307,8 +348,10 @@ function planOf(settings: Settings, random: Random): Plan | null {
   const cells = width * height;
   if (kind === "inlet-outlet") return pathPlanOf(settings, random);
   const bias = settings.bias ?? 0.15 + random() * 0.75;
-  const pumps = pickSources(width, height, wrap, sources, random);
-  const parent = grow(width, height, wrap, pumps, bias, random);
+  const squares = squaresOf(settings, random);
+  const pumps = pickSources(width, height, wrap, sources, random, squares.inBlock);
+  const parent = grow(width, height, wrap, pumps, bias, random, squares.rules);
+  if (parent === null) return null;
   const children = childrenOf(parent);
   if (pumps.some((pump) => children[pump]!.length === 0)) return null;
   let drains: number[] = [];
@@ -328,7 +371,38 @@ function planOf(settings: Settings, random: Random): Plan | null {
     drains = [...chosen];
   }
   const spare = Array.from({ length: cells }, () => (random() < spares ? SPARE_SHAPES[Math.floor(random() * SPARE_SHAPES.length)]! : 0));
-  return { width, height, kind, wrap, parent, sources: pumps, drains, spare, locked: new Set(), walls: new Set() };
+  return { width, height, kind, wrap, parent, sources: pumps, drains, spare, locked: new Set(), walls: new Set(), placed: squares.placed, inBlock: squares.inBlock, pinned: squares.pinned, banned: squares.rules?.banned ?? new Set() };
+}
+
+/** The squares of a new board: placed, the cell each is in, and what the pipes must keep to for the big pieces among them to come out as placed. */
+function squaresOf(settings: Settings, random: Random): { placed: Placed[]; inBlock: Int32Array; pinned: Set<number>; rules: Rules | null } {
+  const { width, height, wrap } = settings;
+  const inBlock = new Int32Array(width * height).fill(-1);
+  const pinned = new Set<number>();
+  if (settings.bigs + settings.blocks === 0 || settings.kind !== "network") return { placed: [], inBlock, pinned, rules: null };
+  const bare = neighboursOf({ width, height, wrap });
+  const placed = placeBlocks(bare, width, height, settings.bigs, settings.blocks, random);
+  const forced: number[][] = Array.from({ length: width * height }, () => []);
+  const banned = new Set<number>();
+  placed.forEach((block, at) => {
+    const cells = blockCells(block.anchor, width);
+    for (const cell of cells) inBlock[cell] = at;
+    if (block.kind === null) return;
+    const masks = bigMasksOf(block.kind, block.quarters);
+    cells.forEach((cell, i) => {
+      for (let side = 0; side < 4; side += 1) {
+        const next = bare[cell * 4 + side]!;
+        if (next === -1) continue;
+        const edge = edgeId(bare, cell, side);
+        if (((masks[i]! >> side) & 1) === 1) {
+          pinned.add(edge);
+          forced[cell]!.push(next);
+          if (!cells.includes(next)) forced[next]!.push(cell);
+        } else banned.add(edge);
+      }
+    });
+  });
+  return { placed, inBlock, pinned, rules: { forced, banned } };
 }
 
 /**
@@ -340,20 +414,27 @@ function pathPlanOf(settings: Settings, random: Random): Plan | null {
   const { width, height, spares } = settings;
   const cells = width * height;
   const bias = settings.bias ?? 0.55 + random() * 0.45;
-  const parent = grow(width, height, false, [0], bias, random);
+  const parent = grow(width, height, false, [0], bias, random)!;
   let length = 1;
   for (let cell = cells - 1; cell !== 0; cell = parent[cell]!) length += 1;
   // A way that is nearly a straight run is no puzzle: the path takes a good share of the board.
   if (length < Math.max(width + height + 2, Math.floor(cells * 0.35))) return null;
   const spare = Array.from({ length: cells }, () => (random() < spares ? DECOYS[Math.floor(random() * DECOYS.length)]! : 0));
-  return { width, height, kind: "inlet-outlet", wrap: false, parent, sources: [0], drains: [cells - 1], spare, locked: new Set(), walls: new Set() };
+  return { width, height, kind: "inlet-outlet", wrap: false, parent, sources: [0], drains: [cells - 1], spare, locked: new Set(), walls: new Set(), placed: [], inBlock: new Int32Array(cells).fill(-1), pinned: new Set(), banned: new Set() };
 }
 
 function madeOf(plan: Plan, random: Random, seed: number, discarded: number): Made {
   const truth = solved(plan);
   /** The plan scrambled once: every piece that is not locked turned a random way. */
   const scrambled = (): Layout => {
-    const layout = layoutOf(plan, scramble(truth, random), truth);
+    const given = scramble(truth, random);
+    // A square turns as one: it is the way the answer has it, turned a random number of quarters.
+    for (const block of plan.placed) {
+      const cells = blockCells(block.anchor, plan.width);
+      const turned = turnBlock(truth, { index: 0, anchor: block.anchor, big: block.kind !== null, cells }, Math.floor(random() * 4));
+      for (const cell of cells) given[cell] = turned[cell]!;
+    }
+    const layout = layoutOf(plan, given, truth);
     for (const cell of layout.locked ?? []) layout.cells[cell] = truth[cell]!;
     return layout;
   };
@@ -412,6 +493,13 @@ function waterEdges(layout: Layout, masks: readonly number[], near: Int32Array):
   return edges;
 }
 
+/** Whether an edge is between two cells of one square, where a wall cannot stand. */
+function insideBlock(plan: Plan, edge: number, bare: Int32Array): boolean {
+  const cell = edge >> 1;
+  const next = bare[cell * 4 + ((edge & 1) === 0 ? 1 : 2)]!;
+  return next !== -1 && plan.inBlock[cell]! >= 0 && plan.inBlock[cell] === plan.inBlock[next];
+}
+
 /** How many of a plan's locks hold, as the plan stands. */
 function locksHeld(plan: Plan, truth: readonly number[]): number {
   const fit = new Set(lockable(plan, truth));
@@ -430,7 +518,7 @@ function tighten(plan: Plan, settings: Settings, layout: Layout, one: readonly n
   const second = waterEdges(layout, two, bare);
   const wallEdges = [...first].filter((edge) => !second.has(edge)).concat([...second].filter((edge) => !first.has(edge)));
   const pipes = forestEdges(plan, bare);
-  const walls = settings.walls > plan.walls.size ? wallEdges.filter((edge) => !pipes.has(edge) && !plan.walls.has(edge)) : [];
+  const walls = settings.walls > plan.walls.size ? wallEdges.filter((edge) => !pipes.has(edge) && !plan.walls.has(edge) && !insideBlock(plan, edge, bare)) : [];
   const fit = new Set(lockable(plan, truth));
   const locks = settings.locked > locksHeld(plan, truth) ? Array.from({ length: truth.length }, (_, cell) => cell).filter((cell) => one[cell] !== two[cell] && fit.has(cell) && !plan.locked.has(cell)) : [];
   if (walls.length === 0 && locks.length === 0) return false;
@@ -451,7 +539,7 @@ function furnish(plan: Plan, settings: Settings, random: Random): void {
       for (const side of [1, 2]) {
         const next = bare[cell * 4 + side]!;
         const edge = edgeId(bare, cell, side);
-        if (next !== -1 && !pipes.has(edge) && !plan.walls.has(edge) && (need[cell] === true || need[next] === true)) options.push(edge);
+        if (next !== -1 && !pipes.has(edge) && !plan.walls.has(edge) && !insideBlock(plan, edge, bare) && (need[cell] === true || need[next] === true)) options.push(edge);
       }
     }
     for (const edge of shuffled(options, random).slice(0, settings.walls - plan.walls.size)) plan.walls.add(edge);
@@ -476,6 +564,8 @@ export function makeUnscored(options: MakeOptions = {}): Made {
   const cells = settings.width * settings.height;
   const random = seededRandom(settings.seed);
   const furnished = settings.walls + settings.locked > 0;
+  // A board of more than four hundred cells that the solver cannot prove in four thousand positions is thrown away rather than searched on: most are proved in a few hundred, and a hopeless one costs seconds a phone does not have.
+  const budget = cells > 400 ? 4000 : 20_000;
   let discarded = 0;
   for (;;) {
     const plan = planOf(settings, random);
@@ -485,7 +575,7 @@ export function makeUnscored(options: MakeOptions = {}): Made {
     }
     for (let round = 0; round < 40; round += 1) {
       const made = madeOf(plan, random, settings.seed, discarded);
-      const result = solve(made.layout, 2, 20_000);
+      const result = solve(made.layout, 2, budget);
       if (!result.complete) break;
       if (result.count === 1) {
         if (!furnished) return made;

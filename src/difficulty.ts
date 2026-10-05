@@ -127,7 +127,9 @@ export function referenceKey(side: number, kind: Kind, wrap: boolean): string {
  */
 export function referenceFor(layout: Pick<Layout, "width" | "height" | "kind" | "wrap">): Reference {
   const side = Math.sqrt(layout.width * layout.height);
-  const nearest = DIFFICULTY_SIDES.reduce((best, one) => (Math.abs(one - side) < Math.abs(best - side) ? one : best));
+  // The sides there is a set for in this kind and wrap: not every side has every kind.
+  const have = DIFFICULTY_SIDES.filter((one) => DIFFICULTY_REFERENCE[referenceKey(one, layout.kind, layout.wrap)] !== undefined);
+  const nearest = (have.length > 0 ? have : DIFFICULTY_SIDES).reduce((best, one) => (Math.abs(one - side) < Math.abs(best - side) ? one : best));
   return DIFFICULTY_REFERENCE[referenceKey(nearest, layout.kind, layout.wrap)]!;
 }
 

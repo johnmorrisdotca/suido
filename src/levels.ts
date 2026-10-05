@@ -1,11 +1,7 @@
 import type { LevelRow } from "./levelCounts.ts";
 import { SUIDO_SIZES } from "./levelCounts.ts";
 
-export * from "./levelCounts.ts";
-export * from "./levelBlocks.ts";
-export * from "./levelRow.ts";
-export * from "./ladder.ts";
-export * from "./daily.ts";
+export * from "./levelsInfo.ts";
 
 /**
  * EVERY SIZE'S LEVELS, LOADED WHEN ASKED: `@johnmorrisdotca/suido/levels`.
@@ -31,6 +27,9 @@ async function importSize(size: string): Promise<readonly LevelRow[]> {
   if (size === "5x7") return (await import("./levels/size5x7.data.ts")).SUIDO_5X7;
   if (size === "6x10") return (await import("./levels/size6x10.data.ts")).SUIDO_6X10;
   if (size === "8x14") return (await import("./levels/size8x14.data.ts")).SUIDO_8X14;
+  if (size === "20x20") return (await import("./levels/size20x20.data.ts")).SUIDO_20X20;
+  if (size === "28x28") return (await import("./levels/size28x28.data.ts")).SUIDO_28X28;
+  if (size === "20x50") return (await import("./levels/size20x50.data.ts")).SUIDO_20X50;
   throw new Error(`No Suido at ${size}.`);
 }
 

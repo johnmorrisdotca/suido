@@ -1,7 +1,7 @@
 <h1 align="center">Suido <sub>水道</sub></h1>
 
 <p align="center"><strong>A pipe puzzle for JavaScript and TypeScript.</strong><br>
-Turn the pieces until the water from the pump reaches every drain and nothing is left open. 3,328 fixed levels from easy to hard, in 5×5 to 14×14 and three long pipe shapes, each with exactly one answer, with walls, locked pieces, wrap-around edges, several pumps, drains and inlet-to-outlet paths. Boards as short codes, a solver that counts answers, a seeded generator whose every board has exactly one, a difficulty from 1 to 100 within each size, and the water drawn as SVG that flows along the pipes as they join, played by tap, mouse and keyboard in any page with one call or one tag. No dependencies.</p>
+Turn the pieces until the water from the pump reaches every drain and nothing is left open. 3,520 fixed levels from easy to hard, in 5×5 to 28×28 and four long pipe shapes, each with exactly one answer, with walls, locked pieces, wrap-around edges, several pumps, drains and inlet-to-outlet paths, and boards of your own with big pieces that fill four squares and squares of four pieces that turn together. Boards as short codes, a solver that counts answers, a seeded generator whose every board has exactly one, a difficulty from 1 to 100 within each size, and the water drawn as SVG that flows along the pipes as they join, played by tap, mouse and keyboard in any page with one call or one tag. No dependencies.</p>
 
 <p align="center">
   <a href="https://github.com/johnmorrisdotca/suido/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/johnmorrisdotca/suido/actions/workflows/ci.yml/badge.svg"></a>
@@ -62,9 +62,11 @@ makeSuido({ size: 8, kind: "inlet-outlet", locked: 3, walls: 4, seed: 7 });   //
 
 ## Features
 
-- **Fixed, numbered levels.** Thousands of boards in thirteen sizes (5×5 to 14×14 and three long pipe shapes), each with exactly one answer, easy to hard, in blocks of sixteen that open one after another. A level keeps its number, so a time on it can be compared with anybody's. See [Levels](#levels).
+- **Fixed, numbered levels.** Thousands of boards in sixteen sizes (5×5 to 14×14, three long pipe shapes, and the huge 20×20, 28×28 and long 20×50), each with exactly one answer, easy to hard, in blocks of sixteen that open one after another. A level keeps its number, so a time on it can be compared with anybody's. See [Levels](#levels).
+- **Huge boards, played on a phone.** Up to 1,000 pieces, drawn as SVG that flows, zoomed and moved about by a pinch, a drag, the wheel and three buttons, with a tap still a tap. See [Playing it in a page](#playing-it-in-a-page).
 - **A level of the day**, the same for everybody, from the date alone: `dailySuidoLevel(size, date)`. No server, no seed.
 - **Twists a level declares**: drains, several pumps, locked pieces, walls, wrap-around edges and inlet-to-outlet paths, as options of the generator too.
+- **Big pieces and blocks that turn as one**, in boards of your own: a big piece fills four squares and has up to eight openings; a block is four ordinary pieces that a tap turns together, each moving round to the next place as it turns. Each has exactly one answer, like every board.
 - **A generator and a solver.** A seeded generator whose every board has exactly one answer, a solver that counts answers, and a difficulty from 1 to 100 within each size.
 - **A check a server can trust.** `checkSuidoAnswer` reads a finished board in O(cells), with no search, and says the first thing wrong.
 - **Boards and games as short strings**, so a board, its answer and a game half played can be kept in a database column.
@@ -205,7 +207,9 @@ Options, any of which may be combined (each is a *twist*, and a level declares t
 - **Walls**: water cannot cross some of the edges between cells, so a pipe open towards one runs out of it.
 - **Wrap**: the edges join, so a pipe leaving one side comes in at the other.
 - **Inlet to outlet**: the third kind. One pump at the top left and one drain at the bottom right, and the water must run between them in one path with no branch (every wet piece opens on two sides); the other pieces are decoys and stay dry.
-- **Any shape**: boards from 2×2 to 40×40, and not only square.
+- **Big pieces**: some pieces are big. A big piece fills four squares, a two-by-two, and has up to eight openings, two on each side, joined inside by one of five kinds (`BIG_KINDS`): an end, a hairpin, two pipes side by side, two pipes bending one inside the other, and a straight pipe with a branch. A tap turns the whole piece a quarter, where it stands.
+- **Block turns**: some squares of four ordinary pieces turn as one. A tap on any of the four turns all four a quarter: each piece moves round to the next place and turns with it, and none can be turned alone. A ring where the four meet says so.
+- **Any shape**: boards from 2×2 to 64×64, and not only square.
 - **A difficulty**, 1 to 100 among the boards of the size.
 
 What other pipe games do, and which of it Suido took and left, is in [docs/TWISTS.md](docs/TWISTS.md).
@@ -218,8 +222,8 @@ import { loadSuidoLevels, SUIDO_SIZES, SUIDO_LEVEL_COUNTS, openSuidoLevels } fro
 
 Like its sibling [Tsunagi](https://github.com/johnmorrisdotca/tsunagi), Suido has fixed, numbered levels: level 12 at 7×7 is one board for every player on every day, so a time on it can be compared with anybody's.
 
-- **Sizes**: `5x5` to `14x14`, then three pipe shapes, `5x7`, `6x10` and `8x14` (width by height). `SUIDO_SIZES` lists them and `SUIDO_LEVEL_COUNTS` says how many levels each has: 256 each, 3,328 in all.
-- **Each size is its own import**, loaded when asked for (`loadSuidoLevels("8x8")`), or directly as `@johnmorrisdotca/suido/levels-8x8`, so a page playing 5×5 carries none of the others. A size's file is 8 KB to 51 KB gzipped (5×5 to 14×14): a level is its board code, one digit for each cell for its answer, and its twists.
+- **Sizes**: `5x5` to `14x14`, then three pipe shapes, `5x7`, `6x10` and `8x14` (width by height), then the huge boards: `20x20`, `28x28` and the long `20x50`. `SUIDO_SIZES` lists them and `SUIDO_LEVEL_COUNTS` says how many levels each has: 256 each for the thirteen of 14×14 and under, sixty-four (four blocks) for each huge one, 3,520 in all.
+- **Each size is its own import**, loaded when asked for (`loadSuidoLevels("8x8")`), or directly as `@johnmorrisdotca/suido/levels-8x8`, so a page playing 5×5 carries none of the others. A size's file is 8 KB to 51 KB gzipped (5×5 to 14×14), and the huge ones are 26 KB (20×20), 49 KB (28×28) and about 60 KB (20×50) gzipped, for sixty-four levels each: a level is its board code, one digit for each cell for its answer, and its twists.
 - **A row** is `[board, turns, twists]`: the board as a code, the answer as one digit a cell (the quarter turns clockwise from the way the board gives the piece to the way the answer has it), and the twists it declares, as kebab-case words (`"wrap locked"`; `""` for a plain level). `levelAnswer(row)` is the answer as a code, which `checkSuidoAnswer(row[0], answer)` accepts; `levelBoard(row)` and `levelSolution(row)` give the layout and the pieces of the answer; `declaredTwists(row)` the twists.
 - **Easy to hard.** Every level is no easier than the one before, by `exactDifficultyOf` (its place among boards of its size, kind and wrap, from 1 to 100). Level 1 of a size is among the easiest boards of it and level 256 among the hardest. `suidoMarks(size, level)` is the difficulty as 1 to 5 (the score in steps of twenty), read without loading the size.
 - **Blocks of sixteen.** A block opens once every level of the block before is solved (`openSuidoLevels(size, solved)`, `nextSuidoLevel`, `blockOf`, `blockRange`). The first block is plain. From the second, the 15th level of a block *teaches* a twist and the 16th *tests* it (`suidoRole(size, level)`): drains, then pumps, locked pieces, walls, wrap, and inlet to outlet. From the eighth block the twists are combined (wrap with locks, walls with locks, pumps with drains, and on to a block with wrap, drains and walls together), and from then on the other places of a block carry twists too.
@@ -265,11 +269,14 @@ where the cell has a **pump**, and `A`–`P` where it has a **drain**. A code wr
 from how the pieces face when the board is solved is the board's answer, and a
 site checks a solve by being sent that code.
 
-The flags are `d` (drains), `i` (inlet to outlet) and `w` (wrap), the kind's letter first. After the cells come two optional lists, in this order:
+The flags are `d` (drains), `i` (inlet to outlet) and `w` (wrap), the kind's letter first. After the cells come four optional lists, in this order:
 
 ```text
 7x7dw:0b3a…;l3,17,22;w4,9      locked pieces by cell number (;l), then walls by edge number (;w)
+8x8:0b3a…;b9,40;k21            big pieces (;b) and blocks that turn as one (;k), each by the number of its top left cell
 ```
+
+A big piece or a block is a square of four cells, named by its top left cell, and cannot cross the edge of the board, overlap another, or hold a pump, a drain or a locked piece; a big piece is joined inside (where two of its cells meet, either both open towards each other or neither does), only a network has them, and a wall cannot stand between two of a block's cells.
 
 An edge is `cell * 2` for the wall on the east side of a cell and `cell * 2 + 1` for the one on its south side (on a board that wraps the east of the last column and the south of the last row are real edges).
 
@@ -283,7 +290,7 @@ import { cellStates, drawSuido, paintSuido, SUIDO_STYLE } from "@johnmorrisdotca
 It is a separate entry, so a server that only checks an answer never loads it.
 `SUIDO_STYLE` is the CSS that turns it into water. Put it in the page once; every
 colour is a custom property on `.suido`, and the board is dark when the device is.
-A wall is a bar across its edge, a locked piece a frame and a padlock, and a board that wraps a dashed rim.
+A wall is a bar across its edge, a locked piece a frame and a padlock, and a board that wraps a dashed rim. A big piece has a solid plate under its four cells and a block that turns as one a dashed rim round them, each with a ring and an arrow where its four cells meet; a tap on any of the four turns the whole. A piece in a block is named by the cell it was given in and carried round by the block, so `cellStates` reads its water where it is now.
 `drawSuidoThumb(layout, { masks })` draws a board small, in a few dozen elements however big it is, for a page that
 shows a whole block of levels at once; with the pieces of the answer as `masks` the water is in it.
 
@@ -292,7 +299,7 @@ pieces face now and how far each has been turned in all: it writes what changed 
 drawing in place, and the style's transitions do the rest. The pipes turn, the water runs
 out along the network from the pump one cell after another, and runs back out of a pipe
 turned away from it. An open end shows a drip. With reduced motion asked for, it all
-happens at once.
+happens at once. Only what has changed since the last tap is written, which on a board of a thousand pieces is a few dozen.
 
 Nothing on the board can be selected, dragged or double-tapped, and a piece is a rotation
 about the middle of its cell. Everything is drawn in code: no images, no fonts, no
@@ -315,7 +322,9 @@ board?.restart(); board?.load({ code: other.code, answer: other.answer });
 
 A tap turns a piece a quarter clockwise; shift with a tap, or a right click, turns it the other way (or the other way round, with `turning: "anticlockwise"`); the arrows move between pieces and enter or space turns one, with shift the other way. A locked piece, bare ground and a cross are not turned. The water is drawn dry and then painted on the next frame, so the first flow is seen, and it runs back out of a pipe turned away. The board is one box in the board's own shape, and the lines of words under it keep the room they need, so nothing moves as pieces are turned or messages come and go.
 
-Under the board, unless `controls: false`: a line saying how far the water has got and how many ends leak, or that it is solved; a line of turns, par (if there is an `answer`) and hints; a line for what a hint says; and **Start over**, **Hint** (if `hints` is on and there is an `answer`, which lights a piece to turn) and the direction a tap turns. `chips` adds a row with each twist the board has, or Plain, each with the line that explains it as its hover text. Everything a button does is also a method on the handle (`restart`, `hint`, `turn`, `load`, `set`, `destroy`).
+**A big board is zoomed and moved about.** Where the pieces would be smaller than 22 pixels across the box they are in (20×20 and bigger on a phone, 28×28 on a desk), a row of three buttons, **Zoom out**, **Zoom in** and **Whole board**, sits under the board, and the board itself answers a pinch of two fingers, a drag once it is zoomed in, and the wheel with control held (a trackpad's pinch is that) or, zoomed in, the wheel alone. A press that moved is not a tap: the click that ends a drag is swallowed, so the piece under a finger that panned the board is not turned. The view is the drawing's own `viewBox`, so the pipes stay crisp however far in it is, and the arrow keys bring the piece they move to into view. `zoom: "off"` leaves the board as it is. `view()` and `zoom("in" | "out" | "fit")` are on the handle, and `attachSuidoView(box, svg, layout)` (in `@johnmorrisdotca/suido/draw`) does the same for a board you draw yourself, with `clampView`, `zoomAbout`, `panView`, `viewShowing`, `viewBoxOf` and `needsZoom` as the arithmetic.
+
+Under the board, unless `controls: false`: a line saying how far the water has got and how many ends leak, or that it is solved; a line of turns, par (if there is an `answer`) and hints; a line for what a hint says; and **Start over**, **Hint** (if `hints` is on and there is an `answer`, which lights a piece to turn) and the direction a tap turns. `chips` adds a row with each twist the board has, or Plain, each with the line that explains it as its hover text. Everything a button does is also a method on the handle (`restart`, `hint`, `turn`, `load`, `set`, `view`, `zoom`, `destroy`).
 
 | Option | What it does |
 | --- | --- |
@@ -325,6 +334,7 @@ Under the board, unless `controls: false`: a line saying how far the water has g
 | `turning` | `clockwise` (default) or `anticlockwise` |
 | `hints` | offer Hint (default off) |
 | `controls`, `chips` | the buttons and words under the board (default on), and the twists as chips (default off) |
+| `zoom` | `auto` (default): a board too big for a thumb can be zoomed and moved about; `off`: never |
 | `language` | `en` or `ja`; left out, the host's `lang` or the page's, and it follows the page's |
 | `onChange`, `onTurn`, `onHint`, `onTurning`, `onSolve` | callbacks, and the same as DOM events on the host: `suido-change`, `suido-turn`, `suido-hint`, `suido-turning`, `suido-solve`. A `detail` has `code` (the game as a code), `progress` (to keep the game), `turns`, `hints`, `solved` and, for a turn or a hint, `cell` |
 
@@ -336,7 +346,7 @@ Under the board, unless `controls: false`: a line saying how far the water has g
 <suido-board code="5x5:…" answer="5x5:…" turning="anticlockwise" chips hints></suido-board>
 ```
 
-Or `import "@johnmorrisdotca/suido/element/define"` in a bundle. Attributes, each read again when it changes: `size` with `level` (the package's own levels, fetched when asked) or `code` with `answer`; `progress`; `shown`; `turning`; `hints`; `controls="off"`; `chips`; `lang`. A change of `turning`, `hints` or `lang` applies at once; a new board starts again. It fires the events above and has the methods `restart()` and `hint()`. Importing either entry on a server is safe.
+Or `import "@johnmorrisdotca/suido/element/define"` in a bundle. Attributes, each read again when it changes: `size` with `level` (the package's own levels, fetched when asked) or `code` with `answer`; `progress`; `shown`; `turning`; `hints`; `controls="off"`; `chips`; `zoom="off"`; `lang`. A change of `turning`, `hints` or `lang` applies at once; a new board starts again. It fires the events above and has the methods `restart()` and `hint()`. Importing either entry on a server is safe.
 
 ## Difficulty
 
@@ -353,9 +363,9 @@ forces nothing more), **guessing** (how much the solver had to try) and, in a dr
 wrap, the percentiles are blended by `DIFFICULTY_WEIGHTS`, and the blend is itself ranked
 among the set's blends, so a score is a board's place among its size's boards: about one in
 a hundred is each score, and 50 is a middling board. It does not compare across sizes. The
-reference sets (600 boards for each of 12 sizes, 3 kinds and wrap or not) are made by
-`scripts/suido-reference.ts` from the package's own generator. Walls and locked pieces are not part
-of a set: they make a board easier than the boards of its set, and its score says so.
+reference sets (600 boards for each of 12 sizes, 3 kinds and wrap or not; 400 for each of the huge sides 20, 28 and 32, the last for 20×50) are made by
+`scripts/suido-reference.ts` from the package's own generator, and a board of a side or a kind there is no set for is ranked among the nearest side that has one. Walls and locked pieces are not part
+of a set: they make a board easier than the boards of its set, and its score says so, as do big pieces and blocks that turn as one.
 `exactDifficultyOf` is the score before it is rounded, which is what the levels are put in order by.
 
 `makeSuido` with a `difficulty` makes boards, each from its own seed, until one is within
@@ -368,15 +378,18 @@ The [API reference](https://johnmorrisdotca.github.io/suido/api.html) lists ever
 
 | Export | What it does |
 | --- | --- |
-| `makeSuido(options)` | a new board with exactly one answer, and how hard it is; `{ code, answer, layout, solution, seed, difficulty, tried, discarded }`. Options include `kind`, `wrap`, `sources`, `locked`, `walls`, `width`, `height`, `difficulty` |
+| `makeSuido(options)` | a new board with exactly one answer, and how hard it is; `{ code, answer, layout, solution, seed, difficulty, tried, discarded }`. Options include `kind`, `wrap`, `sources`, `locked`, `walls`, `bigs`, `blocks`, `width`, `height`, `difficulty` |
 | `makeUnscored(options)`, `laySuido(options)` | the same without measuring it, and a board laid out with no promise about its answers |
-| `decodeLayout(code)`, `encodeLayout(layout)`, `withMasks(layout, masks)`, `isLocked(layout, cell)` | a board's code and the `Layout` it stands for: size, kind, wrap, cells, sources, drains, and its locked pieces and walls if it has any |
+| `decodeLayout(code)`, `encodeLayout(layout)`, `withMasks(layout, masks)`, `isLocked(layout, cell)` | a board's code and the `Layout` it stands for: size, kind, wrap, cells, sources, drains, and its locked pieces, walls, big pieces and blocks if it has any |
+| `blockInfo(layout)`, `blockAt(layout, cell)`, `blockCells(anchor, width)`, `hasBlocks(layout)`, `sameBlock(layout, a, b)` | the squares of four cells that turn as one: which they are, which one a cell is in, and its four cells clockwise from the top left |
+| `turnBlock(masks, block, by)`, `blockQuartersBetween(from, to, block)`, `blockFacings(masks, block)`, `canTurnBlock(masks, block)`, `placeAfter(block, cell, quarters)`, `isJoinedInside(masks, block)` | a block turned, how far apart two facings of it are, the ways it can face, whether a turn changes anything, where a piece is once its block is turned, and whether a big piece is joined inside |
+| `BIG_KINDS`, `bigMasksOf(kind, quarters)`, `bigKindOf(masks)`, `placeBlocks(near, width, height, bigs, turning, random)` | the five kinds of big piece, one turned, which kind four masks make, and where a generator puts blocks on a board |
 | `checkSuidoAnswer(board, answer)` | whether an answer solves a board, in O(cells); `{ ok: true }` or the first reason it does not |
 | `flowOf(layout, masks)`, `isSolved(layout, masks)` | the water: which cells are wet, in what order, how deep, where it spills, whether it is solved |
 | `solve(layout, limit, budget)`, `countSolutions(layout, limit, budget)` | counts answers up to `limit`, within a `budget` of positions, and returns them |
 | `newGame(code)`, `turnAt(game, cell, by)`, `canTurn(mask)`, `canTurnAt(game, cell)` | a game in play, and a tap, as pure functions that return new games; a locked piece, bare ground and a cross are not turned |
 | `flowOfGame(game)`, `isGameSolved(game)`, `gameCode(game)` | the water of a game, whether it is solved, and the game as a code to keep or send |
-| `hintFor(game, answer)`, `tapsToAnswer(game, answer)`, `turnsFromAnswer(given, solution)` | a piece to turn, and how many taps are left or were needed |
+| `hintFor(game, answer)`, `turnedToFaceAt(game, cell, answer)`, `tapsToAnswer(game, answer)`, `turnsFromAnswer(given, solution)` | a piece to turn, that piece (or block) turned to face the answer, and how many taps are left or were needed |
 | `measureSuido(layout, solution)`, `difficultyOf(layout, solution)`, `exactDifficultyOf(layout, solution)` | how hard a board is, as a whole score and as the score before it is rounded |
 | `scoreOf`, `exactScoreOf`, `blendOf`, `percentileIn`, `quantilesOf`, `referenceFor`, `referenceKey` | the parts of that, and the reference set a board is ranked among |
 | `twistsOf(layout)`, `isTwisted(layout)` | the twists a board has, in the order the levels teach them |
@@ -395,10 +408,11 @@ The [API reference](https://johnmorrisdotca.github.io/suido/api.html) lists ever
 | `paintSuido(svg, layout, masks, quarters)` | writes the water and the turns onto a drawing in place |
 | `mountSuido(host, options)`, `ensureSuidoPlayStyle(host)` | a board played in an element, and the style it wears (`@johnmorrisdotca/suido/play`) |
 | `suidoSay(language, key, values)`, `suidoLanguageOf(tag)` | a line of the board's words in English or Japanese, and the language a `lang` is |
-| `gameProgress(game)`, `gameFromProgress(code, progress)` | a game half played as a short string to keep, and the game it comes back as |
+| `gameProgress(game)`, `gameFromProgress(code, progress)`, `gameFromCode(code, kept)` | a game half played as a short string to keep, and the game it comes back as; and the game a board's code and the code it was left as make |
+| `attachSuidoView(box, svg, layout, options)`, `boxOf`, `clampView`, `zoomAbout`, `panView`, `viewShowing`, `viewBoxOf`, `needsZoom` | a big board zoomed and moved about by a pinch, a drag and the wheel (`@johnmorrisdotca/suido/draw`), and the arithmetic of a view |
 | `dailySuidoLevel(size, date)`, `suidoDay(date)`, `isSuidoDay(text)` | the level of the day at a size, from the date alone; a date as `YYYY-MM-DD` in UTC; whether a text is a real one |
 
-Constants: `SUIDO_STYLE`, `SUIDO_PLAY_STYLE`, `SUIDO_STRINGS`, `SUIDO_DAILY_STRIDE`, `DIFFICULTY_WEIGHTS`, `MEASURE_NAMES`, `DIFFICULTY_SIDES`, `SHAPE_MASKS`, `MAX_SIDE`, `SUIDO_TWISTS`, `SUIDO_SIZES`, `SUIDO_LEVEL_COUNTS`, `SUIDO_BLOCK`, and
+Constants: `SUIDO_STYLE`, `SUIDO_PLAY_STYLE`, `SUIDO_STRINGS`, `SUIDO_DAILY_STRIDE`, `DIFFICULTY_WEIGHTS`, `MEASURE_NAMES`, `DIFFICULTY_SIDES`, `SHAPE_MASKS`, `MAX_SIDE`, `SUIDO_TWISTS`, `SUIDO_LEVEL_TWISTS`, `SUIDO_SIZES`, `SUIDO_LEVEL_COUNTS`, `SUIDO_BLOCK`, and
 the sides `NORTH`, `EAST`, `SOUTH`, `WEST`, `SIDES`, `SIDE_STEPS`. Every function is pure: it
 returns new values and never changes what it was given. Everything is typed, and
 there are no dependencies.
@@ -411,8 +425,10 @@ there are no dependencies.
 | `@johnmorrisdotca/suido/element` | the `SuidoBoard` class behind `<suido-board>`, to extend or to define under another name |
 | `@johnmorrisdotca/suido/element/define` | defines `<suido-board>` on the page, for its effect |
 | `@johnmorrisdotca/suido/levels` | the levels loader, the counts, the blocks, the level of the day and what a level declares |
+| `@johnmorrisdotca/suido/levels-info` | all of that but the loader: the counts, the blocks, which levels are open, a row read, the marks and lessons and the level of the day, with no board in it, for a server that must not carry every size's data |
 | `@johnmorrisdotca/suido/levels-5x5`, `@johnmorrisdotca/suido/levels-6x6`, `@johnmorrisdotca/suido/levels-7x7`, `@johnmorrisdotca/suido/levels-8x8`, `@johnmorrisdotca/suido/levels-9x9`, `@johnmorrisdotca/suido/levels-10x10`, `@johnmorrisdotca/suido/levels-11x11`, `@johnmorrisdotca/suido/levels-12x12`, `@johnmorrisdotca/suido/levels-13x13`, `@johnmorrisdotca/suido/levels-14x14` | one square size's levels, as the data (`SUIDO_5X5` …), with nothing else loaded |
-| `@johnmorrisdotca/suido/levels-5x7`, `@johnmorrisdotca/suido/levels-6x10`, `@johnmorrisdotca/suido/levels-8x14` | one pipe shape's levels (`SUIDO_5X7` …) |
+| `@johnmorrisdotca/suido/levels-5x7`, `@johnmorrisdotca/suido/levels-6x10`, `@johnmorrisdotca/suido/levels-8x14`, `@johnmorrisdotca/suido/levels-20x50` | one pipe shape's levels (`SUIDO_5X7` …) |
+| `@johnmorrisdotca/suido/levels-20x20`, `@johnmorrisdotca/suido/levels-28x28` | one huge size's levels (`SUIDO_20X20`, `SUIDO_28X28`) |
 | `@johnmorrisdotca/suido/marks` | every level's difficulty marks and lessons, as data |
 
 ## Theming
@@ -436,6 +452,10 @@ Nothing here is branded. The drawing and the playable board are coloured by cust
 | `--sd-solved` | the ground of a solved board | `#e8f3ec` | `#20332a` |
 | `--sd-wall` | a wall | `#7a4f2c` | `#c99a64` |
 | `--sd-lock` | a padlock and the frame of a locked piece | `#8a6a2e` | `#d9b565` |
+| `--sd-plate` | the plate under a big piece | `#ebe2cc` | `#323830` |
+| `--sd-plate-edge` | the rim of a plate, solid or dashed | `#8d8467` | `#7d8a75` |
+| `--sd-plate-solved` | the plate of a big piece on a solved board | `#dcebdc` | `#2b4034` |
+| `--sd-pivot` | the ring and arrow where a block turns | `#b5452c` | `#ff8a6b` |
 | `--sd-step` | how long the water takes through one cell: a time, not a colour, and set for you from the board's depth | `80ms` | the same |
 
 **The playable board** (`mountSuido` and `<suido-board>`) wears the drawing's properties, and six of its own on `.suido-play`:
@@ -453,7 +473,7 @@ Nothing here is branded. The drawing and the playable board are coloured by cust
 suido-board, .suido, .suido-play { --sd-water: #0f7fd0; --sd-leak: #c2331a; --sdp-accent: #8a1c1c; }
 ```
 
-The demo's own page is the worked example: its green felt and its cloth patches are the family's stylesheet, [`demo/family.css`](./demo/family.css), which is the same file byte for byte in every sibling's demo, and a test holds it to its hash. The drawing's parts carry classes and data attributes (`sd-cell`, `sd-pipe`, `sd-wall`, `sd-lock`, `data-wet`, `data-role`, `data-locked`) for anything a property cannot reach.
+The demo's own page is the worked example: its green felt and its cloth patches are the family's stylesheet, [`demo/family.css`](./demo/family.css), which is the same file byte for byte in every sibling's demo, and a test holds it to its hash. The drawing's parts carry classes and data attributes (`sd-cell`, `sd-pipe`, `sd-wall`, `sd-lock`, `sd-plate`, `sd-pivot`, `data-wet`, `data-role`, `data-locked`, `data-block`) for anything a property cannot reach.
 
 ## Limits
 
@@ -461,9 +481,11 @@ All of these are held by tests, and the ones with a name are exported.
 
 | Limit | Value | Where |
 | --- | --- | --- |
-| Sizes of a level | the thirteen of `SUIDO_SIZES`: 5×5 to 14×14, and 5×7, 6×10 and 8×14 | `SUIDO_SIZES`, `SUIDO_LEVEL_COUNTS` |
-| Levels | each size's own, in blocks of sixteen | `SUIDO_LEVEL_COUNTS`, `SUIDO_BLOCK` |
-| A board's side | 2 to 40 cells, and not below 3 for a board that wraps or an inlet-outlet one | `MAX_SIDE` |
+| Sizes of a level | the sixteen of `SUIDO_SIZES`: 5×5 to 14×14, 5×7, 6×10 and 8×14, and the huge 20×20, 28×28 and 20×50 | `SUIDO_SIZES`, `SUIDO_LEVEL_COUNTS` |
+| Levels | each size's own, in blocks of sixteen: 256 a size, sixty-four for a huge one | `SUIDO_LEVEL_COUNTS`, `SUIDO_BLOCK` |
+| A board's side | 2 to 64 cells, and not below 3 for a board that wraps or an inlet-outlet one | `MAX_SIDE` |
+| Big pieces and blocks | a square of four cells, never across an edge, overlapping or holding a pump; only a network has them | `bigs` and `blocks` options |
+| Zoom | up to six times the whole board, offered where a piece is under 22 pixels across | `SUIDO_MOST_ZOOM`, `needsZoom` |
 | Pumps | at least one, and no more than one for every six cells; an inlet-outlet board has exactly one | the `sources` option |
 | Difficulty | 1 to 100 among the boards of the size, kind and wrap | `difficultyOf` |
 | Making to a difficulty | up to 60 boards, until one is within 4 of it | the `attempts` and `tolerance` options |
@@ -518,7 +540,16 @@ one near it:
 | 16×16 | 5.2 ms (95%: 21) | 36 ms (95%: 136) | 16 ms (95%: 122) | 95 ms (95%: 415) | 133 ms (95%: 401) |
 
 Generation is synchronous, so a page makes a big board in a moment's pause (the demo
-shows "Making a board…" and lets the page paint first).
+shows "Making a board…" and lets the page paint first). The huge sizes, on the same laptop (the average of
+six boards): a 20×20 network 4 ms and a 28×28 one 135 ms, with wrap about the same; a drains board takes 0.3 s at 20×20 and 2 s at 28×28,
+and an inlet-outlet one 55 ms and 0.75 s. A phone is several times slower, so a page that makes a huge drains board
+for somebody who asked for one does well to say so first. A network with big pieces or blocks takes about as long as one without.
+
+**Big pieces and blocks.** The blocks are placed first, apart from each other, each big piece facing a way
+that has no opening off the board; the pipes of every big piece (its joins inside, and one pipe out of each opening) are then
+fixed, and the forest of pipes grows round them from the pumps with those edges already in it and no pipe
+where none may be. The board is scrambled with every block turned as one, and kept only if the solver, which treats a block as one thing with
+four facings, proves it has one answer; where it finds a second, a pipe that is not part of a big piece is moved, as before.
 
 ## Architecture
 
@@ -533,6 +564,9 @@ src/
 ├── flow.ts                where the water goes, and whether a board is solved
 ├── check.ts               whether an answer solves a board, in O(cells)
 ├── facing.ts              the sets of facings the solver works with
+├── units.ts               what a network is solved in: a piece, or a block that turns as one, and the facings each can have
+├── blocks.ts              squares of four cells that turn as one: big pieces and blocks, turned and read
+├── bigPieces.ts           the five kinds of big piece, and where a generator puts blocks
 ├── solve.ts               the solver, which counts a board's answers up to a limit
 ├── deduce.ts              what can be worked out without guessing, in rounds
 ├── generate.ts            new boards from a seed: pipes grown, scrambled, made to have one answer
@@ -543,14 +577,15 @@ src/
 ├── game.ts                a game in play: a tap, a hint, the code to keep
 ├── random.ts              the seeded random numbers every board is made from
 ├── version.ts             the package's version
-├── levels.ts              the "/levels" entry: each size loaded when asked for
+├── levels.ts              the "/levels" entry: each size loaded when asked for, and everything in levelsInfo.ts
+├── levelsInfo.ts          the "/levels-info" entry: the counts, blocks, rows, marks and daily level, with no board in it
 ├── levelCounts.ts         the sizes, how many levels each has, and which are open
 ├── levelBlocks.ts         a block of sixteen levels
 ├── levelRow.ts            a level's row read: its board, its answer, its twists
 ├── daily.ts               the level of the day at a size, from the date alone
 ├── ladder.ts              what a level teaches, and how hard it is marked
 ├── levels/
-│   ├── size5x5.data.ts    a size's levels, one file each (5x5 to 14x14, 5x7, 6x10, 8x14)
+│   ├── size5x5.data.ts    a size's levels, one file each (5x5 to 14x14, 5x7, 6x10, 8x14, 20x20, 28x28, 20x50)
 │   ├── size6x6.data.ts
 │   ├── size7x7.data.ts
 │   ├── size8x8.data.ts
@@ -563,10 +598,14 @@ src/
 │   ├── size5x7.data.ts
 │   ├── size6x10.data.ts
 │   ├── size8x14.data.ts
+│   ├── size20x20.data.ts  the huge sizes, sixty-four levels each
+│   ├── size28x28.data.ts
+│   ├── size20x50.data.ts
 │   └── marks.data.ts      every level's marks and lessons
 ├── draw-entry.ts          the "/draw" entry: everything that draws
 ├── draw.ts                a board, a piece and a small board as SVG text, and what each cell looks like
 ├── paint.ts               the water and the turns written onto a drawing in place
+├── view.ts                a big board zoomed and moved about: the arithmetic of a view, and a pinch, a drag and the wheel
 ├── style.ts               the style that turns the drawing into flowing water
 ├── strings.ts             the board's words, in English and Japanese
 ├── playStyle.ts           the style of a playable board: its box, chips, words and buttons

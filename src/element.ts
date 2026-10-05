@@ -16,12 +16,12 @@ import { mountSuido, type SuidoMount, type SuidoTurning } from "./mount.ts";
  * ```
  *
  * Attributes (each is read again when it changes):
- *  - `size` and `level`: the level to play, from the package's own levels, fetched when asked (`5x5` to `14x14`, `5x7`,
- *    `6x10`, `8x14`). Or `code`, a board of your own as `makeSuido` writes it, with `answer` if there is one.
+ *  - `size` and `level`: the level to play, from the package's own levels, fetched when asked (`5x5` to `28x28`, `5x7`,
+ *    `6x10`, `8x14`, `20x50`). Or `code`, a board of your own as `makeSuido` writes it, with `answer` if there is one.
  *  - `progress`: a game half played (the `progress` of an event), read when the board loads.
  *  - `shown`: open on the answer, saying it was solved before.
  *  - `turning`: `clockwise` (default) or `anticlockwise`. `hints`: offer Hint (needs an answer, which a level has).
- *  - `controls="off"`: only the board. `chips`: the board's twists.
+ *  - `controls="off"`: only the board. `chips`: the board's twists. `zoom="off"`: a big board is never offered zoom and pan.
  *  - `lang`: `en` or `ja`, or the page's.
  *
  * It fires `suido-change`, `suido-turn`, `suido-hint` and `suido-solve` (see `mountSuido`), and has the methods
@@ -33,7 +33,7 @@ const isOn = (value: string | null): boolean => value !== null && !["false", "of
 const oneOf = <T extends string>(value: string | null, allowed: readonly T[]): T | undefined => (allowed.includes(value as T) ? (value as T) : undefined);
 
 export class SuidoBoard extends ElementBase {
-  static observedAttributes = ["size", "level", "code", "answer", "progress", "shown", "turning", "hints", "controls", "chips", "lang"];
+  static observedAttributes = ["size", "level", "code", "answer", "progress", "shown", "turning", "hints", "controls", "chips", "zoom", "lang"];
 
   #mount: SuidoMount | null = null;
   #key = "";
@@ -92,7 +92,7 @@ export class SuidoBoard extends ElementBase {
     const turning = oneOf<SuidoTurning>(this.getAttribute("turning"), ["clockwise", "anticlockwise"]);
     const hints = isOn(this.getAttribute("hints"));
     const language = oneOf(this.getAttribute("lang"), ["en", "ja"] as const);
-    const key = JSON.stringify([size, level, code, answer, this.getAttribute("progress"), this.getAttribute("shown"), this.getAttribute("controls"), this.getAttribute("chips")]);
+    const key = JSON.stringify([size, level, code, answer, this.getAttribute("progress"), this.getAttribute("shown"), this.getAttribute("controls"), this.getAttribute("chips"), this.getAttribute("zoom")]);
     if (key === this.#key && this.#mount !== null) {
       this.#mount.set({ turning, hints, language });
       return;
@@ -119,6 +119,7 @@ export class SuidoBoard extends ElementBase {
       language,
       controls: isOn(this.getAttribute("controls") ?? "on"),
       chips: isOn(this.getAttribute("chips")),
+      zoom: this.getAttribute("zoom") === "off" ? "off" : "auto",
     });
   }
 }

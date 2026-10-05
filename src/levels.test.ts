@@ -8,8 +8,10 @@ import { blockOf, blockRange, blocksIn, firstUnsolvedSuidoLevel, isSuidoLevel, n
  * size (`levelSuite.fixture.ts`).
  */
 describe("the sizes", () => {
-  it("are the square sizes 5×5 to 14×14, then the pipe shapes 5×7, 6×10 and 8×14", () => {
-    expect(SUIDO_SIZES).toEqual(["5x5", "6x6", "7x7", "8x8", "9x9", "10x10", "11x11", "12x12", "13x13", "14x14", "5x7", "6x10", "8x14"]);
+  it("are the square sizes 5×5 to 14×14, then the pipe shapes 5×7, 6×10 and 8×14, then the huge 20×20, 28×28 and 20×50", () => {
+    expect(SUIDO_SIZES).toEqual(["5x5", "6x6", "7x7", "8x8", "9x9", "10x10", "11x11", "12x12", "13x13", "14x14", "5x7", "6x10", "8x14", "20x20", "28x28", "20x50"]);
+    expect(SUIDO_LEVEL_COUNTS["28x28"]).toBe(64);
+    expect(sizeOf("20x50")).toEqual({ width: 20, height: 50 });
     expect(sizeOf("8x14")).toEqual({ width: 8, height: 14 });
     expect(sizeOf("14x14")).toEqual({ width: 14, height: 14 });
     expect(sizeOf("14")).toBeNull();

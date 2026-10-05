@@ -1,3 +1,4 @@
+import { blockCells } from "./blocks.ts";
 import { armsOf, SIDE_STEPS } from "./pieces.ts";
 
 /**
@@ -16,13 +17,16 @@ import { armsOf, SIDE_STEPS } from "./pieces.ts";
  *  - `g`–`v`: the same sixteen pieces, with the SOURCE the water comes from,
  *  - `A`–`P`: the same sixteen again, a DRAIN the water must reach.
  *
- * After the cells come two optional lists, each a semicolon, a letter and
+ * After the cells come four optional lists, each a semicolon, a letter and
  * numbers separated by commas, always in this order:
  *
  *     5x5dw:0b3a...;l3,17,22;w4,9
+ *     8x8:0b3a...;b9,40;k21
  *
  *  - `;l` the LOCKED pieces, by cell number: they cannot be turned,
- *  - `;w` the WALLS, by edge number (see `Layout.walls`): water cannot cross one.
+ *  - `;w` the WALLS, by edge number (see `Layout.walls`): water cannot cross one,
+ *  - `;b` the BIG PIECES, by the number of the top left cell of each (see `Layout.bigs`),
+ *  - `;k` the BLOCKS that turn as one, by the top left cell of each (see `Layout.blocks`).
  *
  * The same code writes an answer: the cells as they are turned when the board
  * is solved. So a code is also all a server needs to hear back to check a solve.
@@ -63,10 +67,26 @@ export type Layout = {
    * last column and the south of the last row are real edges). Ascending. Left out of a board that has none.
    */
   walls?: readonly number[];
+  /**
+   * The BIG PIECES: squares of four cells that are one piece. Each is named by its top left cell (the
+   * anchor), ascending. A tap turns the whole square a quarter in place: the piece in each of its cells moves
+   * round to the next cell and turns with it. Inside a big piece the pipes join: wherever two of its cells
+   * meet, either both open towards each other or neither does. Only a network has them, and they never
+   * overlap, never hold a pump, a drain, a locked piece or a wall between two of their cells, and never
+   * cross the edge of a board that wraps. Left out of a board that has none (`blocks.ts`).
+   */
+  bigs?: readonly number[];
+  /**
+   * The BLOCKS THAT TURN AS ONE: like big pieces, squares of four cells that a tap turns together a quarter,
+   * but each of the four pieces is its own, with no rule about how they join inside, and a tap on any of them
+   * turns the square. Named and kept to the same rules as `bigs`, and no cell is in both lists. Left out of
+   * a board that has none.
+   */
+  blocks?: readonly number[];
 };
 
 /** The largest side a board may have. */
-export const MAX_SIDE = 40;
+export const MAX_SIDE = 64;
 
 const PLAIN = "0123456789abcdef";
 const SOURCE = "ghijklmnopqrstuv";
@@ -88,7 +108,9 @@ export function encodeLayout(layout: Layout): string {
   const cells = layout.cells.map((mask, cell) => cellChar(mask, sources.has(cell) ? "source" : drains.has(cell) ? "drain" : "plain")).join("");
   const locked = layout.locked !== undefined && layout.locked.length > 0 ? `;l${layout.locked.join(",")}` : "";
   const walls = layout.walls !== undefined && layout.walls.length > 0 ? `;w${layout.walls.join(",")}` : "";
-  return `${layout.width}x${layout.height}${flags}:${cells}${locked}${walls}`;
+  const bigs = layout.bigs !== undefined && layout.bigs.length > 0 ? `;b${layout.bigs.join(",")}` : "";
+  const blocks = layout.blocks !== undefined && layout.blocks.length > 0 ? `;k${layout.blocks.join(",")}` : "";
+  return `${layout.width}x${layout.height}${flags}:${cells}${locked}${walls}${bigs}${blocks}`;
 }
 
 /** A list of numbers written with commas, ascending and without a repeat, each under `below`; or null. */
@@ -102,7 +124,7 @@ function numbersOf(text: string, below: number): number[] | null {
 /** The board a code stands for, or null when it is not one: a bad size, an unknown character, a source or drain on bare ground, or no source at all. */
 export function decodeLayout(code: string): Layout | null {
   if (typeof code !== "string") return null;
-  const match = /^(\d{1,2})x(\d{1,2})([diw]{0,3}):([^;]+)(?:;l([\d,]+))?(?:;w([\d,]+))?$/.exec(code);
+  const match = /^(\d{1,2})x(\d{1,2})([diw]{0,3}):([^;]+)(?:;l([\d,]+))?(?:;w([\d,]+))?(?:;b([\d,]+))?(?:;k([\d,]+))?$/.exec(code);
   if (match === null) return null;
   const width = Number(match[1]);
   const height = Number(match[2]);
@@ -118,6 +140,10 @@ export function decodeLayout(code: string): Layout | null {
   if (match[5] !== undefined && locked === null) return null;
   const walls = match[6] === undefined ? null : numbersOf(match[6], width * height * 2);
   if (match[6] !== undefined && walls === null) return null;
+  const bigs = match[7] === undefined ? null : numbersOf(match[7], width * height);
+  if (match[7] !== undefined && bigs === null) return null;
+  const turning = match[8] === undefined ? null : numbersOf(match[8], width * height);
+  if (match[8] !== undefined && turning === null) return null;
   const cells: number[] = [];
   const sources: number[] = [];
   const drains: number[] = [];
@@ -146,7 +172,47 @@ export function decodeLayout(code: string): Layout | null {
   const layout: Layout = { width, height, kind, wrap, cells, sources, drains };
   if (locked !== null) layout.locked = locked;
   if (walls !== null) layout.walls = walls;
-  return layout;
+  if (bigs !== null) layout.bigs = bigs;
+  if (turning !== null) layout.blocks = turning;
+  return bigs === null && turning === null ? layout : blocksFit(layout) ? layout : null;
+}
+
+/** Whether a board's blocks are as they must be (`Layout.bigs`): in the board, apart, with nothing in them a block cannot carry, and each big piece joined inside. */
+function blocksFit(layout: Layout): boolean {
+  const { width, height } = layout;
+  if (layout.kind !== "network") return false;
+  const taken = new Set<number>();
+  for (const [anchors, big] of [[layout.bigs ?? [], true], [layout.blocks ?? [], false]] as const) {
+    for (const anchor of anchors) {
+      if (anchor % width > width - 2 || Math.floor(anchor / width) > height - 2) return false;
+      const cells = blockCells(anchor, width);
+      for (const cell of cells) {
+        if (taken.has(cell) || layout.sources.includes(cell) || layout.drains.includes(cell) || isLocked(layout, cell)) return false;
+        taken.add(cell);
+      }
+      if (big) {
+        const bit = (cell: number, side: number): number => (layout.cells[cell]! >> side) & 1;
+        const [tl, tr, br, bl] = cells;
+        if (bit(tl, 1) !== bit(tr, 3) || bit(tr, 2) !== bit(br, 0) || bit(bl, 1) !== bit(br, 3) || bit(tl, 2) !== bit(bl, 0)) return false;
+      }
+    }
+  }
+  // A wall cannot stand between two cells of one block: the block turns as one.
+  for (const edge of layout.walls ?? []) {
+    const cell = edge >> 1;
+    const next = (edge & 1) === 0 ? cell + 1 : cell + width;
+    if (taken.has(cell) && taken.has(next) && sharesBlock(layout, cell, next)) return false;
+  }
+  return true;
+}
+
+/** Whether two cells are in one block, read from the lists directly (the cache of `blockInfo` is for a board that has been checked). */
+function sharesBlock(layout: Layout, a: number, b: number): boolean {
+  for (const anchor of [...(layout.bigs ?? []), ...(layout.blocks ?? [])]) {
+    const cells = blockCells(anchor, layout.width);
+    if (cells.includes(a) && cells.includes(b)) return true;
+  }
+  return false;
 }
 
 /** Whether a piece is locked on this board. */

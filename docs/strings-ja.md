@@ -26,6 +26,10 @@ with `One` at the end of its name is the singular, said in English when the coun
 | `turns` | {n} turns | {n}回 |
 | `par` | par {n} | 最短 {n}回 |
 | `hints` | {n} hints | ヒント{n}回 |
+| `zoomLabel` | Zoom the board | 盤を拡大・縮小 |
+| `zoomOut` | Zoom out − | 縮小 − |
+| `zoomIn` | Zoom in + | 拡大 + |
+| `zoomFit` | Whole board | 全体 |
 | `hinted` | Try turning the piece that is lit. | 光っている駒を回してみましょう。 |
 | `noHint` | Every piece the water needs already faces the right way. | 水が通る駒は、すべて正しい向きです。 |
 | `shapeBlank` | bare ground | 空き地 |
@@ -38,6 +42,8 @@ with `One` at the end of its name is the singular, said in English when the coun
 | `cellPump` | pump | ポンプ |
 | `cellDrain` | drain | 排水口 |
 | `cellLocked` | locked | 固定 |
+| `cellBig` | part of a big piece | 大きな駒の一部 |
+| `cellBlock` | turns with its block | ブロックといっしょに回る |
 | `cellWet` | wet | 水あり |
 | `plain` | Plain | ふつう |
 | `plainSays` | One pump, and every piece of pipe must carry water. | ポンプは1つ。すべてのパイプに水を通します。 |
@@ -53,3 +59,7 @@ with `One` at the end of its name is the singular, said in English when the coun
 | `twistWrapSays` | The edges of the board join: water leaving the right side comes in at the left, and the bottom at the top. | 盤の端がつながっています。右へ出た水は左から、下へ出た水は上から入ります。 |
 | `twistInletOutlet` | Inlet to outlet | 入口から出口へ |
 | `twistInletOutletSays` | Water comes in at the top left and must leave at the bottom right, in one path with no branches. The other pieces are decoys and stay dry. | 左上の入口から入った水を、右下の出口まで、枝分かれのない一本の道で通します。ほかの駒はおとりで、乾いたままです。 |
+| `twistBigPieces` | Big pieces | 大きな駒 |
+| `twistBigPiecesSays` | A big piece fills four squares and has up to eight openings. One tap turns the whole piece a quarter, where it stands. | 大きな駒は4マスを使い、最大8か所に開口部があります。1回タップすると、その場で駒全体が4分の1回ります。 |
+| `twistBlockTurns` | Block turns | ブロック回転 |
+| `twistBlockTurnsSays` | Where four pieces are ringed by a dashed line, a tap on the ring in the middle turns all four together: each moves round to the next place as it turns. They cannot be turned on their own. | 点線で囲まれた4つの駒は、真ん中の輪をタップすると4つがいっしょに回り、それぞれが次の場所へ動きながら向きも変わります。1つだけ回すことはできません。 |

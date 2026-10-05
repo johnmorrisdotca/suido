@@ -7,6 +7,46 @@ board and its answer, and a seed makes the board it always made.
 
 ## [Unreleased]
 
+Every export, every level, every board code and every answer of 1.3.0 is as it was, and a seed makes the board it always made. New: huge boards, big pieces,
+and squares of four pieces that turn together.
+
+### Added
+
+- **Huge boards.** 20×20, 28×28 and the long 20×50, each with sixty-four fixed levels (four blocks of sixteen), each with exactly one answer, easy to hard by
+  the measured difficulty: 3,520 levels in all. They teach drains, pumps and wrap, one to a block. Each size is its own import
+  (`@johnmorrisdotca/suido/levels-20x20`, `-28x28`, `-20x50`), loaded when asked for. A board may now be up to 64 cells a side (`MAX_SIDE`, was 40), and the
+  difficulty has reference sets for the sides 20, 28 and 32 (400 boards each, every kind and wrap; 20×50 is ranked among 32), so a huge level is placed among
+  the boards of its own size. A board of a kind or a side there is no set for is ranked among the nearest side that has one, where it used to fail.
+- **Big pieces** (`bigs` option, the `;b` list of a code, the `big-pieces` twist). A big piece fills four squares and has up to eight openings, two on each side; one tap
+  turns the whole piece a quarter, where it stands. Five kinds (`BIG_KINDS`): an end, a hairpin, two pipes side by side, two pipes bending one inside the other, and a
+  straight pipe with a branch. Solid plate and a ring at its middle in the drawing.
+- **Blocks that turn as one** (`blocks` option, the `;k` list, the `block-turns` twist). Four ordinary pieces that a tap on any of them turns together a quarter: each
+  moves round to the next place and turns with it, and none can be turned alone. A dashed rim and a ring where the four meet.
+- Both work in any network (wrap, several pumps, walls, locked pieces elsewhere on the board, a difficulty to aim for), with exactly one answer, proved by the solver, which
+  now solves a network in units (a piece, or a square that turns as one; `units.ts`) and is held to trying every way on small boards with squares. `checkSuidoAnswer` reads
+  a square as the board's square turned a whole number of quarters, in O(cells). `turnAt`, `tapsToAnswer`, `hintFor`, `gameProgress`, `symmetryKey` and the drawing know them, and
+  a hint on a square lights all four pieces. New: `blockInfo`, `blockAt`, `turnBlock`, `placeAfter` and the rest of `blocks.ts`; `bigMasksOf`, `bigKindOf`, `placeBlocks`;
+  `gameFromCode(code, kept)`, a game from the code it was left as; `turnedToFaceAt(game, cell, answer)`, what a Hint does, the whole block for a block; `SUIDO_LEVEL_TWISTS`.
+- **`@johnmorrisdotca/suido/levels-info`**: everything about the levels but the loader (counts, blocks, which levels are open, a row read, marks and lessons, the level of the
+  day), so a server that only needs to know how many levels a size has does not carry every size's boards. `/levels` is this and the loader, as it was.
+- **Zoom and pan for a board too big for a thumb** (`view.ts`, `zoom` option and attribute): where the pieces would be under 22 pixels across, three buttons under the board
+  (Zoom out, Zoom in, Whole board), a pinch of two fingers, a drag once zoomed in, and the wheel with control held. A press that moved is not a tap, so panning never turns a
+  piece. The view is the drawing's `viewBox`, so the pipes stay crisp; the arrow keys bring the piece they reach into view. `attachSuidoView` does the same for a board you draw
+  yourself. `zoom: "off"` leaves a board as it is. In English and Japanese.
+- The demo has the huge sizes, Big pieces and Block turns settings in Make a board, and zoom.
+
+### Changed
+
+- **Drains boards are made faster, most of all the big ones.** The solver asks a piece how it may face without making a list, and settles what is forced from the pieces
+  beside the one just faced instead of looking at every piece again; the same answers, search and counts on every board (compared on 160 boards, both kinds), so no board and
+  no level has moved. A board of more than 400 cells that the solver cannot prove in 4,000 positions is thrown away rather than searched for 20,000. A 28×28 drains board takes
+  about half a second, where it took two to four. (Boards of 400 cells or fewer are made exactly as before.)
+- **A tap on a big board is faster.** `paintSuido` writes only what has changed since the last tap, kept in a `WeakMap`, where it rewrote every piece. On 28×28 on a phone-speed CPU
+  (Chromium, slowed four times) a tap reaches the screen in about 56 ms, where it took about 90; on 20×50 about 70 ms (about 125 before), of which the script is 10 to 14. What was left was almost all painting: every dry piece's arms and drips were painted though nothing could be seen of them, and now they are hidden a moment after the water leaves them.
+- `twistsOf` and `SUIDO_TWISTS` list eight twists, the six of the levels in the order they teach them, then `big-pieces` and `block-turns`; `SUIDO_LEVEL_TWISTS` is the six.
+- The solver and the difficulty measure solve and deduce a network in units, which for a board with no square is exactly what they did (the same answers, the same search, the same
+  rounds, compared on six hundred boards), so no level's difficulty or order has moved.
+
 ## [1.3.0] - 2026-10-01
 
 ### Changed

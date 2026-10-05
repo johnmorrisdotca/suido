@@ -14,9 +14,11 @@ const ICON = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewB
 
 const uses = [
   `const rows = await loadSuidoLevels("8x8")  // 256 levels, easiest first, each with exactly one answer`,
+  `loadSuidoLevels("28x28")  // the huge boards: 20×20, 28×28 and 20×50, sixty-four levels each`,
   `checkSuidoAnswer(rows[11][0], levelAnswer(rows[11]))  // { ok: true }: level 12's board and its answer`,
   `declaredTwists(rows[239])  // ["walls", "locked"]: what level 240 asks beyond turning pipes`,
   `const made = makeSuido({ size: 8, kind: "inlet-outlet", locked: 3, walls: 4, seed: 7 })  // a board of your own`,
+  `makeSuido({ size: 12, bigs: 6, blocks: 4, seed: 7 })  // with big pieces and squares that turn as one`,
   `flowOf(layout, masks).wet  // where the water has got to`,
   `turnAt(game, cell)  // a tap: one piece, a quarter turn (a locked piece stays)`,
   `drawSuido(layout, { masks })  // the board as SVG text, and drawSuidoThumb(layout) for a small one`,
@@ -35,7 +37,7 @@ const page = `<!doctype html>
     ${familyHead({
       id,
       title: "Suido · turn the pipes, bring the water",
-      description: `Play Suido, the pipe puzzle: ${total} levels from 5×5 to 14×14 and long pipe boards, easy to hard, with walls, locked pieces, wrap-around edges, several pumps, drains and inlet-to-outlet paths. Every level has exactly one answer. Free and open source, in English and Japanese.`,
+      description: `Play Suido, the pipe puzzle: ${total} levels from 5×5 to 28×28 and long pipe boards, easy to hard, with walls, locked pieces, wrap-around edges, several pumps, drains and inlet-to-outlet paths. Every level has exactly one answer. Free and open source, in English and Japanese.`,
       ogTitle: "Suido pipe puzzle",
       ogDescription: `Turn the pipes until the water reaches every drain. ${total} levels, each with one answer.`,
     })}
@@ -76,11 +78,11 @@ const page = `<!doctype html>
       </div>
       <section class="settings" aria-labelledby="board-title">
         <h2 id="board-title" data-say="boardTitle"></h2>
-        <div class="setup fam-row" data-help-en="How big the board is, from 5×5 to 14×14. Choosing a size opens its levels, or makes a new board." data-help-ja="盤の大きさです（5×5から14×14まで）。選ぶと、その大きさのレベルが開くか、新しい盤を作ります。">
+        <div class="setup fam-row" data-help-en="How big the board is, from 5×5 to 28×28. Choosing a size opens its levels, or makes a new board. The huge boards can be zoomed and moved about." data-help-ja="盤の大きさです（5×5から28×28まで）。選ぶと、その大きさのレベルが開くか、新しい盤を作ります。大きな盤は拡大して動かせます。">
           <span class="fam-label" data-say="size"></span>
           <div class="fam-seg" role="group" data-say-label="size" id="sizes" data-testid="sizes"></div>
         </div>
-        <div class="setup fam-row" data-help-en="Long boards, 5×7, 6×10 and 8×14, as tall as a pipe. They have their own levels." data-help-ja="細長い盤（5×7、6×10、8×14）です。それぞれに専用のレベルがあります。">
+        <div class="setup fam-row" data-help-en="Long boards, 5×7, 6×10, 8×14 and the huge 20×50, as tall as a pipe. They have their own levels." data-help-ja="細長い盤（5×7、6×10、8×14、そして巨大な20×50）です。それぞれに専用のレベルがあります。">
           <span class="fam-label" data-say="shapes"></span>
           <div class="fam-seg" role="group" data-say-label="shapes" id="shapes" data-testid="shapes"></div>
         </div>
@@ -107,6 +109,16 @@ const page = `<!doctype html>
             </div>
             <span class="fam-label" data-say="wallsSetting"></span>
             <div class="fam-seg" role="group" data-say-label="wallsSetting" id="wallsamount" data-testid="walls-amount">
+              ${button(`data-amount="none" data-say="none"`)}${button(`data-amount="few" data-say="few"`)}${button(`data-amount="many" data-say="many"`)}
+            </div>
+          </div>
+          <div class="setup fam-row" data-help-en="Big pieces fill four squares and turn as one piece. Block turns are four ordinary pieces that turn together, from the ring where they meet. Only a whole network has them. Choosing makes a new board." data-help-ja="大きな駒は4マスを使い、1つの駒として回ります。ブロック回転は、4つの駒が真ん中の輪からいっしょに回ります。「全部つなぐ」のときだけ使えます。選ぶと新しい盤を作ります。">
+            <span class="fam-label" data-say="bigsSetting"></span>
+            <div class="fam-seg" role="group" data-say-label="bigsSetting" id="bigsamount" data-testid="bigs-amount">
+              ${button(`data-amount="none" data-say="none"`)}${button(`data-amount="few" data-say="few"`)}${button(`data-amount="many" data-say="many"`)}
+            </div>
+            <span class="fam-label" data-say="blocksSetting"></span>
+            <div class="fam-seg" role="group" data-say-label="blocksSetting" id="blocksamount" data-testid="blocks-amount">
               ${button(`data-amount="none" data-say="none"`)}${button(`data-amount="few" data-say="few"`)}${button(`data-amount="many" data-say="many"`)}
             </div>
           </div>

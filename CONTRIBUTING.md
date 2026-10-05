@@ -17,7 +17,7 @@ A change to the generator or the difficulty measure changes the boards a seed
 makes. Boards kept by their seed are not a promise of this package, but a
 change that alters them should say so in the changelog, and
 `scripts/suido-reference.ts` must be run again so that a difficulty still
-means a place among the boards the generator makes.
+means a place among the boards the generator makes. The huge sides (20, 28 and 32) take a minute a board, so their sets are made one at a time, in parallel, with `--part`, and joined with `--merge` (the script's head says how).
 
 A level once published keeps its number, its board and its answer; see `scripts/suido-levels.ts`.
 

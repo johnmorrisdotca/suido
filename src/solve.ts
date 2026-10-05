@@ -1,6 +1,8 @@
 import { neighboursOf, type Layout } from "./code.ts";
-import { bits, drainFacings, HAS, LACKS, members, rotationsOfLayout, sidesOf } from "./facing.ts";
+import { hasBlocks } from "./blocks.ts";
+import { drainFacings, rotationsOfLayout, scanFacings, SCAN } from "./facing.ts";
 import { opposite } from "./pieces.ts";
+import { countBits, refreshCells, unitsOf, wayHolds, type CellSets } from "./units.ts";
 
 /** What the solver found. */
 export type SolveResult = {
@@ -33,9 +35,12 @@ export type SolveResult = {
  * do not, and counts each distinct network once. An inlet-outlet board is solved
  * as a drains board in which a piece the water goes through opens on two sides
  * at most. Locked pieces have the one way they are given, and walls are edges the
- * neighbour table does not cross, so neither needs a rule of its own.
+ * neighbour table does not cross, so neither needs a rule of its own. A network
+ * is solved in units (`units.ts`): a single piece is one, and a block that turns
+ * as one is one, with its four turns for its facings.
  */
 export function solve(layout: Layout, limit = 2, budget = 200_000): SolveResult {
+  if (layout.kind !== "network" && hasBlocks(layout)) throw new Error("Only a network can have big pieces or blocks that turn.");
   return layout.kind === "network" ? solveNetwork(layout, limit, budget) : solveDrains(layout, limit, budget);
 }
 
@@ -47,37 +52,39 @@ export function countSolutions(layout: Layout, limit = 2, budget = 200_000): num
 function solveNetwork(layout: Layout, limit: number, budget: number): SolveResult {
   const count = layout.width * layout.height;
   const near = neighboursOf(layout);
+  const units = unitsOf(layout);
   const solutions: number[][] = [];
   let nodes = 0;
   let branches = 0;
   let forced = 0;
   let complete = true;
 
-  /** Removes from every piece the facings its neighbours rule out, until nothing more goes. False if a piece is left with none. */
-  const propagate = (dom: Uint16Array, queue: number[]): boolean => {
-    const queued = new Uint8Array(count);
-    for (const cell of queue) queued[cell] = 1;
+  /** What the search knows at one position: which facings each unit may still have, and what that says of each cell. */
+  type State = { dom: Uint8Array; sets: CellSets };
+  const copy = (state: State): State => ({ dom: Uint8Array.from(state.dom), sets: { open: Uint8Array.from(state.sets.open), shut: Uint8Array.from(state.sets.shut), bare: Uint8Array.from(state.sets.bare) } });
+
+  /** Removes from every unit the facings its neighbours rule out, until nothing more goes. False if a unit is left with none. */
+  const propagate = ({ dom, sets }: State, queue: number[]): boolean => {
+    const queued = new Uint8Array(units.count);
+    for (const unit of queue) queued[unit] = 1;
     while (queue.length > 0) {
-      const cell = queue.pop()!;
-      queued[cell] = 0;
-      const before = dom[cell]!;
+      const unit = queue.pop()!;
+      queued[unit] = 0;
+      const before = dom[unit]!;
       let keep = before;
-      for (let side = 0; side < 4; side += 1) {
-        const next = near[cell * 4 + side]!;
-        const back = opposite(side);
-        const hasArm = next !== -1 && (dom[next]! & HAS[back]!) !== 0;
-        const lacks = next === -1 || (dom[next]! & LACKS[back]!) !== 0;
-        if (!hasArm) keep &= LACKS[side]!;
-        if (!lacks) keep &= HAS[side]!;
-      }
+      for (let way = 0; way < units.facings[unit]!.length; way += 1) if (((keep >> way) & 1) === 1 && !wayHolds(units, near, sets, unit, way)) keep &= ~(1 << way);
       if (keep === 0) return false;
-      if (keep !== before) {
-        dom[cell] = keep;
+      if (keep === before) continue;
+      dom[unit] = keep;
+      refreshCells(units, sets, unit, keep);
+      for (const cell of units.cells[unit]!) {
         for (let side = 0; side < 4; side += 1) {
           const next = near[cell * 4 + side]!;
-          if (next !== -1 && queued[next] === 0) {
-            queued[next] = 1;
-            queue.push(next);
+          if (next === -1) continue;
+          const other = units.of[next]!;
+          if (other !== unit && queued[other] === 0) {
+            queued[other] = 1;
+            queue.push(other);
           }
         }
       }
@@ -86,8 +93,7 @@ function solveNetwork(layout: Layout, limit: number, budget: number): SolveResul
   };
 
   /** Whether the water could still reach every piece, if every piece faced the way it still may. */
-  const reachesAll = (dom: Uint16Array): boolean => {
-    const possible = Array.from(dom, sidesOf);
+  const reachesAll = ({ sets }: State): boolean => {
     const seen = new Uint8Array(count);
     const stack: number[] = [];
     for (const source of layout.sources) {
@@ -98,51 +104,62 @@ function solveNetwork(layout: Layout, limit: number, budget: number): SolveResul
       const cell = stack.pop()!;
       for (let side = 0; side < 4; side += 1) {
         const next = near[cell * 4 + side]!;
-        if (next === -1 || seen[next] === 1 || ((possible[cell]! >> side) & 1) === 0 || ((possible[next]! >> opposite(side)) & 1) === 0) continue;
+        if (next === -1 || seen[next] === 1 || ((sets.open[cell]! >> side) & 1) === 0 || ((sets.open[next]! >> opposite(side)) & 1) === 0) continue;
         seen[next] = 1;
         stack.push(next);
       }
     }
-    for (let cell = 0; cell < count; cell += 1) if (dom[cell] !== 1 && seen[cell] === 0) return false;
+    for (let cell = 0; cell < count; cell += 1) if (sets.bare[cell] === 0 && seen[cell] === 0) return false;
     return true;
   };
 
-  const search = (dom: Uint16Array, queue: number[], root: boolean): void => {
+  const search = (state: State, queue: number[], root: boolean): void => {
     if (!complete || solutions.length >= limit) return;
     nodes += 1;
     if (nodes > budget) {
       complete = false;
       return;
     }
-    if (!propagate(dom, queue)) return;
-    if (root) forced = Array.from(dom).filter((set) => set !== 1 && bits(set) === 1).length;
-    if (!reachesAll(dom)) return;
+    if (!propagate(state, queue)) return;
+    if (root) {
+      for (let cell = 0; cell < count; cell += 1) if (state.sets.open[cell] !== 0 && (state.sets.open[cell]! & state.sets.shut[cell]!) === 0) forced += 1;
+    }
+    if (!reachesAll(state)) return;
     let pick = -1;
     let fewest = 17;
-    for (let cell = 0; cell < count; cell += 1) {
-      const ways = bits(dom[cell]!);
+    for (let unit = 0; unit < units.count; unit += 1) {
+      const ways = countBits(state.dom[unit]!);
       if (ways > 1 && ways < fewest) {
         fewest = ways;
-        pick = cell;
+        pick = unit;
       }
     }
     if (pick === -1) {
-      solutions.push(Array.from(dom, (set) => members(set)[0]!));
+      const masks = new Array<number>(count).fill(0);
+      units.cells.forEach((cells, unit) => {
+        const way = Math.log2(state.dom[unit]!);
+        cells.forEach((cell, at) => (masks[cell] = units.facings[unit]![way]![at]!));
+      });
+      solutions.push(masks);
       return;
     }
     branches += 1;
-    for (const mask of members(dom[pick]!)) {
-      const next = Uint16Array.from(dom);
-      next[pick] = 1 << mask;
+    for (let way = 0; way < units.facings[pick]!.length; way += 1) {
+      if (((state.dom[pick]! >> way) & 1) === 0) continue;
+      const next = copy(state);
+      next.dom[pick] = 1 << way;
+      refreshCells(units, next.sets, pick, 1 << way);
       search(next, [pick], false);
       if (!complete || solutions.length >= limit) return;
     }
   };
 
-  const dom = new Uint16Array(count);
-  const rotations = rotationsOfLayout(layout);
-  for (let cell = 0; cell < count; cell += 1) for (const mask of rotations[cell]!) dom[cell]! |= 1 << mask;
-  search(dom, Array.from({ length: count }, (_, cell) => cell), true);
+  const start: State = { dom: new Uint8Array(units.count), sets: { open: new Uint8Array(count), shut: new Uint8Array(count), bare: new Uint8Array(count) } };
+  for (let unit = 0; unit < units.count; unit += 1) {
+    start.dom[unit] = (1 << units.facings[unit]!.length) - 1;
+    refreshCells(units, start.sets, unit, start.dom[unit]!);
+  }
+  search(start, Array.from({ length: units.count }, (_, unit) => unit), true);
   return { count: solutions.length, solutions, nodes, branches, forced, complete };
 }
 
@@ -165,7 +182,11 @@ function solveDrains(layout: Layout, limit: number, budget: number): SolveResult
     const possible = new Int8Array(count);
     for (let cell = 0; cell < count; cell += 1) {
       if (layout.cells[cell] === 0) continue;
-      possible[cell] = val[cell]! >= 0 ? val[cell]! : ways(val, cell).masks.reduce((all, mask) => all | mask, 0);
+      if (val[cell]! >= 0) possible[cell] = val[cell]!;
+      else {
+        scanFacings(layout, near, rotations, val, cell);
+        possible[cell] = SCAN.any;
+      }
     }
     const seen = new Uint8Array(count);
     const stack: number[] = [];
@@ -186,35 +207,54 @@ function solveDrains(layout: Layout, limit: number, budget: number): SolveResult
     return pending.every((cell) => seen[cell] === 1);
   };
 
-  const search = (val: Int8Array, root: boolean): void => {
+  /**
+   * Settles whatever the faced pieces force, until nothing more is forced: a piece with only one way left to face is faced, and the
+   * pieces beside it looked at again. `queue` is the pieces to look at first (all of them at the start, and after that the ones beside
+   * the piece just faced, since every other was already settled). False where a piece is left with no way to face at all.
+   */
+  const settle = (val: Int8Array, queue: number[]): boolean => {
+    const queued = new Uint8Array(count);
+    for (const cell of queue) queued[cell] = 1;
+    while (queue.length > 0) {
+      const cell = queue.pop()!;
+      queued[cell] = 0;
+      if (val[cell]! >= 0 || layout.cells[cell] === 0) continue;
+      scanFacings(layout, near, rotations, val, cell);
+      if (seed[cell] === 0 && SCAN.need === 0) continue;
+      if (SCAN.count === 0) return false;
+      if (SCAN.count > 1) continue;
+      val[cell] = ways(val, cell).masks[0]!;
+      for (let side = 0; side < 4; side += 1) {
+        const next = near[cell * 4 + side]!;
+        if (next !== -1 && queued[next] === 0) {
+          queued[next] = 1;
+          queue.push(next);
+        }
+      }
+    }
+    return true;
+  };
+
+  const search = (val: Int8Array, root: boolean, queue: number[]): void => {
     if (!complete || solutions.length >= limit) return;
     nodes += 1;
     if (nodes > budget) {
       complete = false;
       return;
     }
+    if (!settle(val, queue)) return;
+    // What is left: the pieces the water can reach that are not yet faced (`pending`), and of them the one with fewest ways to face, the first of its kind.
     let pick = -1;
     let fewest = 17;
-    let pending: number[] = [];
-    // Settle whatever the faced pieces force, until nothing more is forced.
-    for (let changed = true; changed; ) {
-      changed = false;
-      pick = -1;
-      fewest = 17;
-      pending = [];
-      for (let cell = 0; cell < count; cell += 1) {
-        if (val[cell]! >= 0 || layout.cells[cell] === 0) continue;
-        const { masks, need } = ways(val, cell);
-        if (seed[cell] === 0 && need === 0) continue;
-        if (masks.length === 0) return;
-        pending.push(cell);
-        if (masks.length === 1) {
-          val[cell] = masks[0]!;
-          changed = true;
-        } else if (masks.length < fewest) {
-          fewest = masks.length;
-          pick = cell;
-        }
+    const pending: number[] = [];
+    for (let cell = 0; cell < count; cell += 1) {
+      if (val[cell]! >= 0 || layout.cells[cell] === 0) continue;
+      scanFacings(layout, near, rotations, val, cell);
+      if (seed[cell] === 0 && SCAN.need === 0) continue;
+      pending.push(cell);
+      if (SCAN.count < fewest) {
+        fewest = SCAN.count;
+        pick = cell;
       }
     }
     if (root) forced = Array.from(val).filter((mask) => mask >= 0).length;
@@ -227,11 +267,12 @@ function solveDrains(layout: Layout, limit: number, budget: number): SolveResult
     for (const mask of ways(val, pick).masks) {
       const next = Int8Array.from(val);
       next[pick] = mask;
-      search(next, false);
+      // Only the pieces beside the one just faced can have been changed by it.
+      search(next, false, [0, 1, 2, 3].flatMap((side) => (near[pick * 4 + side]! === -1 ? [] : [near[pick * 4 + side]!])));
       if (!complete || solutions.length >= limit) return;
     }
   };
 
-  search(new Int8Array(count).fill(-1), true);
+  search(new Int8Array(count).fill(-1), true, Array.from({ length: count }, (_, cell) => cell));
   return { count: solutions.length, solutions, nodes, branches, forced, complete };
 }

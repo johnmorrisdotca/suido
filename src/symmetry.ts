@@ -1,3 +1,4 @@
+import { blockCells } from "./blocks.ts";
 import type { Layout } from "./code.ts";
 import { encodeLayout, neighboursOf } from "./code.ts";
 import { flowOf } from "./flow.ts";
@@ -8,7 +9,7 @@ function mirrored(mask: number): number {
   return (mask & 5) | ((mask & 2) << 2) | ((mask & 8) >> 2);
 }
 
-/** A board's cells, pumps, drains, locks and walls moved by one of the eight turns and mirrors: `op` 0 to 3 turn it a quarter at a time, 4 to 7 do so after a mirror. */
+/** A board's cells, pumps, drains, locks, walls and blocks moved by one of the eight turns and mirrors: `op` 0 to 3 turn it a quarter at a time, 4 to 7 do so after a mirror. */
 export function transformLayout(layout: Layout, op: number): Layout {
   const flip = op >= 4;
   const quarters = op & 3;
@@ -39,6 +40,12 @@ export function transformLayout(layout: Layout, op: number): Layout {
   const out: Layout = { ...layout, width, height, cells, sources: sort(layout.sources.map(to)), drains: sort(layout.drains.map(to)) };
   delete out.locked;
   delete out.walls;
+  delete out.bigs;
+  delete out.blocks;
+  // A block stays a block: its anchor is the top left of the four cells it moves to.
+  const anchorOf = (anchor: number): number => Math.min(...blockCells(anchor, layout.width).map(to));
+  if (layout.bigs !== undefined && layout.bigs.length > 0) out.bigs = sort(layout.bigs.map(anchorOf));
+  if (layout.blocks !== undefined && layout.blocks.length > 0) out.blocks = sort(layout.blocks.map(anchorOf));
   if (layout.locked !== undefined && layout.locked.length > 0) out.locked = sort(layout.locked.map(to));
   if (layout.walls !== undefined && layout.walls.length > 0) {
     const near = neighboursOf({ width, height, wrap: layout.wrap });

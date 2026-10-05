@@ -149,7 +149,7 @@ describe("a board", () => {
 
   it("refuses sizes it cannot make", () => {
     expect(() => makeUnscored({ size: 1 })).toThrow("Not a board size");
-    expect(() => makeUnscored({ size: 41 })).toThrow("Not a board size");
+    expect(() => makeUnscored({ size: 65 })).toThrow("Not a board size");
     expect(() => makeUnscored({ size: 2, wrap: true })).toThrow("Not a board size");
     expect(() => makeUnscored({ size: 5.5 })).toThrow("Not a board size");
     expect(() => makeUnscored({ width: 4, height: 1 })).toThrow("Not a board size");

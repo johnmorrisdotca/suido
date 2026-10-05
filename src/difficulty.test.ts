@@ -55,7 +55,13 @@ describe("the reference sets", () => {
   it("are found for a board by the nearest size, its kind and its wrap", () => {
     expect(referenceFor({ width: 8, height: 8, kind: "network", wrap: false })).toBe(DIFFICULTY_REFERENCE[referenceKey(8, "network", false)]);
     expect(referenceFor({ width: 8, height: 8, kind: "drains", wrap: true })).toBe(DIFFICULTY_REFERENCE[referenceKey(8, "drains", true)]);
-    expect(referenceFor({ width: 20, height: 20, kind: "network", wrap: false })).toBe(DIFFICULTY_REFERENCE[referenceKey(16, "network", false)]);
+    // The huge sides have sets of their own: 20×20 and 28×28 by their side, and a 20×50, whose side is the square root of its cells, among the 32s.
+    expect(referenceFor({ width: 20, height: 20, kind: "network", wrap: false })).toBe(DIFFICULTY_REFERENCE[referenceKey(20, "network", false)]);
+    expect(referenceFor({ width: 28, height: 28, kind: "drains", wrap: true })).toBe(DIFFICULTY_REFERENCE[referenceKey(28, "drains", true)]);
+    expect(referenceFor({ width: 20, height: 50, kind: "network", wrap: false })).toBe(DIFFICULTY_REFERENCE[referenceKey(32, "network", false)]);
+    expect(referenceFor({ width: 17, height: 17, kind: "network", wrap: false })).toBe(DIFFICULTY_REFERENCE[referenceKey(16, "network", false)]);
+    // A side too big for any set is ranked among the biggest there is.
+    expect(referenceFor({ width: 60, height: 60, kind: "inlet-outlet", wrap: false })).toBe(DIFFICULTY_REFERENCE[referenceKey(32, "inlet-outlet", false)]);
     expect(referenceFor({ width: 2, height: 3, kind: "network", wrap: false })).toBe(DIFFICULTY_REFERENCE[referenceKey(4, "network", false)]);
     expect(referenceFor({ width: 4, height: 16, kind: "network", wrap: false })).toBe(DIFFICULTY_REFERENCE[referenceKey(8, "network", false)]);
   });

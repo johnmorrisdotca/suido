@@ -53,3 +53,34 @@ export function drainFacings(layout: Layout, near: Int32Array, rotations: readon
   const path = layout.kind === "inlet-outlet";
   return { masks: rotations[cell]!.filter((mask) => (mask & need) === need && (mask & bar) === 0 && (!path || armsOf(mask) <= 2)), need };
 }
+
+/** What `scanFacings` found: how many ways the piece may face, the sides every way must open on, and the sides some way opens on. Overwritten by each call. */
+export const SCAN = { count: 0, need: 0, any: 0 };
+
+/**
+ * The same question as `drainFacings`, answered without making a list: how many ways a piece may face, written into `SCAN` along
+ * with the sides it must open on and the sides some way opens on. For the solver's inner loop, which asks it of every piece at every position.
+ */
+export function scanFacings(layout: Layout, near: Int32Array, rotations: readonly (readonly number[])[], val: Int8Array, cell: number): void {
+  let need = 0;
+  let bar = 0;
+  for (let side = 0; side < 4; side += 1) {
+    const next = near[cell * 4 + side]!;
+    if (next === -1 || layout.cells[next] === 0) bar |= 1 << side;
+    else if (val[next]! >= 0) {
+      if (((val[next]! >> opposite(side)) & 1) === 1) need |= 1 << side;
+      else bar |= 1 << side;
+    }
+  }
+  const path = layout.kind === "inlet-outlet";
+  let count = 0;
+  let any = 0;
+  for (const mask of rotations[cell]!) {
+    if ((mask & need) !== need || (mask & bar) !== 0 || (path && armsOf(mask) > 2)) continue;
+    count += 1;
+    any |= mask;
+  }
+  SCAN.count = count;
+  SCAN.need = need;
+  SCAN.any = any;
+}

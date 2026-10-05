@@ -13,10 +13,13 @@ import { SUIDO_BLOCK } from "./levelBlocks.ts";
 /** A size of board, as its code writes it: its width, an x, its height. */
 export type SuidoSize = `${number}x${number}`;
 
-/** The square sizes, 5×5 to 14×14, then three pipe shapes: long boards, 5×7, 6×10 and 8×14. */
-export const SUIDO_SIZES: readonly SuidoSize[] = ["5x5", "6x6", "7x7", "8x8", "9x9", "10x10", "11x11", "12x12", "13x13", "14x14", "5x7", "6x10", "8x14"];
+/**
+ * The square sizes, 5×5 to 14×14, then three pipe shapes (long boards, 5×7, 6×10 and 8×14), then the huge
+ * boards: 20×20, 28×28 and the long 20×50, which have sixty-four levels each, not two hundred and fifty-six.
+ */
+export const SUIDO_SIZES: readonly SuidoSize[] = ["5x5", "6x6", "7x7", "8x8", "9x9", "10x10", "11x11", "12x12", "13x13", "14x14", "5x7", "6x10", "8x14", "20x20", "28x28", "20x50"];
 
-/** How many levels each size has, read without loading the size: whole blocks of sixteen (`levelBlocks.ts`). */
+/** How many levels each size has, read without loading the size: whole blocks of sixteen (`levelBlocks.ts`). The huge sizes have four blocks. */
 export const SUIDO_LEVEL_COUNTS: Readonly<Record<string, number>> = {
   "5x5": 256,
   "6x6": 256,
@@ -31,6 +34,9 @@ export const SUIDO_LEVEL_COUNTS: Readonly<Record<string, number>> = {
   "5x7": 256,
   "6x10": 256,
   "8x14": 256,
+  "20x20": 64,
+  "28x28": 64,
+  "20x50": 64,
 };
 
 /** One level: its board as a code (`code.ts`), its answer as one digit a cell, and its twists. */

@@ -41,6 +41,21 @@ reads them from a board and the tests hold every level's declared list to it.
 | `walls` | Water cannot cross some edges; a pipe open towards a wall runs out. | Net's barriers; NetWalk's bounded edges, moved inside the board. | `walls: 6` |
 | `wrap` | The edges join, left to right and top to bottom. | Net's wrapping; NetWalk's torus. | `wrap: true` |
 | `inlet-outlet` | Water enters at the top left and must leave at the bottom right in one path with no branches; the other pieces are decoys and stay dry. | The source-to-drain game of the placing family, played by turning. | `kind: "inlet-outlet"` |
+| `big-pieces` | Some pieces are big: four cells that are one piece, with up to eight openings, turned a quarter in place by one tap. | Suido's own (1.4.0): "can there not be large pipe pieces?" | `bigs: 4` |
+| `block-turns` | A tap on a square of four pieces turns the four together a quarter: each moves round to the next place and turns with it, and none can be turned alone. | Suido's own (1.4.0) | `blocks: 3` |
+
+**Big pieces and block turns are the same move.** A square of four cells is turned as one: the piece in each cell moves to the next
+cell clockwise and turns a quarter with it, so the square as a whole is turned in place. What differs is what the four are. In a big
+piece they are one piece: where two of its cells meet, either both open towards each other or neither does, and it is drawn as one
+solid plate with a ring at its middle. It is one of five kinds (`BIG_KINDS`, each facing north as the masks of its four cells):
+an *end* (one opening: a pipe that goes in, round the square and stops), a *hairpin* (two openings on one side: in and straight back out),
+*straight* (two pipes side by side, four openings), an *elbow* (two pipes bending one inside the other, four openings) and a *tee*
+(a straight pipe with a branch, six openings). A block turn is four ordinary pieces with no rule about how they join, drawn as the four
+with a dashed rim round them and a ring where they meet. Both are solved as one thing with four facings (`units.ts`), and
+the check reads a block as the board's block turned a whole number of quarters, never one piece of it turned alone.
+
+A square never crosses the edge of a board that wraps, never holds a pump, a drain or a locked piece, and has no wall between its own
+cells. They are made on request, only in a network, and the fixed levels do not have them: a level once published keeps its board.
 
 Walls and locks are what make a board have one answer in the generator before any pipe is moved: where the
 solver finds a second answer, a wall is built across an edge only the other answer uses, or a piece the two
@@ -48,7 +63,9 @@ answers face differently is locked. A wall is never built on an edge the pipes o
 forest they grew from, use, so it can never close the answer.
 
 The levels teach them in this order, one block of sixteen levels at a time (the 15th level of a block teaches,
-the 16th tests): drains, pumps, locked pieces, walls, wrap, inlet-outlet. From the eighth block each block
+the 16th tests): drains, pumps, locked pieces, walls, wrap, inlet-outlet. The huge sizes (20×20, 28×28 and 20×50), which have four blocks,
+teach drains, pumps and wrap: locked pieces and walls only make a board easier than the boards it is ranked among, so they cannot sit at the
+top of a size's range. From the eighth block each block
 combines them (wrap with locks, then walls with locks, pumps with drains, and so on up to a block with wrap,
 drains and walls together), and from then on the earlier places of a block carry twists too.
 

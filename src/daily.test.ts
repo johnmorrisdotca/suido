@@ -22,7 +22,7 @@ describe("the level of the day", () => {
   });
 
   it("is pinned: these are the levels of 1 October 2026 at every size, so a change to the rule is a change that is seen", () => {
-    expect(SUIDO_SIZES.map((size) => dailySuidoLevel(size, "2026-10-01"))).toEqual([207, 103, 31, 167, 63, 21, 39, 205, 243, 77, 245, 106, 248]);
+    expect(SUIDO_SIZES.map((size) => dailySuidoLevel(size, "2026-10-01"))).toEqual([207, 103, 31, 167, 63, 21, 39, 205, 243, 77, 245, 106, 248, 23, 23, 56]);
   });
 
   it("visits every level of a size once before any comes round again", () => {

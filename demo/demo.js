@@ -1,4 +1,4 @@
-// The demo page's own script: Suido's levels, easy to hard, in thirteen sizes from 5×5 to 14×14 and three long
+// The demo page's own script: Suido's levels, easy to hard, in sixteen sizes from 5×5 to 28×28 and four long
 // pipe shapes, each level with its twists as chips and its difficulty as marks, the sixteen levels of its block
 // drawn small to choose from, what was solved kept on this device; and a second way to play, "Make a board",
 // which makes a board from a seed as the settings ask. The board is played by the package's own `mountSuido`
@@ -46,6 +46,8 @@ const WORDS = {
     pumps3: "Three pumps",
     lockedSetting: "Locked",
     wallsSetting: "Walls",
+    bigsSetting: "Big pieces",
+    blocksSetting: "Block turns",
     none: "None",
     few: "A few",
     many: "Many",
@@ -101,6 +103,8 @@ const WORDS = {
     pumps3: "ポンプ3つ",
     lockedSetting: "固定駒",
     wallsSetting: "壁",
+    bigsSetting: "大きな駒",
+    blocksSetting: "ブロック回転",
     none: "なし",
     few: "少し",
     many: "たくさん",
@@ -131,6 +135,8 @@ const KINDS = ["network", "drains", "inlet-outlet"];
 const AMOUNTS = ["none", "few", "many"];
 /** The share of a board's cells that are locked or walled for each amount. */
 const SHARE = { none: 0, few: 0.06, many: 0.14 };
+/** The share of a board's cells that are in a big piece or a block that turns, for each amount: a square holds four cells, so this is a count of squares. */
+const SQUARES_SHARE = { none: 0, few: 1 / 60, many: 1 / 22 };
 const params = new URLSearchParams(location.search);
 
 const read = () => {
@@ -168,6 +174,8 @@ const settings = {
   sources: whole(params.get("sources"), 1, 3, whole(kept.sources, 1, 3, 1)),
   locked: pick(params.get("locked"), AMOUNTS, kept.locked, "none"),
   walls: pick(params.get("walls"), AMOUNTS, kept.walls, "none"),
+  bigs: pick(params.get("bigs"), AMOUNTS, kept.bigs, "none"),
+  blocks: pick(params.get("blocks"), AMOUNTS, kept.blocks, "none"),
   difficulty: whole(params.get("difficulty"), 1, 100, whole(kept.difficulty, 1, 100, 50)),
   seed: whole(params.get("seed"), 0, 4294967295, Math.floor(Math.random() * 1_000_000_000)),
   exact: params.get("exact") === "1",
@@ -184,7 +192,7 @@ let rows = [];
 const legacy = (saved) => (typeof saved === "object" && saved !== null && typeof saved.q === "string" ? `${saved.q}:${saved.t}` : saved);
 for (const key of Object.keys(progress)) progress[key] = legacy(progress[key]);
 
-const IDS = ["modes", "sizes", "shapes", "kinds", "wrap", "sources", "lockedamount", "wallsamount", "difficulty", "difficulty-value", "new", "timer-toggle", "kind-note", "board", "table", "meter", "previous", "next", "today", "level-number", "level-of", "open", "marks", "role", "block", "block-title"];
+const IDS = ["modes", "sizes", "shapes", "kinds", "wrap", "sources", "lockedamount", "wallsamount", "bigsamount", "blocksamount", "difficulty", "difficulty-value", "new", "timer-toggle", "kind-note", "board", "table", "meter", "previous", "next", "today", "level-number", "level-of", "open", "marks", "role", "block", "block-title"];
 const els = Object.fromEntries(IDS.map((id) => [id, document.getElementById(id)]));
 const language = familyLanguage({ id: "suido", words: WORDS, onChange: () => refresh() });
 const say = (key, ...args) => {
@@ -205,7 +213,7 @@ let generation = 0;
 const clock = (ms) => `${Math.floor(ms / 60000)}:${String(Math.floor(ms / 1000) % 60).padStart(2, "0")}`;
 const solvedSet = () => new Set(solved[settings.size] ?? []);
 const inLevels = () => settings.mode === "levels";
-const bestKey = () => (inLevels() ? `L|${settings.size}|${level}` : `${settings.size}|${settings.kind}|${settings.wrap ? "w" : "-"}|${settings.sources}|${settings.locked}|${settings.walls}|${board?.difficulty ?? settings.difficulty}`);
+const bestKey = () => (inLevels() ? `L|${settings.size}|${level}` : `${settings.size}|${settings.kind}|${settings.wrap ? "w" : "-"}|${settings.sources}|${settings.locked}|${settings.walls}|${settings.bigs}|${settings.blocks}|${board?.difficulty ?? settings.difficulty}`);
 const progressKey = () => `${settings.size}/${level}`;
 
 function address() {
@@ -216,6 +224,8 @@ function address() {
     query.set("sources", String(settings.sources));
     query.set("locked", settings.locked);
     query.set("walls", settings.walls);
+    query.set("bigs", settings.bigs);
+    query.set("blocks", settings.blocks);
     query.set("difficulty", String(settings.difficulty));
     query.set("seed", String(settings.seed));
     query.set("exact", "1");
@@ -227,7 +237,7 @@ function address() {
 }
 
 function keep() {
-  write({ mode: settings.mode, size: settings.size, kind: settings.kind, wrap: settings.wrap, sources: settings.sources, locked: settings.locked, walls: settings.walls, difficulty: settings.difficulty, timer: settings.timer, reverse: settings.reverse, levels: kept.levels ?? {}, solved, progress, best: kept.best ?? {} });
+  write({ mode: settings.mode, size: settings.size, kind: settings.kind, wrap: settings.wrap, sources: settings.sources, locked: settings.locked, walls: settings.walls, bigs: settings.bigs, blocks: settings.blocks, difficulty: settings.difficulty, timer: settings.timer, reverse: settings.reverse, levels: kept.levels ?? {}, solved, progress, best: kept.best ?? {} });
 }
 
 /** Presses the right button of a group of choices and nothing else. */
@@ -300,6 +310,9 @@ function block() {
   els.block.style.setProperty("--ratio", String(layoutRatio()));
 }
 
+/** Whether the kind chosen can have big pieces and blocks that turn: only a network can. */
+const squares = () => settings.kind === "network";
+
 function layoutRatio() {
   const { width, height } = sizeOf(settings.size);
   return width / height;
@@ -327,6 +340,10 @@ function refresh() {
   press(els.sources, (button) => Number(button.dataset.sources) === settings.sources);
   press(els.lockedamount, (button) => button.dataset.amount === settings.locked);
   press(els.wallsamount, (button) => button.dataset.amount === settings.walls);
+  // Big pieces and blocks that turn are a network's: the other kinds have no squares.
+  press(els.bigsamount, (button) => button.dataset.amount === (squares() ? settings.bigs : "none"));
+  press(els.blocksamount, (button) => button.dataset.amount === (squares() ? settings.blocks : "none"));
+  for (const group of [els.bigsamount, els.blocksamount]) for (const button of group.children) button.disabled = !squares();
   els.wrap.setAttribute("aria-pressed", String(settings.wrap && settings.kind !== "inlet-outlet"));
   els.wrap.disabled = settings.kind === "inlet-outlet";
   for (const button of els.sources.children) button.disabled = settings.kind === "inlet-outlet";
@@ -417,8 +434,9 @@ function makeBoard(keepSeed = false) {
     const cells = width * height;
     const path = settings.kind === "inlet-outlet";
     const count = (amount) => (SHARE[amount] === 0 ? 0 : Math.max(2, Math.round(cells * SHARE[amount])));
+    const pieces = (amount) => (!squares() || SQUARES_SHARE[amount] === 0 ? 0 : Math.max(1, Math.round(cells * SQUARES_SHARE[amount])));
     // An address that names the board's own seed (`exact`) asks for that very board, not another near its difficulty.
-    const made = makeSuido({ width, height, kind: settings.kind, wrap: path ? false : settings.wrap, sources: path ? 1 : settings.sources, locked: count(settings.locked), walls: count(settings.walls), difficulty: settings.exact ? undefined : settings.difficulty, seed: settings.seed });
+    const made = makeSuido({ width, height, kind: settings.kind, wrap: path ? false : settings.wrap, sources: path ? 1 : settings.sources, locked: count(settings.locked), walls: count(settings.walls), bigs: pieces(settings.bigs), blocks: pieces(settings.blocks), difficulty: settings.exact ? undefined : settings.difficulty, seed: settings.seed });
     settings.exact = false;
     settings.seed = made.seed;
     board = { code: made.code, twists: twistsOf(made.layout), difficulty: made.difficulty, marks: 0, role: null };
@@ -489,6 +507,14 @@ choices(els.lockedamount, "amount", (amount) => {
 });
 choices(els.wallsamount, "amount", (amount) => {
   settings.walls = amount;
+  makeBoard();
+});
+choices(els.bigsamount, "amount", (amount) => {
+  settings.bigs = amount;
+  makeBoard();
+});
+choices(els.blocksamount, "amount", (amount) => {
+  settings.blocks = amount;
   makeBoard();
 });
 seg(els.sizes, SQUARES, (size) => chooseSize(size), (size) => size.replace("x", "×"), "size");

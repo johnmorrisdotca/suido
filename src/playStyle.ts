@@ -24,6 +24,8 @@ export const SUIDO_PLAY_STYLE = `${SUIDO_STYLE}
 .suido-play .sdp-board { position: relative; width: 100%; aspect-ratio: var(--sdp-ratio, 1); }
 .suido-play .sdp-board .suido { transition: opacity .15s; }
 .suido-play[aria-busy="true"] .sdp-board .suido { opacity: .45; }
+.suido-play .sdp-board[data-zoomed="true"] { overflow: hidden; }
+.suido-play .sdp-zoom { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin-top: 8px; }
 .suido-play .sdp-chips { list-style: none; margin: 10px 0 0; padding: 0; display: flex; flex-wrap: wrap; align-content: flex-start; gap: 6px; min-height: 4.4rem; }
 .suido-play .sdp-chip { border: 1px solid var(--sdp-rule); background: var(--sdp-surface); color: var(--sdp-ink); border-radius: 999px; min-height: 32px; padding: 0 12px; font-size: .8rem; font-weight: 600; display: inline-flex; align-items: center; cursor: help; }
 .suido-play .sdp-chip[data-twist="plain"] { color: var(--sdp-muted); font-weight: 500; }

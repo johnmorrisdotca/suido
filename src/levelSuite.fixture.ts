@@ -11,7 +11,7 @@ import { loadSuidoLevels, SUIDO_LEVEL_COUNTS, sizeOf, suidoBand, suidoLevelOf, s
 import { SUIDO_MARKS } from "./levels/marks.data.ts";
 import { solve, type SolveResult } from "./solve.ts";
 import { symmetryKey } from "./symmetry.ts";
-import { SUIDO_TWISTS, twistsOf } from "./twists.ts";
+import { SUIDO_LEVEL_TWISTS, SUIDO_TWISTS, twistsOf } from "./twists.ts";
 
 /**
  * EVERY SUIDO LEVEL OF ONE SIZE, PROVED AGAIN ON EVERY BUILD: the tests one
@@ -73,7 +73,7 @@ export function levelSuite(size: string): void {
     it("holds no two levels that are the same board turned or mirrored", () => {
       const keys = suidoLevelsOf(size).map((row, index) => symmetryKey(layouts[index]!, levelSolution(row)!));
       expect(new Set(keys).size).toBe(keys.length);
-    });
+    }, 180_000);
 
     it("keeps a locked piece as its answer has it, and a wall off every pipe of the answer", () => {
       for (const [index, row] of suidoLevelsOf(size).entries()) {
@@ -108,19 +108,19 @@ export function levelSuite(size: string): void {
         expect(score, `level ${index + 1} is easier than level ${index}`).toBeGreaterThanOrEqual(before);
         before = score;
       }
-    });
+    }, 180_000);
 
     it("rises over the whole of its range: the first level is among the easiest of its size and the last among the hardest", () => {
       const rows = suidoLevelsOf(size);
       expect(difficultyOf(layouts[0]!, levelSolution(rows[0]!)!)).toBeLessThanOrEqual(8);
       expect(difficultyOf(layouts[rows.length - 1]!, levelSolution(rows[rows.length - 1]!)!)).toBeGreaterThanOrEqual(92);
-    });
+    }, 180_000);
 
     it("marks every level 1 to 5 by its measured score, in steps of twenty", () => {
       const digits = suidoLevelsOf(size).map((row, index) => String(Math.min(5, 1 + Math.floor(difficultyOf(layouts[index]!, levelSolution(row)!) / 20)))).join("");
       expect(SUIDO_MARKS[size]).toBe(digits);
       for (let level = 1; level <= digits.length; level += 1) expect(suidoMarks(size, level)).toBe(Number(digits[level - 1]));
-    });
+    }, 180_000);
 
     it("is plain through the first block, then teaches a twist at each block's 15th level and tests it at its 16th", () => {
       const rows = suidoLevelsOf(size);
@@ -138,9 +138,11 @@ export function levelSuite(size: string): void {
       }
     });
 
-    it("teaches each of the six twists, in the order the levels list them, at a 15th that says it is new", () => {
+    it("teaches each twist its blocks have, in the order the levels list them, at a 15th that says it is new", () => {
       const rows = suidoLevelsOf(size);
-      const firsts = SUIDO_TWISTS.map((twist) => ({ twist, at: rows.findIndex((row) => declaredTwists(row).includes(twist)) }));
+      // A size of 256 levels has the six twists of the fixed levels, one new in each of its blocks 2 to 7; a huge size of four blocks teaches drains, pumps and wrap.
+      const taught = rows.length <= SUIDO_BLOCK * 4 ? (["drains", "pumps", "wrap"] as const) : SUIDO_LEVEL_TWISTS;
+      const firsts = taught.map((twist) => ({ twist, at: rows.findIndex((row) => declaredTwists(row).includes(twist)) }));
       for (const { twist, at } of firsts) {
         expect(at, `a ${twist} level`).toBeGreaterThanOrEqual(0);
         const role = twistRole(rows, at + 1);
@@ -148,6 +150,8 @@ export function levelSuite(size: string): void {
         expect(role?.newOnes, twist).toContain(twist);
       }
       for (let each = 1; each < firsts.length; each += 1) expect(firsts[each]!.at, firsts[each]!.twist).toBeGreaterThan(firsts[each - 1]!.at);
+      // None of the twists a level cannot have (made boards only) is on a level.
+      for (const row of rows) for (const twist of declaredTwists(row)) expect(SUIDO_LEVEL_TWISTS).toContain(twist);
     });
 
     it("mixes twists into the later blocks' other places, and into none of the first seven blocks' first fourteen", () => {
@@ -156,6 +160,8 @@ export function levelSuite(size: string): void {
         const slot = (at % SUIDO_BLOCK) + 1;
         if (at < SUIDO_BLOCK * 7 && slot < SUIDO_BLOCK - 1) expect(row[2], `level ${at + 1}`).toBe("");
       });
+      // The sizes of four blocks have no eighth block to mix them in.
+      if (rows.length <= SUIDO_BLOCK * 7) return;
       const later = rows.slice(SUIDO_BLOCK * 7).filter((row, at) => (at % SUIDO_BLOCK) + 1 < SUIDO_BLOCK - 1 && row[2] !== "");
       expect(later.length).toBeGreaterThan(10);
     });

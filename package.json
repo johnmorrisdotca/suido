@@ -1,7 +1,7 @@
 {
   "name": "@johnmorrisdotca/suido",
   "version": "1.3.0",
-  "description": "Suido, a pipe puzzle for JavaScript and TypeScript: turn the pieces until the water from the pump reaches every drain, with no pipe left open. 3,328 fixed levels from easy to hard, in 5×5 to 14×14 and three long pipe shapes, each with exactly one answer and its twists declared (drains, pumps, locked pieces, walls, wrap-around edges, inlet to outlet). Boards as short codes, a solver that counts answers, a seeded generator whose every board has exactly one, a difficulty from 1 to 100 within each size, and the water drawn as SVG that flows as the pipes join, played by tap, mouse and keyboard in any page as a function call or a tag. Zero dependencies.",
+  "description": "Suido, a pipe puzzle for JavaScript and TypeScript: turn the pieces until the water from the pump reaches every drain, with no pipe left open. 3,520 fixed levels from easy to hard, in 5×5 to 28×28 and four long pipe shapes, each with exactly one answer and its twists declared (drains, pumps, locked pieces, walls, wrap-around edges, inlet to outlet), boards of your own with big pieces that fill four squares and squares of four pieces that turn together. Boards as short codes, a solver that counts answers, a seeded generator whose every board has exactly one, a difficulty from 1 to 100 within each size, and the water drawn as SVG that flows as the pipes join, played by tap, mouse and keyboard in any page as a function call or a tag. Zero dependencies.",
   "keywords": [
     "puzzle",
     "pipe-puzzle",
@@ -26,7 +26,11 @@
     "locked-pieces",
     "inlet-outlet",
     "custom-element",
-    "web-component"
+    "web-component",
+    "big-pieces",
+    "block-turns",
+    "zoom",
+    "huge-boards"
   ],
   "homepage": "https://johnmorrisdotca.github.io/suido/",
   "repository": {
@@ -75,6 +79,11 @@
       "types": "./dist/levels.d.ts",
       "import": "./dist/levels.js",
       "default": "./dist/levels.js"
+    },
+    "./levels-info": {
+      "types": "./dist/levelsInfo.d.ts",
+      "import": "./dist/levelsInfo.js",
+      "default": "./dist/levelsInfo.js"
     },
     "./levels-5x5": {
       "types": "./dist/levels/size5x5.data.d.ts",
@@ -140,6 +149,21 @@
       "types": "./dist/levels/size8x14.data.d.ts",
       "import": "./dist/levels/size8x14.data.js",
       "default": "./dist/levels/size8x14.data.js"
+    },
+    "./levels-20x20": {
+      "types": "./dist/levels/size20x20.data.d.ts",
+      "import": "./dist/levels/size20x20.data.js",
+      "default": "./dist/levels/size20x20.data.js"
+    },
+    "./levels-28x28": {
+      "types": "./dist/levels/size28x28.data.d.ts",
+      "import": "./dist/levels/size28x28.data.js",
+      "default": "./dist/levels/size28x28.data.js"
+    },
+    "./levels-20x50": {
+      "types": "./dist/levels/size20x50.data.d.ts",
+      "import": "./dist/levels/size20x50.data.js",
+      "default": "./dist/levels/size20x50.data.js"
     },
     "./marks": {
       "types": "./dist/levels/marks.data.d.ts",
