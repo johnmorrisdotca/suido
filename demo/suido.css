@@ -50,3 +50,19 @@ input[type="range"] { flex: 1 1 180px; min-width: 0; max-width: 340px; min-heigh
   .fam-label { min-width: 3.4rem; }
   .settings .fam-label { min-width: 100%; }
 }
+
+/* The guide to every piece: each drawn at the same scale, so a big piece is as wide as two small ones, with its name under it. */
+.pieces h3 { margin: 22px 0 6px; font-size: 1rem; }
+.pieces .sheet > .pgroup h3 { margin-top: 14px; font-size: .92rem; color: var(--muted); font-weight: 600; }
+.pgrid { display: flex; flex-wrap: wrap; gap: 14px 16px; align-items: flex-start; }
+.piece { margin: 0; width: max(168px, calc(var(--cells, 1) * 56px)); text-align: center; }
+.piece svg { display: block; width: calc(var(--cells, 1) * 56px); max-width: 100%; height: auto; margin: 0 auto; border-radius: 8px; }
+.piece figcaption { margin-top: 5px; font-size: .78rem; line-height: 1.25; }
+.piece strong { display: block; font-weight: 600; }
+.piece .what { display: block; margin-top: 2px; color: var(--muted); font-size: .74rem; text-align: left; }
+.sheet.compact .what, .pieces.compact .what { display: none; }
+.sheet.compact .piece, .pieces.compact .piece { width: max(96px, calc(var(--cells, 1) * 56px)); }
+@media (max-width: 520px) { .pgrid { gap: 12px 10px; } .piece { width: calc(50% - 5px); } .piece svg { width: calc(var(--cells, 1) * 48px); } .sheet.compact .piece, .pieces.compact .piece { width: max(88px, calc(var(--cells, 1) * 48px)); } }
+/* The small pieces' groups stand side by side where there is room, so the guide is a few rows and not a column. */
+#pieces-small { display: flex; flex-wrap: wrap; gap: 4px 36px; align-items: flex-start; }
+#pieces-small .pgroup { flex: 0 1 auto; max-width: 100%; }

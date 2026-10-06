@@ -59,3 +59,23 @@ export function suidoLevelOf(size: string, board: string): number | null {
   const at = suidoLevelsOf(size).findIndex(([code]) => code === board);
   return at === -1 ? null : at + 1;
 }
+
+let bigLevels: readonly LevelRow[] | null = null;
+
+/** The sixty-four big-pieces levels (`bigLevels.ts`), loaded once and kept: its own file, fetched only when asked for. */
+export async function loadSuidoBigLevels(): Promise<readonly LevelRow[]> {
+  if (bigLevels === null) bigLevels = (await import("./levels/big.data.ts")).SUIDO_BIG;
+  return bigLevels;
+}
+
+/** The big-pieces levels already loaded, or a refusal: nothing answers for a list it does not have. */
+export function suidoBigLevelsLoaded(): readonly LevelRow[] {
+  if (bigLevels === null) throw new Error("The big-pieces levels have not been loaded (loadSuidoBigLevels).");
+  return bigLevels;
+}
+
+/** The level a board is in the big-pieces set (1 to 64), once it is loaded, or null for a board no level has. */
+export function suidoBigLevelOf(board: string): number | null {
+  const at = suidoBigLevelsLoaded().findIndex(([code]) => code === board);
+  return at === -1 ? null : at + 1;
+}

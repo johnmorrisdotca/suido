@@ -15,7 +15,9 @@ src/
 ├── facing.ts              the sets of facings the solver works with
 ├── units.ts               what a network is solved in: a piece, or a block that turns as one, and the facings each can have
 ├── blocks.ts              squares of four cells that turn as one: big pieces and blocks, turned and read
-├── bigPieces.ts           the five kinds of big piece, and where a generator puts blocks
+├── bigPieces.ts           the five kinds of big piece, the 699 shapes there can be, and where a generator puts blocks
+├── bigDifficulty.ts       how hard a board is across every size, 1 to 100: how much the water uses, and how tangled it is
+├── pieceGuide.ts          a guide to every piece, each with a board to draw it on
 ├── solve.ts               the solver, which counts a board's answers up to a limit
 ├── deduce.ts              what can be worked out without guessing, in rounds
 ├── generate.ts            new boards from a seed: pipes grown, scrambled, made to have one answer
@@ -33,6 +35,7 @@ src/
 ├── levelRow.ts            a level's row read: its board, its answer, its twists
 ├── daily.ts               the level of the day at a size, from the date alone
 ├── ladder.ts              what a level teaches, and how hard it is marked
+├── bigLevels.ts           the big-pieces set's counts, sizes, scores, big pieces and lessons, with no board in it
 ├── levels/
 │   ├── size5x5.data.ts    a size's levels, one file each (5x5 to 14x14, 5x7, 6x10, 8x14, 20x20, 28x28, 20x50)
 │   ├── size6x6.data.ts
@@ -50,9 +53,12 @@ src/
 │   ├── size20x20.data.ts  the huge sizes, sixty-four levels each
 │   ├── size28x28.data.ts
 │   ├── size20x50.data.ts
+│   ├── big.data.ts        the sixty-four big-pieces levels
+│   ├── bigInfo.data.ts    their sizes, scores, twists and big pieces, without the boards
 │   └── marks.data.ts      every level's marks and lessons
 ├── draw-entry.ts          the "/draw" entry: everything that draws
 ├── draw.ts                a board, a piece and a small board as SVG text, and what each cell looks like
+├── drawGuide.ts           a piece of the guide as SVG text
 ├── paint.ts               the water and the turns written onto a drawing in place
 ├── view.ts                a big board zoomed and moved about: the arithmetic of a view, and a pinch, a drag and the wheel
 ├── style.ts               the style that turns the drawing into flowing water

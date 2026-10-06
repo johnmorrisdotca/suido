@@ -36,6 +36,17 @@ const twist = async (name, size) => {
   return rows.findIndex((row) => declaredTwists(row).includes(name)) + 1;
 };
 
+/** The guide's sheets, cropped: every name and no sentence, so each picture is a row of pieces to look at. */
+const sheet = (subject, testid) => ({
+  subject,
+  views: ["desk"],
+  scale: 1,
+  url: url("5x5", 1),
+  ready: `[data-testid="${testid}"] figure svg`,
+  target: `[data-testid="${testid}"]`,
+  prepare: (page) => page.evaluate(() => document.querySelector("#pieces").classList.add("compact")),
+});
+
 await takePictures({
   shots: [
     // Level 95 of 9×9, solved, from the top of the page; on a phone, in Japanese, the long 8×14 level 63 with its water part way.
@@ -65,6 +76,9 @@ await takePictures({
     level("wrap", "8x8", await twist("wrap", "8x8"), 1),
     level("inlet-to-outlet", "8x8", await twist("inlet-outlet", "8x8"), 1),
     level("long-board", "8x14", 40, 0.7),
+    sheet("pieces-strip", "pieces-small"),
+    sheet("big-pieces", "pieces-big"),
+    sheet("big-families", "pieces-families"),
     { subject: "huge-board", views: ["desk"], scale: 1, url: url("20x20", 1), ready, target: `${BOARD} svg` },
   ],
 });

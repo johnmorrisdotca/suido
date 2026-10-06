@@ -14,6 +14,8 @@ const ICON = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewB
 
 const uses = [
   `const rows = await loadSuidoLevels("8x8")  // 256 levels, easiest first, each with exactly one answer`,
+  `const big = await loadSuidoBigLevels()  // 64 levels with big 2×2 pieces among the ordinary ones, easiest of all to hardest`,
+  `SUIDO_PIECE_GUIDE  // every piece, with a board to draw it on: drawGuidePiece(piece) is its picture`,
   `loadSuidoLevels("28x28")  // the huge boards: 20×20, 28×28 and 20×50, sixty-four levels each`,
   `checkSuidoAnswer(rows[11][0], levelAnswer(rows[11]))  // { ok: true }: level 12's board and its answer`,
   `declaredTwists(rows[239])  // ["walls", "locked"]: what level 240 asks beyond turning pipes`,
@@ -55,6 +57,12 @@ const page = `<!doctype html>
           ${button(`data-mode="levels" data-say="modeLevels"`)}${button(`data-mode="make" data-say="modeMake"`)}
         </div>
       </div>
+      <div class="setup fam-row" data-for="levels" data-help-en="Levels by size are fixed boards of one size, easy to hard. Big pieces is a set of sixty-four levels from the easiest to the hardest across every size, each with big 2×2 pieces among its ordinary ones, more of them and trickier ones as the levels go on." data-help-ja="「大きさ別」は、ひとつの大きさの決まった盤面がやさしい順に並んだものです。「大きな駒」は、あらゆる大きさにまたがって、やさしい順に並んだ64レベルで、どのレベルにも2×2の大きな駒がふつうの駒にまじり、進むほど数も中身も増えます。">
+        <span class="fam-label" data-say="set"></span>
+        <div class="fam-seg" role="group" data-say-label="set" id="sets" data-testid="sets">
+          ${button(`data-set="classic" data-say="setClassic"`)}${button(`data-set="big" data-say="setBig"`)}
+        </div>
+      </div>
       <div class="setup fam-row" data-for="levels" data-help-en="Go to the previous or the next level, or jump to today's level, the same for everybody. A level opens when every level of the block before it is solved. You can also press a level in the block below." data-help-ja="前のレベル、次のレベルへ進むか、今日のレベル（だれにとっても同じ）に飛びます。ひとつ前のまとまりをすべて解くと、次のレベルが開きます。下のまとまりから選ぶこともできます。">
         <span class="fam-label" data-say="level"></span>
         ${button(`class="fam-button" id="previous" data-testid="previous" data-say-label="previous"`, "←")}
@@ -78,11 +86,11 @@ const page = `<!doctype html>
       </div>
       <section class="settings" aria-labelledby="board-title">
         <h2 id="board-title" data-say="boardTitle"></h2>
-        <div class="setup fam-row" data-help-en="How big the board is, from 5×5 to 28×28. Choosing a size opens its levels, or makes a new board. The huge boards can be zoomed and moved about." data-help-ja="盤の大きさです（5×5から28×28まで）。選ぶと、その大きさのレベルが開くか、新しい盤を作ります。大きな盤は拡大して動かせます。">
+        <div class="setup fam-row" id="classic-sizes" data-help-en="How big the board is, from 5×5 to 28×28. Choosing a size opens its levels, or makes a new board. The huge boards can be zoomed and moved about." data-help-ja="盤の大きさです（5×5から28×28まで）。選ぶと、その大きさのレベルが開くか、新しい盤を作ります。大きな盤は拡大して動かせます。">
           <span class="fam-label" data-say="size"></span>
           <div class="fam-seg" role="group" data-say-label="size" id="sizes" data-testid="sizes"></div>
         </div>
-        <div class="setup fam-row" data-help-en="Long boards, 5×7, 6×10, 8×14 and the huge 20×50, as tall as a pipe. They have their own levels." data-help-ja="細長い盤（5×7、6×10、8×14、そして巨大な20×50）です。それぞれに専用のレベルがあります。">
+        <div class="setup fam-row" id="classic-shapes" data-help-en="Long boards, 5×7, 6×10, 8×14 and the huge 20×50, as tall as a pipe. They have their own levels." data-help-ja="細長い盤（5×7、6×10、8×14、そして巨大な20×50）です。それぞれに専用のレベルがあります。">
           <span class="fam-label" data-say="shapes"></span>
           <div class="fam-seg" role="group" data-say-label="shapes" id="shapes" data-testid="shapes"></div>
         </div>
@@ -135,6 +143,17 @@ const page = `<!doctype html>
         <div class="block" id="block" data-testid="block"></div>
       </section>
       ${familyUnreviewed({ id })}
+      <section class="more pieces" id="pieces" aria-labelledby="pieces-title" data-testid="pieces">
+        <h2 id="pieces-title" data-say="piecesTitle"></h2>
+        <p data-say="piecesText"></p>
+        <div class="sheet" id="pieces-small" data-testid="pieces-small"></div>
+        <h3 data-say="bigTitle"></h3>
+        <p data-say="bigText"></p>
+        <div class="sheet" id="pieces-big" data-testid="pieces-big"></div>
+        <h3 data-say="familiesTitle"></h3>
+        <p data-say="familiesText"></p>
+        <div class="sheet" id="pieces-families" data-testid="pieces-families"></div>
+      </section>
       <section class="more" aria-labelledby="more-title">
         <h2 id="more-title" data-say="moreTitle"></h2>
         <p data-say="moreText"></p>

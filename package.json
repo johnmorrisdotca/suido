@@ -1,6 +1,6 @@
 {
   "name": "@johnmorrisdotca/suido",
-  "version": "1.4.2",
+  "version": "1.5.0",
   "description": "Suido, a pipe puzzle for JavaScript and TypeScript: turn the pieces until the water reaches every drain. 3,520 fixed levels with one answer each, a solver, a seeded generator, and an SVG board played by tap, mouse and keyboard. Zero dependencies.",
   "keywords": [
     "puzzle",
@@ -164,6 +164,11 @@
       "types": "./dist/levels/size20x50.data.d.ts",
       "import": "./dist/levels/size20x50.data.js",
       "default": "./dist/levels/size20x50.data.js"
+    },
+    "./levels-big": {
+      "types": "./dist/levels/big.data.d.ts",
+      "import": "./dist/levels/big.data.js",
+      "default": "./dist/levels/big.data.js"
     },
     "./marks": {
       "types": "./dist/levels/marks.data.d.ts",

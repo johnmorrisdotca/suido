@@ -39,6 +39,9 @@ export const SUIDO_LEVEL_COUNTS: Readonly<Record<string, number>> = {
   "20x50": 64,
 };
 
+/** How many levels the big-pieces set has: four blocks of sixteen, each level with big pieces in it, on boards of many sizes (`bigLevels.ts`). */
+export const SUIDO_BIG_COUNT = 64;
+
 /** One level: its board as a code (`code.ts`), its answer as one digit a cell, and its twists. */
 export type LevelRow = readonly [board: string, turns: string, twists: string];
 
@@ -65,11 +68,10 @@ export function suidoBand(size: string, level: number): SuidoBand {
 }
 
 /**
- * The levels that are open, given the ones solved: the first block of sixteen
+ * The levels that are open of a set of `count` levels, given the ones solved: the first block of sixteen
  * always, and each block after it once every level of the block before is solved.
  */
-export function openSuidoLevels(size: string, solved: ReadonlySet<number>): number {
-  const count = SUIDO_LEVEL_COUNTS[size] ?? 0;
+export function openLevels(count: number, solved: ReadonlySet<number>): number {
   let open = Math.min(SUIDO_BLOCK, count);
   while (open < count) {
     let blockDone = true;
@@ -80,20 +82,34 @@ export function openSuidoLevels(size: string, solved: ReadonlySet<number>): numb
   return open;
 }
 
-/** The level to open on: the first open one not yet solved, or the last open one when every open level is solved. */
-export function nextSuidoLevel(size: string, solved: ReadonlySet<number>): number {
-  const open = openSuidoLevels(size, solved);
+/** The level to open on in a set of `count`: the first open one not yet solved, or the last open one when every open level is solved. */
+export function nextLevel(count: number, solved: ReadonlySet<number>): number {
+  const open = openLevels(count, solved);
   for (let level = 1; level <= open; level += 1) if (!solved.has(level)) return level;
   return open;
 }
 
 /**
- * The lowest level not yet solved, or null when every level of the size is.
+ * The lowest level of a set of `count` not yet solved, or null when every level of it is.
  * It is always open: a block opens only once the block before is all solved,
  * so the first gap is in the open blocks.
  */
-export function firstUnsolvedSuidoLevel(size: string, solved: ReadonlySet<number>): number | null {
-  const count = SUIDO_LEVEL_COUNTS[size] ?? 0;
+export function firstUnsolvedLevel(count: number, solved: ReadonlySet<number>): number | null {
   for (let level = 1; level <= count; level += 1) if (!solved.has(level)) return level;
   return null;
+}
+
+/** The levels of a size that are open, given the ones solved (`openLevels`). */
+export function openSuidoLevels(size: string, solved: ReadonlySet<number>): number {
+  return openLevels(SUIDO_LEVEL_COUNTS[size] ?? 0, solved);
+}
+
+/** The level of a size to open on (`nextLevel`). */
+export function nextSuidoLevel(size: string, solved: ReadonlySet<number>): number {
+  return nextLevel(SUIDO_LEVEL_COUNTS[size] ?? 0, solved);
+}
+
+/** The lowest level of a size not yet solved, or null when every level of it is (`firstUnsolvedLevel`). */
+export function firstUnsolvedSuidoLevel(size: string, solved: ReadonlySet<number>): number | null {
+  return firstUnsolvedLevel(SUIDO_LEVEL_COUNTS[size] ?? 0, solved);
 }

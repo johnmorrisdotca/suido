@@ -7,6 +7,23 @@ board and its answer, and a seed makes the board it always made.
 
 ## [Unreleased]
 
+## [1.5.0] - 2026-10-06
+
+Everything that was exported still is, and a seed that asked for big pieces still makes the board it made.
+
+### Added
+
+- **Big pieces with anything inside them.** A big piece holds one, two or three separate pipes, and what four one-cell pieces can make side by side a plate can: two pipes side by side that never meet, a corner beside a straight, a cross or a tee inside a plate, three pipes in one. That is 699 shapes up to turning in 32 families (`BIG_SHAPES`, `BIG_FAMILIES`, `bigShapeById`, `bigShapeOf`, `bigShapesIn`), and the water in one pipe of a plate never reaches another. `makeSuido` takes `bigKinds`: `"five"` (the default, the five kinds a seed has always made), or `"simple"`, `"more"` or `"all"` (`BIG_MIXES`, `inBigMix`) for a wider choice. The solver, the checker, the code format and the drawing already read a plate by the pieces in its cells, so each has tests with the new shapes in.
+- **Sixty-four levels with big pieces among the ordinary ones**, from the easiest to the hardest across every size from 5×5 to 20×20 (`loadSuidoBigLevels`, `@johnmorrisdotca/suido/levels-big`, and `levels-info`'s `suidoBigSize`, `suidoBigScore`, `suidoBigMarks`, `suidoBigTwists`, `suidoBigRole`, `suidoBigPieces`, `openSuidoBigLevels`, `nextSuidoBigLevel`, `firstUnsolvedSuidoBigLevel`). Each is a mix of 1×1 and 2×2 pieces with exactly one answer, scored 1 to 100 across every size, in four blocks of sixteen that teach blocks that turn as one, a second pump, walls and edges that join. They have 614 big pieces of 316 shapes in 29 families between them, more of them and trickier ones as the levels climb. The score is new (`bigScoreOf`, `exactBigScoreOf`, `blendBigScore`, `coverageOf`, `usedPiecesOf`, `sizeTermOf`): how much of the board the answer uses, on a log scale, and how tangled it is for its size, half and half.
+- **A guide to every piece**: `SUIDO_PIECE_GUIDE` (ground, an end, a straight, an elbow, a tee, a cross, a pump, a drain, a locked piece, a wall, edges that join, a block that turns as one and thirteen big pieces), `SUIDO_BIG_FAMILIES_GUIDE` (one big piece of each family), `guidePieceById`, `guidePiecesOf`, and `drawGuidePiece` in the drawing entry, each with a board to draw it on. It is in `docs/PIECES.md` with a picture of each in the README, and a Pieces section on the demo, in English and Japanese.
+- The demo's levels offer the set as "Big pieces" beside the levels by size, with its score, how many big pieces a level has and the share of the board they cover.
+
+### Changed
+
+- A level row keeps the answer for a big piece or a block as the quarter turns of its square, written at its top left cell with 0 at the other three (`turnsOf`, `levelSolution`): a square's pieces move round it, so a turn for each cell could not say it. Rows without squares are as they were, so no level changed.
+- `openSuidoLevels`, `nextSuidoLevel` and `firstUnsolvedSuidoLevel` are `openLevels`, `nextLevel` and `firstUnsolvedLevel` of a count of levels with the size looked up first.
+- To keep the README under the 64,000 characters npm can show, how levels are stored, read, proved and made moved to `docs/LEVELS.md`.
+
 ## [1.4.2] - 2026-10-06
 
 Nothing that was exported has changed.

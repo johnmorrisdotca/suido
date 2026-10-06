@@ -7,6 +7,7 @@
  */
 export * from "./levelCounts.ts";
 export * from "./levelBlocks.ts";
+export * from "./bigLevels.ts";
 export * from "./levelRow.ts";
 export * from "./ladder.ts";
 export * from "./daily.ts";

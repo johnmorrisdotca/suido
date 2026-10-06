@@ -18,14 +18,14 @@ Turn the pieces until the water from the pump reaches every drain and nothing is
 <td align="center" valign="top">
 <picture>
 <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/johnmorrisdotca/suido/main/docs/images/hero-desk-dark.webp">
-<img src="https://raw.githubusercontent.com/johnmorrisdotca/suido/main/docs/images/hero-desk-light.webp" alt="Level 95 of the 9 by 9 levels, solved, on a desk: the page's header with its language chooser and cloth swatches, the difficulty marks and the lesson of the level above the board, and a square of pale tiles with blue pipes and round drains, every pipe filled with water running from the pump at the top across the dashed rim to every drain, and the buttons under it." width="720">
+<img src="https://raw.githubusercontent.com/johnmorrisdotca/suido/main/docs/images/hero-desk-light.webp" alt="Level 95 of the 9 by 9 levels, solved, on a desk: the page's header, the difficulty marks above the board, a square of pale tiles with blue pipes and round drains, all filled with water, and the buttons under it." width="720">
 </picture>
 <br><em>A solved level on a desk: the water from the pump has reached every drain.</em>
 </td>
 <td align="center" valign="top">
 <picture>
 <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/johnmorrisdotca/suido/main/docs/images/hero-phone-dark.webp">
-<img src="https://raw.githubusercontent.com/johnmorrisdotca/suido/main/docs/images/hero-phone-light.webp" alt="A long 8 by 14 level on a phone, in Japanese: the pipes part way filled with water, a padlock on one piece, a few open ends still leaking, and under the board the twist chip and the lines of what is wanted." width="220">
+<img src="https://raw.githubusercontent.com/johnmorrisdotca/suido/main/docs/images/hero-phone-light.webp" alt="A long 8 by 14 level on a phone, in Japanese, the pipes part way filled with water, a padlock on one piece." width="220">
 </picture>
 <br><em>A long level on a phone, in Japanese, in the device's light or dark.</em>
 </td>
@@ -77,43 +77,43 @@ makeSuido({ size: 8, kind: "inlet-outlet", locked: 3, walls: 4, seed: 7 });   //
 
 ## Features
 
-- **Fixed, numbered levels.** Thousands of boards in sixteen sizes (5×5 to 14×14, three long pipe shapes, and the huge 20×20, 28×28 and long 20×50), each with exactly one answer, easy to hard, in blocks of sixteen that open one after another. A level keeps its number, so a time on it can be compared with anybody's. See [Levels](#levels).
+- **Fixed, numbered levels.** Thousands of boards in sixteen sizes (5×5 to 14×14, three long pipe shapes, and the huge 20×20, 28×28 and long 20×50), each with exactly one answer, easy to hard, in blocks of sixteen that open one after another. See [Levels](#levels).
 - **Huge boards, played on a phone.** Up to 1,000 pieces, drawn as SVG that flows, zoomed and moved about by a pinch, a drag, the wheel and three buttons, with a tap still a tap. See [Playing it in a page](#playing-it-in-a-page).
 - **A level of the day**, the same for everybody, from the date alone: `dailySuidoLevel(size, date)`. No server, no seed.
 - **Twists a level declares**: drains, several pumps, locked pieces, walls, wrap-around edges and inlet-to-outlet paths, as options of the generator too.
-- **Big pieces and blocks that turn as one**, in boards of your own: a big piece fills four squares and has up to eight openings; a block is four ordinary pieces that a tap turns together, each moving round to the next place as it turns. Each has exactly one answer, like every board.
+- **Big pieces and blocks that turn as one**, in boards of your own and in a set of 64 levels with big pieces among the ordinary ones: a big piece fills four squares and holds one, two or three separate pipes, in 699 shapes; a block is four ordinary pieces a tap turns together. See [The pieces](#the-pieces).
 - **A generator and a solver.** A seeded generator whose every board has exactly one answer, a solver that counts answers, and a difficulty from 1 to 100 within each size.
 - **A check a server can trust.** `checkSuidoAnswer` reads a finished board in O(cells), with no search, and says the first thing wrong.
 - **Boards and games as short strings**, so a board, its answer and a game half played can be kept in a database column.
-- **The water flows.** The board is drawn as SVG text in an entry of its own, and painted in place so the water is seen to run along the pipes as they join and to run back out of one turned away.
+- **The water flows.** The board is drawn as SVG text in an entry of its own and painted in place, so the water runs along the pipes and back out of one turned away.
 - **Played in any page** by tap, mouse and keyboard, with a hint, Start over and the twists as chips, as one function call (`mountSuido`) or one tag (`<suido-board>`).
 - **English and Japanese**, in the board's words and the demo.
 - **No dependencies**, no network requests, no sound, and nothing stored outside the page it is in.
 
 ### What's in it
 
-Each picture is a numbered level, drawn by the package's `drawSuido` and painted with `paintSuido`, taken from [the demo](https://johnmorrisdotca.github.io/suido/) with `pnpm screenshots:readme`, in light and dark. A level's water is shown by solving a share of it in the order the water would flow, so the same pictures come again. The levels that teach the twists are the 31st, 47th, 63rd, 79th, 95th and 111th of every size.
+Each picture is a numbered level from [the demo](https://johnmorrisdotca.github.io/suido/), taken with `pnpm screenshots:readme` in light and dark, its water part way. The twists are taught at the 31st, 47th, 63rd, 79th, 95th and 111th level of every size.
 
 <table>
 <tr>
 <td align="center" valign="top" width="33%">
 <picture>
 <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/johnmorrisdotca/suido/main/docs/images/network-desk-dark.webp">
-<img src="https://raw.githubusercontent.com/johnmorrisdotca/suido/main/docs/images/network-desk-light.webp" alt="A network level: blue water running part way from its pump through pale tiles of pipe, the rest of the pipes still dry and grey." width="300">
+<img src="https://raw.githubusercontent.com/johnmorrisdotca/suido/main/docs/images/network-desk-light.webp" alt="A network level, the water part way along its pipes." width="300">
 </picture>
 <br><em><strong>A network</strong>: every piece must be wet and nothing may run out.</em>
 </td>
 <td align="center" valign="top" width="33%">
 <picture>
 <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/johnmorrisdotca/suido/main/docs/images/drains-desk-dark.webp">
-<img src="https://raw.githubusercontent.com/johnmorrisdotca/suido/main/docs/images/drains-desk-light.webp" alt="A drains level: a sparse board of a few pipes and round drains with bare ground between, the water running from the pump to each drain." width="300">
+<img src="https://raw.githubusercontent.com/johnmorrisdotca/suido/main/docs/images/drains-desk-light.webp" alt="A drains level: a few pipes and round drains, the water running from the pump to each." width="300">
 </picture>
 <br><em><strong>Drains</strong>: only the drains must be reached; spare pieces may face any way.</em>
 </td>
 <td align="center" valign="top" width="33%">
 <picture>
 <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/johnmorrisdotca/suido/main/docs/images/several-pumps-desk-dark.webp">
-<img src="https://raw.githubusercontent.com/johnmorrisdotca/suido/main/docs/images/several-pumps-desk-light.webp" alt="A level with several pumps, each a drop in a dark blue disc, each feeding its own blue pipes." width="300">
+<img src="https://raw.githubusercontent.com/johnmorrisdotca/suido/main/docs/images/several-pumps-desk-light.webp" alt="A level with several pumps, each feeding its own pipes." width="300">
 </picture>
 <br><em><strong>Several pumps</strong>: each feeds its own pipes.</em>
 </td>
@@ -122,21 +122,21 @@ Each picture is a numbered level, drawn by the package's `drawSuido` and painted
 <td align="center" valign="top" width="33%">
 <picture>
 <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/johnmorrisdotca/suido/main/docs/images/locked-pieces-desk-dark.webp">
-<img src="https://raw.githubusercontent.com/johnmorrisdotca/suido/main/docs/images/locked-pieces-desk-light.webp" alt="A level with locked pieces: blue pipes, and a small padlock on each piece that cannot be turned." width="300">
+<img src="https://raw.githubusercontent.com/johnmorrisdotca/suido/main/docs/images/locked-pieces-desk-light.webp" alt="A level with locked pieces, each marked by a small padlock." width="300">
 </picture>
 <br><em><strong>Locked pieces</strong> cannot be turned; a padlock marks each.</em>
 </td>
 <td align="center" valign="top" width="33%">
 <picture>
 <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/johnmorrisdotca/suido/main/docs/images/walls-desk-dark.webp">
-<img src="https://raw.githubusercontent.com/johnmorrisdotca/suido/main/docs/images/walls-desk-light.webp" alt="A level with walls: thick dark bars across some edges between cells, which the water cannot cross, the blue pipes filled up to them." width="300">
+<img src="https://raw.githubusercontent.com/johnmorrisdotca/suido/main/docs/images/walls-desk-light.webp" alt="A level with walls: thick bars across some edges, which the water cannot cross." width="300">
 </picture>
 <br><em><strong>Walls</strong>: water cannot cross some edges.</em>
 </td>
 <td align="center" valign="top" width="33%">
 <picture>
 <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/johnmorrisdotca/suido/main/docs/images/wrap-desk-dark.webp">
-<img src="https://raw.githubusercontent.com/johnmorrisdotca/suido/main/docs/images/wrap-desk-light.webp" alt="A level with wrap-around edges, drawn with a dashed red rim: blue pipes leave one side of the board and come in at the other." width="300">
+<img src="https://raw.githubusercontent.com/johnmorrisdotca/suido/main/docs/images/wrap-desk-light.webp" alt="A level with wrap-around edges, drawn with a dashed red rim." width="300">
 </picture>
 <br><em><strong>Wrap</strong>: a pipe leaving one side comes in at the other.</em>
 </td>
@@ -145,21 +145,21 @@ Each picture is a numbered level, drawn by the package's `drawSuido` and painted
 <td align="center" valign="top" width="33%">
 <picture>
 <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/johnmorrisdotca/suido/main/docs/images/inlet-to-outlet-desk-dark.webp">
-<img src="https://raw.githubusercontent.com/johnmorrisdotca/suido/main/docs/images/inlet-to-outlet-desk-light.webp" alt="An inlet-to-outlet level: one pump at the top left, one drain at the bottom right, a single blue path between them and decoys left dry." width="300">
+<img src="https://raw.githubusercontent.com/johnmorrisdotca/suido/main/docs/images/inlet-to-outlet-desk-light.webp" alt="An inlet-to-outlet level: one pump, one drain, a single path between them, decoys left dry." width="300">
 </picture>
 <br><em><strong>Inlet to outlet</strong>: one path, no branch; decoys stay dry.</em>
 </td>
 <td align="center" valign="top" width="33%">
 <picture>
 <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/johnmorrisdotca/suido/main/docs/images/long-board-desk-dark.webp">
-<img src="https://raw.githubusercontent.com/johnmorrisdotca/suido/main/docs/images/long-board-desk-light.webp" alt="A long board of eight columns and fourteen rows, the water partly run through its pipes." width="300">
+<img src="https://raw.githubusercontent.com/johnmorrisdotca/suido/main/docs/images/long-board-desk-light.webp" alt="A long board, eight columns by fourteen rows." width="300">
 </picture>
 <br><em><strong>A long board</strong>: 8×14, one of four long shapes.</em>
 </td>
 <td align="center" valign="top" width="33%">
 <picture>
 <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/johnmorrisdotca/suido/main/docs/images/huge-board-desk-dark.webp">
-<img src="https://raw.githubusercontent.com/johnmorrisdotca/suido/main/docs/images/huge-board-desk-light.webp" alt="A huge board of twenty by twenty pieces, four hundred small cells of pipe, none yet turned." width="300">
+<img src="https://raw.githubusercontent.com/johnmorrisdotca/suido/main/docs/images/huge-board-desk-light.webp" alt="A huge board of twenty by twenty pieces." width="300">
 </picture>
 <br><em><strong>A huge board</strong>: up to 1,000 pieces, zoomed by a pinch.</em>
 </td>
@@ -476,12 +476,32 @@ Options, any of which may be combined (each is a *twist*, and a level declares t
 - **Walls**: water cannot cross some of the edges between cells, so a pipe open towards one runs out of it.
 - **Wrap**: the edges join, so a pipe leaving one side comes in at the other.
 - **Inlet to outlet**: the third kind. One pump at the top left and one drain at the bottom right, and the water must run between them in one path with no branch (every wet piece opens on two sides); the other pieces are decoys and stay dry.
-- **Big pieces**: some pieces are big. A big piece fills four squares, a two-by-two, and has up to eight openings, two on each side, joined inside by one of five kinds (`BIG_KINDS`): an end, a hairpin, two pipes side by side, two pipes bending one inside the other, and a straight pipe with a branch. A tap turns the whole piece a quarter, where it stands.
+- **Big pieces**: some pieces are big. A big piece fills four squares, a two-by-two, and holds one, two or three separate pipes, up to eight openings in all; a tap turns the whole piece a quarter, where it stands. See [The pieces](#the-pieces).
 - **Block turns**: some squares of four ordinary pieces turn as one. A tap on any of the four turns all four a quarter: each piece moves round to the next place and turns with it, and none can be turned alone. A ring where the four meet says so.
 - **Any shape**: boards from 2×2 to 64×64, and not only square.
 - **A difficulty**, 1 to 100 among the boards of the size.
 
 What other pipe games do, and which of it Suido took and left, is in [docs/TWISTS.md](docs/TWISTS.md).
+
+### The pieces
+
+[docs/PIECES.md](docs/PIECES.md) draws every piece the package has, with what each does: the five that are turned (an end, a straight, an elbow, a tee and a cross, and bare ground), a pump and a drain, a locked piece, a wall, edges that join, a block that turns as one, and the big pieces. `SUIDO_PIECE_GUIDE` lists them with a board for each, and `drawGuidePiece(piece)` draws it.
+
+<p align="center"><picture>
+<source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/johnmorrisdotca/suido/main/docs/images/pieces-strip-desk-dark.webp">
+<img src="https://raw.githubusercontent.com/johnmorrisdotca/suido/main/docs/images/pieces-strip-desk-light.webp" alt="Every small piece drawn: ground, an end, a straight, an elbow, a tee, a cross, a pump, a drain, a locked piece, a wall, edges that join and a block that turns as one." width="720">
+</picture><br><em>Every small piece.</em></p>
+
+A **big piece** is four cells that are one piece. Inside it the cells are joined wherever both open towards each other, so it holds one, two or three separate pipes: two pipes side by side never meet, a cross or a tee may sit inside it, and the water in one pipe never reaches another. That is 699 shapes up to turning, in 32 families (`BIG_SHAPES`, `BIG_FAMILIES`; `bigShapeOf(masks)` names one). `makeSuido({ bigs: 6, bigKinds: "all" })` draws from all of them, and `"simple"` and `"more"` from fewer.
+
+<p align="center"><picture>
+<source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/johnmorrisdotca/suido/main/docs/images/big-pieces-desk-dark.webp">
+<img src="https://raw.githubusercontent.com/johnmorrisdotca/suido/main/docs/images/big-pieces-desk-light.webp" alt="Thirteen big pieces: a snake, a hairpin, two pipes side by side, one corner inside another, a pipe through with a branch, and others with a cross, three pipes or a stub." width="720">
+</picture><br><em>Thirteen of the 699 big pieces.</em></p>
+<p align="center"><picture>
+<source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/johnmorrisdotca/suido/main/docs/images/big-families-desk-dark.webp">
+<img src="https://raw.githubusercontent.com/johnmorrisdotca/suido/main/docs/images/big-families-desk-light.webp" alt="One big piece of each of the 32 families, each captioned with its family and how many shapes it has." width="720">
+</picture><br><em>One big piece of each of the 32 families.</em></p>
 
 ## Levels
 
@@ -489,15 +509,12 @@ What other pipe games do, and which of it Suido took and left, is in [docs/TWIST
 import { loadSuidoLevels, SUIDO_SIZES, SUIDO_LEVEL_COUNTS, openSuidoLevels } from "@johnmorrisdotca/suido/levels";
 ```
 
-Like its sibling [Tsunagi](https://github.com/johnmorrisdotca/tsunagi), Suido has fixed, numbered levels: level 12 at 7×7 is one board for every player on every day, so a time on it can be compared with anybody's.
+Like its sibling [Tsunagi](https://github.com/johnmorrisdotca/tsunagi), Suido has fixed, numbered levels: level 12 at 7×7 is one board for everybody, so a time on it can be compared with anybody's.
 
 - **Sizes**: `5x5` to `14x14`, then three pipe shapes, `5x7`, `6x10` and `8x14` (width by height), then the huge boards: `20x20`, `28x28` and the long `20x50`. `SUIDO_SIZES` lists them and `SUIDO_LEVEL_COUNTS` says how many levels each has: 256 each for the thirteen of 14×14 and under, sixty-four (four blocks) for each huge one, 3,520 in all.
-- **Each size is its own import**, loaded when asked for (`loadSuidoLevels("8x8")`), or directly as `@johnmorrisdotca/suido/levels-8x8`, so a page playing 5×5 carries none of the others. A size's file is 8 KB to 51 KB gzipped (5×5 to 14×14), and the huge ones are 26 KB (20×20), 49 KB (28×28) and about 60 KB (20×50) gzipped, for sixty-four levels each: a level is its board code, one digit for each cell for its answer, and its twists.
-- **A row** is `[board, turns, twists]`: the board as a code, the answer as one digit a cell (the quarter turns clockwise from the way the board gives the piece to the way the answer has it), and the twists it declares, as kebab-case words (`"wrap locked"`; `""` for a plain level). `levelAnswer(row)` is the answer as a code, which `checkSuidoAnswer(row[0], answer)` accepts; `levelBoard(row)` and `levelSolution(row)` give the layout and the pieces of the answer; `declaredTwists(row)` the twists.
+- **A second set, with big pieces.** `loadSuidoBigLevels()` fetches sixty-four levels with 2×2 big pieces among the ordinary 1×1 ones, from the easiest to the hardest across every size from 5×5 to 20×20, scored 1 to 100 across sizes (`suidoBigScore(level)`), with more big pieces and trickier ones as the levels climb. How levels are stored, read, proved and made, and this set, are in [docs/LEVELS.md](docs/LEVELS.md).
 - **Easy to hard.** Every level is no easier than the one before, by `exactDifficultyOf` (its place among boards of its size, kind and wrap, from 1 to 100). Level 1 of a size is among the easiest boards of it and level 256 among the hardest. `suidoMarks(size, level)` is the difficulty as 1 to 5 (the score in steps of twenty), read without loading the size.
 - **Blocks of sixteen.** A block opens once every level of the block before is solved (`openSuidoLevels(size, solved)`, `nextSuidoLevel`, `blockOf`, `blockRange`). The first block is plain. From the second, the 15th level of a block *teaches* a twist and the 16th *tests* it (`suidoRole(size, level)`): drains, then pumps, locked pieces, walls, wrap, and inlet to outlet. From the eighth block the twists are combined (wrap with locks, walls with locks, pumps with drains, and on to a block with wrap, drains and walls together), and from then on the other places of a block carry twists too.
-- **Proved on every build.** Each level is solved from scratch and must have exactly one answer, the stored one; its declared twists must be the twists its board has; no two are the same board turned or mirrored (`symmetryKey`); and the order, the marks and the lessons are checked against the measure.
-- **Made on a desk**, never on a site: `node scripts/suido-levels.ts` makes a pool of boards of each kind from seeds taken from the size, the kind and a number (so the same run writes the same files), measures each, and takes the board nearest each level's aim that is no easier than the one before. About 18 minutes in all on one laptop, one process a size (7 s at 5×5 to 5 minutes at 14×14).
 
 `twistsOf(layout)` reads the twists a board has (`drains`, `pumps`, `locked`, `walls`, `wrap`, `inlet-outlet`), for a chip on a level or a filter on a list.
 
@@ -660,6 +677,7 @@ The [API reference](https://johnmorrisdotca.github.io/suido/api.html) lists ever
 | `@johnmorrisdotca/suido/levels-info` | all of that but the loader: the counts, the blocks, which levels are open, a row read, the marks and lessons and the level of the day, with no board in it, for a server that must not carry every size's data |
 | `@johnmorrisdotca/suido/levels-5x5`, `@johnmorrisdotca/suido/levels-6x6`, `@johnmorrisdotca/suido/levels-7x7`, `@johnmorrisdotca/suido/levels-8x8`, `@johnmorrisdotca/suido/levels-9x9`, `@johnmorrisdotca/suido/levels-10x10`, `@johnmorrisdotca/suido/levels-11x11`, `@johnmorrisdotca/suido/levels-12x12`, `@johnmorrisdotca/suido/levels-13x13`, `@johnmorrisdotca/suido/levels-14x14` | one square size's levels, as the data (`SUIDO_5X5` …), with nothing else loaded |
 | `@johnmorrisdotca/suido/levels-5x7`, `@johnmorrisdotca/suido/levels-6x10`, `@johnmorrisdotca/suido/levels-8x14`, `@johnmorrisdotca/suido/levels-20x50` | one pipe shape's levels (`SUIDO_5X7` …) |
+| `@johnmorrisdotca/suido/levels-big` | the sixty-four big-pieces levels (`SUIDO_BIG`): `loadSuidoBigLevels()` fetches them, and `levels-info` has their sizes, scores and lessons with no board |
 | `@johnmorrisdotca/suido/levels-20x20`, `@johnmorrisdotca/suido/levels-28x28` | one huge size's levels (`SUIDO_20X20`, `SUIDO_28X28`) |
 | `@johnmorrisdotca/suido/marks` | every level's difficulty marks and lessons, as data |
 

@@ -1,4 +1,4 @@
-import { bigMasksOf, placeBlocks, type Placed } from "./bigPieces.ts";
+import { BIG_MIXES, bigMasksOf, placeBlocks, type BigMix, type Placed } from "./bigPieces.ts";
 import { blockCells, turnBlock } from "./blocks.ts";
 import { encodeLayout, MAX_SIDE, neighboursOf, type Kind, type Layout } from "./code.ts";
 import { difficultyOf } from "./difficulty.ts";
@@ -48,6 +48,12 @@ export type MakeOptions = {
    * `BIG_KINDS`). Only a network has them. Fewer are made where the board has no room. Default 0.
    */
   bigs?: number;
+  /**
+   * Which big pieces `bigs` draws from: `five`, the five kinds of `BIG_KINDS` (the default, so a seed makes the board it always made), `simple`,
+   * `more` or `all` of the 699 shapes of `BIG_SHAPES`, each a wider choice than the one before (`BigMix`): pipes side by side, a cross or a tee inside
+   * a plate, three pipes in one, few openings or many.
+   */
+  bigKinds?: BigMix;
   /**
    * How many blocks that turn as one: squares of four ordinary pieces that a tap turns together, the pieces
    * moving round the square as they turn. Only a network has them. Default 0.
@@ -309,7 +315,7 @@ function rewire(plan: Plan, cell: number, random: Random): boolean {
 }
 
 /** The settings a call to `makeSuido` or `laySuido` resolves its options to. */
-type Settings = { width: number; height: number; kind: Kind; wrap: boolean; sources: number; drains: number; spares: number; bias: number | undefined; seed: number; locked: number; walls: number; bigs: number; blocks: number };
+type Settings = { width: number; height: number; kind: Kind; wrap: boolean; sources: number; drains: number; spares: number; bias: number | undefined; seed: number; locked: number; walls: number; bigs: number; bigKinds: BigMix; blocks: number };
 
 function settingsOf(options: MakeOptions): Settings {
   const width = options.width ?? options.size ?? 7;
@@ -338,6 +344,7 @@ function settingsOf(options: MakeOptions): Settings {
     locked: Math.max(0, Math.floor(options.locked ?? 0)),
     walls: Math.max(0, Math.floor(options.walls ?? 0)),
     bigs: Math.max(0, Math.floor(options.bigs ?? 0)),
+    bigKinds: BIG_MIXES.includes(options.bigKinds as BigMix) ? (options.bigKinds as BigMix) : "five",
     blocks: Math.max(0, Math.floor(options.blocks ?? 0)),
   };
 }
@@ -381,7 +388,7 @@ function squaresOf(settings: Settings, random: Random): { placed: Placed[]; inBl
   const pinned = new Set<number>();
   if (settings.bigs + settings.blocks === 0 || settings.kind !== "network") return { placed: [], inBlock, pinned, rules: null };
   const bare = neighboursOf({ width, height, wrap });
-  const placed = placeBlocks(bare, width, height, settings.bigs, settings.blocks, random);
+  const placed = placeBlocks(bare, width, height, settings.bigs, settings.blocks, random, settings.bigKinds);
   const forced: number[][] = Array.from({ length: width * height }, () => []);
   const banned = new Set<number>();
   placed.forEach((block, at) => {

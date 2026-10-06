@@ -8,3 +8,4 @@ export * from "./draw.ts";
 export * from "./paint.ts";
 export { SUIDO_STYLE } from "./style.ts";
 export * from "./view.ts";
+export * from "./drawGuide.ts";
