@@ -76,27 +76,3 @@ The Release workflow (`.github/workflows/release.yml`) checks and builds the
 package, attaches the tarball to a GitHub release and publishes it to npm by
 trusted publishing, with provenance and no token. A version already on npm is
 not published again.
-
-## Particular to Suido
-
-Bug reports and ideas go in the [issues](https://github.com/johnmorrisdotca/suido/issues).
-
-### Commands and rules
-
-```sh
-pnpm check          # lint, types and tests
-pnpm test:package   # pack it as npm does, install it in an empty project, import every entry
-pnpm test:demo      # build the demo and play it in real browsers (needs `pnpm exec playwright install chromium webkit` once)
-pnpm docs:make      # rewrite docs/strings-ja.md after changing a word of the board
-```
-
-A change to the generator or the difficulty measure changes the boards a seed
-makes. Boards kept by their seed are not a promise of this package, but a
-change that alters them should say so in the changelog, and
-`scripts/suido-reference.ts` must be run again so that a difficulty still
-means a place among the boards the generator makes. The huge sides (20, 28 and 32) take a minute a board, so their sets are made one at a time, in parallel, with `--part`, and joined with `--merge` (the script's head says how).
-
-A level once published keeps its number, its board and its answer; see `scripts/suido-levels.ts`.
-
-A change to the rules is tested beside it, and must leave the solver agreeing
-with trying every way (`src/brute.fixture.ts`) on small boards.
