@@ -1,6 +1,6 @@
 {
   "name": "@johnmorrisdotca/suido",
-  "version": "1.4.1",
+  "version": "1.4.2",
   "description": "Suido, a pipe puzzle for JavaScript and TypeScript: turn the pieces until the water reaches every drain. 3,520 fixed levels with one answer each, a solver, a seeded generator, and an SVG board played by tap, mouse and keyboard. Zero dependencies.",
   "keywords": [
     "puzzle",
@@ -191,9 +191,10 @@
     "check": "pnpm lint && pnpm typecheck && pnpm test",
     "prepublishOnly": "pnpm check && pnpm build",
     "site": "pnpm build && node scripts/site.mjs",
-    "pictures": "pnpm site && node e2e/shots.mjs docs readme",
     "docs:make": "node scripts/docs.mjs",
-    "test:frameworks": "pnpm build && node scripts/check-frameworks.mjs"
+    "test:frameworks": "pnpm build && node scripts/check-frameworks.mjs",
+    "screenshots:readme": "pnpm site && node scripts/readme-pictures.mjs",
+    "test:readme": "pnpm build && node scripts/check-readme-examples.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^9.0.0",

@@ -51,7 +51,8 @@ describe("the documents", () => {
   });
 
   it("name in the README every function the package exports by name, in the API table", async () => {
-    const api = readme.slice(readme.indexOf("## API"), readme.indexOf("## ", readme.indexOf("## API") + 5));
+    // The API section keeps the entry points and the calls to learn first; the table of every export is in docs/API.md, which it links.
+    const api = readme.slice(readme.indexOf("## API"), readme.indexOf("## ", readme.indexOf("## API") + 5)) + readFileSync("docs/API.md", "utf8");
     const main = await import("./index.ts");
     const draw = await import("./draw-entry.ts");
     const levels = await import("./levels.ts");
