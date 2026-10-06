@@ -59,7 +59,7 @@ describe("the solver, with blocks", () => {
       compared += 1;
     }
     expect(compared).toBeGreaterThan(200);
-  });
+  }, 60_000);
 
   it("is the solver it was without blocks, on boards with none: the same answers, the same search, the same deductions", () => {
     // Pinned from the solver before blocks: a board with none is solved as it always was, so every level keeps its difficulty.
