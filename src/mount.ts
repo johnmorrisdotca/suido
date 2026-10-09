@@ -206,7 +206,7 @@ export function mountSuido(host: HTMLElement, options: SuidoMountOptions): Suido
   const detail = (extra: Partial<SuidoEventDetail> = {}): SuidoEventDetail => ({ code: gameCode(game), progress: gameProgress(game), turns: game.turns, hints, solved: flow.solved, ...extra });
   const tell = (name: string, info: SuidoEventDetail, callback?: (detail: SuidoEventDetail) => void): void => {
     callback?.(info);
-    host.dispatchEvent(new CustomEvent(name, { detail: info, bubbles: true }));
+    host.dispatchEvent(new CustomEvent(name, { detail: info, bubbles: true, composed: true }));
   };
   const cells = (): SVGGElement[] => (svg === null ? [] : [...svg.querySelectorAll<SVGGElement>(".sd-cell")]);
   /** What a hint has lit: pieces, and the plate of a block. */
@@ -412,7 +412,7 @@ export function mountSuido(host: HTMLElement, options: SuidoMountOptions): Suido
       if (changes.turning !== undefined && changes.turning !== turning) {
         turning = changes.turning;
         callbacks.onTurning?.(turning);
-        host.dispatchEvent(new CustomEvent("suido-turning", { detail: { turning }, bubbles: true }));
+        host.dispatchEvent(new CustomEvent("suido-turning", { detail: { turning }, bubbles: true, composed: true }));
       }
       if (changes.hints !== undefined) offerHints = changes.hints;
       if (changes.language !== undefined) {

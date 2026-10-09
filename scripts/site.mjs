@@ -1,12 +1,12 @@
 // Builds the static demo for GitHub Pages into ./site: the page, written here from the family's
 // shared header and footer, with the family's stylesheet, Suido's own, the board's style, the page's
 // script and the compiled library beside it.
-import { cpSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
+import { cpSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 
 import { SUIDO_PLAY_STYLE } from "../dist/play-entry.js";
 import { SUIDO_LEVEL_COUNTS } from "../dist/levels.js";
 import { API_CSS, apiPage } from "./api.mjs";
-import { FAMILY_SCRIPT, familyFooter, familyHead, familyHeader, familyUnreviewed } from "./family-template.mjs";
+import { FAMILY_SCRIPT, familyEmbedBuilder, familyFooter, familyHead, familyHeader, familyUnreviewed } from "./family-template.mjs";
 
 const id = "suido";
 const total = Object.values(SUIDO_LEVEL_COUNTS).reduce((sum, count) => sum + count, 0).toLocaleString("en-US");
@@ -184,3 +184,13 @@ writeFileSync("site/index.html", page);
 writeFileSync("site/api.css", API_CSS);
 writeFileSync("site/api.html", apiPage({ id, name: "Suido", icon: ICON }));
 console.log("site/ is ready: serve it, or let the Pages workflow publish it.");
+
+for (const file of ["builder.js", "builder.css"]) cpSync(`demo/${file}`, `site/${file}`);
+cpSync("demo/embed", "site/embed", { recursive: true });
+writeFileSync("site/family-embed-builder.js", `export ${familyEmbedBuilder.toString()};\n`);
+const builderParts = {
+  builderHead: familyHead({ id, title: "Suido · build a pipe-puzzle embed", description: "Choose a fixed or daily pipe puzzle, preview it and copy the embed code." }),
+  builderHeader: familyHeader({ id, links: [{ href: "./", say: "toGallery" }] }),
+  unreviewed: familyUnreviewed({ id }), footer: familyFooter({ id }), script: `<script>${FAMILY_SCRIPT}</script>`,
+};
+writeFileSync("site/builder.html", readFileSync("demo/builder.html", "utf8").replace(/<!-- family:([A-Za-z]+) -->/g, (_match, key) => builderParts[key]));

@@ -7,6 +7,9 @@ board and its answer, and a seed makes the board it always made.
 
 ## [Unreleased]
 
+- Add a shared embed builder and validated, storage-free iframe for fixed or UTC daily levels.
+- Add display sizes, grid, width, theme and spoken label while preserving old grid-size values, live progress getters and methods. Events now cross shadow boundaries.
+
 
 
 ### Added

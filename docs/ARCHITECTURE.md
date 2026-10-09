@@ -66,6 +66,7 @@ src/
 ├── playStyle.ts           the style of a playable board: its box, chips, words and buttons
 ├── mount.ts               mountSuido: draws a board into an element and plays it
 ├── play-entry.ts          the "/play" entry: a board played in any element
+├── embed-day.ts           shared UTC day parsing and deterministic date seeds
 ├── element.ts             the "/element" entry: the <suido-board> class
 └── element-define.ts      the "/element/define" entry: defines the tag on the page
 ```
