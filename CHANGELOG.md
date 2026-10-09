@@ -7,6 +7,11 @@ board and its answer, and a seed makes the board it always made.
 
 ## [Unreleased]
 
+
+### Changed
+
+- Group the package family by kind, alphabetize each group, and include the geography packages and REST in Pieces in the shared footer and README.
+
 ## [1.5.0] - 2026-10-06
 
 Everything that was exported still is, and a seed that asked for big pieces still makes the board it made.
