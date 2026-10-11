@@ -35,11 +35,31 @@ const ElementBase: typeof HTMLElement = typeof HTMLElement === "undefined" ? (cl
 const isOn = (value: string | null): boolean => value !== null && !["false", "off", "0", "no"].includes(value.trim().toLowerCase());
 const oneOf = <T extends string>(value: string | null, allowed: readonly T[]): T | undefined => (allowed.includes(value as T) ? (value as T) : undefined);
 
-/** The mounted-board options, checked for completeness by TypeScript and the builder. */
+/** The mounted-board options, checked for completeness by TypeScript and the builder.
+ * @example
+ * ```ts
+ * import { SUIDO_EMBED_OPTION_KEYS } from "@johnmorrisdotca/suido/element";
+ * console.log(typeof SUIDO_EMBED_OPTION_KEYS); // object
+ * ```
+ */
 export const SUIDO_EMBED_OPTION_KEYS = Object.keys({ code: true, answer: true, progress: true, shown: true, turning: true, hints: true, controls: true, chips: true, zoom: true, language: true, onChange: true, onTurn: true, onHint: true, onTurning: true, onSolve: true } satisfies Record<keyof SuidoMountOptions, boolean>);
-/** Host callbacks; the same actions also emit native events. */
+/** Host callbacks; the same actions also emit native events.
+ * @example
+ * ```ts
+ * import type { SuidoElementOptions } from "@johnmorrisdotca/suido/element";
+ * const options: SuidoElementOptions = {};
+ * console.log(Object.keys(options).length); // 0
+ * ```
+ */
 export type SuidoElementOptions = Pick<SuidoMountOptions, "onChange" | "onTurn" | "onHint" | "onTurning" | "onSolve">;
 
+/** Native custom element with reflected setup and presentation.
+ * @example
+ * ```ts
+ * import { SuidoBoard } from "@johnmorrisdotca/suido/element";
+ * console.log(SuidoBoard.observedAttributes.includes("lang")); // true
+ * ```
+ */
 export class SuidoBoard extends ElementBase {
   static observedAttributes = ["size", "level", "code", "answer", "progress", "shown", "turning", "hints", "controls", "chips", "zoom", "lang", "grid", "daily", "theme", "width", "label"];
 
@@ -237,7 +257,16 @@ export class SuidoBoard extends ElementBase {
   }
 }
 
-/** Register a board under its standard tag or a host's own tag, preserving an existing definition. */
+/** Register a board under its standard tag or a host's own tag, preserving an existing definition.
+ * @param tag - The custom tag name; omitted to use the package default.
+ * @returns Nothing; existing definitions and server imports remain safe.
+ * @example
+ * ```ts
+ * import { defineBoard } from "@johnmorrisdotca/suido/element";
+ * defineBoard();
+ * console.log(typeof defineBoard); // function
+ * ```
+ */
 export function defineBoard(tag = "suido-board"): void {
   if (typeof customElements === "undefined" || customElements.get(tag) !== undefined) return;
   customElements.define(tag, tag === "suido-board" ? SuidoBoard : class extends SuidoBoard {});

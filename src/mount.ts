@@ -134,7 +134,17 @@ function solutionOf(code: string, answer: string | undefined): number[] | null {
   return decodeLayout(answer)?.cells ?? null;
 }
 
-/** Draw a board into `host` and play it. Returns the handle that drives it, or null for a code that is no board. */
+/** Draw a board into `host` and play it. Returns the handle that drives it, or null for a code that is no board.
+ * @param host - The HTMLElement that owns the native interface.
+ * @param options - Native settings and callbacks for this mounted interface.
+ * @returns The native mounted handle, or null for unsupported settings.
+ * @example
+ * ```ts
+ * import { mountSuido } from "@johnmorrisdotca/suido/play";
+ * const show = (host: HTMLElement, options: Parameters<typeof mountSuido>[1]) => mountSuido(host, options);
+ * console.log(typeof show); // function
+ * ```
+ */
 export function mountSuido(host: HTMLElement, options: SuidoMountOptions): SuidoMount | null {
   const document = host.ownerDocument;
   if (newGame(options.code) === null) return null;

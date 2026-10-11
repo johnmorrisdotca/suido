@@ -10,8 +10,6 @@ board and its answer, and a seed makes the board it always made.
 - Add a shared embed builder and validated, storage-free iframe for fixed or UTC daily levels.
 - Add display sizes, grid, width, theme and spoken label while preserving old grid-size values, live progress getters and methods. Events now cross shadow boundaries.
 
-
-
 ### Added
 
 - Share a package-independent embed builder for option controls, preview adapters, code tabs and shareable links.
@@ -19,6 +17,8 @@ board and its answer, and a seed makes the board it always made.
 ### Changed
 
 - Group the package family by kind, alphabetize each group, and include the geography packages and REST in Pieces in the shared footer and README.
+
+- Update the shared family description for addresses in all seven supported countries, including France and Germany.
 
 ## [1.5.0] - 2026-10-06
 
