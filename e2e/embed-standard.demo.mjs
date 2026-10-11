@@ -72,3 +72,16 @@ test("copied iframe code fits a narrow article and invalid daily dates are ignor
   await page.goto("http://suido.test/embed/?daily=2026-02-30&grid=invalid&width=Infinity&level=-1"); await expect(page.locator("suido-board svg")).toBeVisible();
   await expect(page.locator("suido-board")).not.toHaveAttribute("daily", /.*/); await expect(page.locator("suido-board")).toHaveAttribute("grid", "7x7");
 });
+
+
+test("a copied setup keeps hints off after a reload", async ({ page }) => {
+  await serve(page); await page.goto("http://suido.test/builder.html?lang=en");
+  await expect(page.locator("#bld-stage suido-board svg")).toBeVisible();
+  await page.locator("#bld-groups details").first().evaluate((details) => { details.open = true; });
+  await page.locator("#opt-hints").click();
+  await expect(page.locator("#opt-hints")).toHaveAttribute("aria-pressed", "false");
+  await page.reload();
+  await expect(page.locator("#bld-stage suido-board svg")).toBeVisible();
+  await expect(page.locator("#opt-hints")).toHaveAttribute("aria-pressed", "false");
+  expect(await page.locator("#bld-stage suido-board").evaluate((board) => board.hasAttribute("hints"))).toBe(false);
+});

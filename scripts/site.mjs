@@ -6,7 +6,7 @@ import { cpSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { SUIDO_PLAY_STYLE } from "../dist/play-entry.js";
 import { SUIDO_LEVEL_COUNTS } from "../dist/levels.js";
 import { API_CSS, apiPage } from "./api.mjs";
-import { FAMILY_SCRIPT, familyEmbedBuilder, familyFooter, familyHead, familyHeader, familyUnreviewed } from "./family-template.mjs";
+import { FAMILY_SCRIPT, FAMILY_EMBED_BUILDER_WORDS, familyEmbedBuilder, familyFooter, familyHead, familyHeader, familyUnreviewed } from "./family-template.mjs";
 
 const id = "suido";
 const total = Object.values(SUIDO_LEVEL_COUNTS).reduce((sum, count) => sum + count, 0).toLocaleString("en-US");
@@ -187,7 +187,7 @@ console.log("site/ is ready: serve it, or let the Pages workflow publish it.");
 
 for (const file of ["builder.js", "builder.css"]) cpSync(`demo/${file}`, `site/${file}`);
 cpSync("demo/embed", "site/embed", { recursive: true });
-writeFileSync("site/family-embed-builder.js", `export ${familyEmbedBuilder.toString()};\n`);
+writeFileSync("site/family-embed-builder.js", `export const FAMILY_EMBED_BUILDER_WORDS = ${JSON.stringify(FAMILY_EMBED_BUILDER_WORDS)};\nexport ${familyEmbedBuilder.toString()};\n`);
 const builderParts = {
   builderHead: familyHead({ id, title: "Suido · build a pipe-puzzle embed", description: "Choose a fixed or daily pipe puzzle, preview it and copy the embed code." }),
   builderHeader: familyHeader({ id, links: [{ href: "./", say: "toGallery" }] }),
