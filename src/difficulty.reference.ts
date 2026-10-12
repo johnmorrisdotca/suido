@@ -1,6 +1,13 @@
 import type { Reference } from "./difficulty.ts";
 
-/** The sizes (side of the board) there is a reference set for. */
+/** The sizes (side of the board) there is a reference set for.
+ *
+ * @example
+ * ```ts
+ * import { DIFFICULTY_SIDES } from "@johnmorrisdotca/suido";
+ * console.log(DIFFICULTY_SIDES);
+ * ```
+ */
 export const DIFFICULTY_SIDES: readonly number[] = [4,5,6,7,8,9,10,11,12,13,14,16,20,28,32];
 
 /**

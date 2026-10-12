@@ -12,6 +12,19 @@ import { quartersBetween, shapeOf, turn } from "./pieces.ts";
  * given in. They are the same cell for every piece but those in a block that
  * turns as one (`blocks.ts`), which move round their block: the four pieces of
  * a block all have the quarters the block has been turned.
+ *
+ * @example
+ * ```ts
+ * import { SUIDO_5X5 } from "@johnmorrisdotca/suido/levels-5x5";
+ * import { newGame } from "@johnmorrisdotca/suido";
+ * import type { Game } from "@johnmorrisdotca/suido";
+ *
+ * const row = SUIDO_5X5[0];
+ * const code = row[0];
+ * const game = newGame(code)!;
+ * const value: Game = game;
+ * console.log(value);
+ * ```
  */
 export type Game = {
   /** The board as it was first given. */
@@ -24,14 +37,37 @@ export type Game = {
   turns: number;
 };
 
-/** A game on a board, with every piece as given. Null when the code is not a board. */
+/** A game on a board, with every piece as given. Null when the code is not a board.
+ *
+ * @param code - A native encoded board string.
+ * @returns A game on a board, with every piece as given. null when the code is not a board.
+ * @example
+ * ```ts
+ * import { SUIDO_5X5 } from "@johnmorrisdotca/suido/levels-5x5";
+ * import { newGame } from "@johnmorrisdotca/suido";
+ *
+ * const row = SUIDO_5X5[0];
+ * const code = row[0];
+ * console.log(newGame(code)?.turns);
+ * ```
+ */
 export function newGame(code: string): Game | null {
   const start = decodeLayout(code);
   if (start === null) return null;
   return { start, masks: [...start.cells], quarters: start.cells.map(() => 0), turns: 0 };
 }
 
-/** Whether a piece can be turned into a new facing: ground, and a cross, look the same turned any way. */
+/** Whether a piece can be turned into a new facing: ground, and a cross, look the same turned any way.
+ *
+ * @param mask - A pipe mask: north 1, east 2, south 4 and west 8.
+ * @returns Whether a piece can be turned into a new facing: ground, and a cross, look the same turned any way.
+ * @example
+ * ```ts
+ * import { canTurn } from "@johnmorrisdotca/suido";
+ *
+ * console.log(canTurn(3));
+ * ```
+ */
 export function canTurn(mask: number): boolean {
   return shapeOf(mask) !== "blank" && shapeOf(mask) !== "cross";
 }
@@ -39,6 +75,20 @@ export function canTurn(mask: number): boolean {
 /**
  * Whether a tap on `cell` of a game turns anything. On a piece of its own: it looks different turned, and it
  * is not locked. In a block (`blocks.ts`): turning the block changes how its four pieces face.
+ *
+ * @param game - The current immutable game state.
+ * @param cell - A zero-based row-major cell index.
+ * @returns Whether a tap on `cell` of a game turns anything. On a piece of its own: it looks different turned, and it is not locked. In a block (`blocks.ts`): turning the block changes how its four pieces face.
+ * @example
+ * ```ts
+ * import { SUIDO_5X5 } from "@johnmorrisdotca/suido/levels-5x5";
+ * import { canTurnAt, newGame } from "@johnmorrisdotca/suido";
+ *
+ * const row = SUIDO_5X5[0];
+ * const code = row[0];
+ * const game = newGame(code)!;
+ * console.log(canTurnAt(game,0));
+ * ```
  */
 export function canTurnAt(game: Game, cell: number): boolean {
   const mask = game.masks[cell];
@@ -53,6 +103,21 @@ export function canTurnAt(game: Game, cell: number): boolean {
  * way (`by` -1); a cell in a block turns the whole block, its pieces moving round
  * to the next cell as they turn. Returns a new game. A cell that cannot be turned
  * (bare ground, a cross, a locked piece), or does not exist, leaves the game as it was.
+ *
+ * @param game - The current immutable game state.
+ * @param cell - A zero-based row-major cell index.
+ * @param by - The signed number of quarter turns.
+ * @returns A tap: the piece on `cell` turned a quarter, clockwise (`by` 1) or the other way (`by` -1); a cell in a block turns the whole block, its pieces moving round to the next cell as they turn. Returns a new game. A cell that cannot be turned (bare ground, a cross, a locked piece), or does not exist, leaves the game as it was.
+ * @example
+ * ```ts
+ * import { SUIDO_5X5 } from "@johnmorrisdotca/suido/levels-5x5";
+ * import { newGame, turnAt } from "@johnmorrisdotca/suido";
+ *
+ * const row = SUIDO_5X5[0];
+ * const code = row[0];
+ * const game = newGame(code)!;
+ * console.log(turnAt(game,0).turns);
+ * ```
  */
 export function turnAt(game: Game, cell: number, by: 1 | -1 = 1): Game {
   const mask = game.masks[cell];
@@ -70,17 +135,59 @@ export function turnAt(game: Game, cell: number, by: 1 | -1 = 1): Game {
   return { ...game, masks, quarters, turns: game.turns + 1 };
 }
 
-/** The water on a game. */
+/** The water on a game.
+ *
+ * @param game - The current immutable game state.
+ * @returns The water on a game.
+ * @example
+ * ```ts
+ * import { SUIDO_5X5 } from "@johnmorrisdotca/suido/levels-5x5";
+ * import { flowOfGame, newGame } from "@johnmorrisdotca/suido";
+ *
+ * const row = SUIDO_5X5[0];
+ * const code = row[0];
+ * const game = newGame(code)!;
+ * console.log(flowOfGame(game).wetPieces);
+ * ```
+ */
 export function flowOfGame(game: Game): Flow {
   return flowOf(game.start, game.masks);
 }
 
-/** Whether the game is solved: the same test the check makes of an answer. */
+/** Whether the game is solved: the same test the check makes of an answer.
+ *
+ * @param game - The current immutable game state.
+ * @returns Whether the game is solved: the same test the check makes of an answer.
+ * @example
+ * ```ts
+ * import { SUIDO_5X5 } from "@johnmorrisdotca/suido/levels-5x5";
+ * import { isGameSolved, newGame } from "@johnmorrisdotca/suido";
+ *
+ * const row = SUIDO_5X5[0];
+ * const code = row[0];
+ * const game = newGame(code)!;
+ * console.log(isGameSolved(game));
+ * ```
+ */
 export function isGameSolved(game: Game): boolean {
   return flowOfGame(game).solved;
 }
 
-/** The game as a code, every piece facing as it does now: what to keep to come back to it, and what to send to be checked. */
+/** The game as a code, every piece facing as it does now: what to keep to come back to it, and what to send to be checked.
+ *
+ * @param game - The current immutable game state.
+ * @returns The game as a code, every piece facing as it does now: what to keep to come back to it, and what to send to be checked.
+ * @example
+ * ```ts
+ * import { SUIDO_5X5 } from "@johnmorrisdotca/suido/levels-5x5";
+ * import { gameCode, newGame } from "@johnmorrisdotca/suido";
+ *
+ * const row = SUIDO_5X5[0];
+ * const code = row[0];
+ * const game = newGame(code)!;
+ * console.log(gameCode(game));
+ * ```
+ */
 export function gameCode(game: Game): string {
   return encodeLayout({ ...game.start, cells: game.masks });
 }
@@ -88,6 +195,23 @@ export function gameCode(game: Game): string {
 /**
  * The fewest taps that would turn every piece to face as `answer` says, when
  * a tap turns a piece either way (`both`, the default) or clockwise only.
+ *
+ * @param game - The current immutable game state.
+ * @param answer - The solved pipe masks or encoded answer specified by the signature.
+ * @param both - Whether turns may go clockwise or anticlockwise.
+ * @returns The fewest taps that would turn every piece to face as `answer` says, when a tap turns a piece either way (`both`, the default) or clockwise only.
+ * @example
+ * ```ts
+ * import { SUIDO_5X5 } from "@johnmorrisdotca/suido/levels-5x5";
+ * import { levelSolution } from "@johnmorrisdotca/suido/levels";
+ * import { newGame, tapsToAnswer } from "@johnmorrisdotca/suido";
+ *
+ * const row = SUIDO_5X5[0];
+ * const code = row[0];
+ * const solution = levelSolution(row)!;
+ * const game = newGame(code)!;
+ * console.log(tapsToAnswer(game,solution));
+ * ```
  */
 export function tapsToAnswer(game: Game, answer: readonly number[], both = true): number {
   let total = 0;
@@ -111,6 +235,22 @@ export function tapsToAnswer(game: Game, answer: readonly number[], both = true)
  * not face as `answer` says, nearest the pump first (the water's own order), or
  * null when every piece does. In a drains board a spare piece is never one. In a
  * block it is the block's anchor, the top left cell, whichever piece is out of place.
+ *
+ * @param game - The current immutable game state.
+ * @param answer - The solved pipe masks or encoded answer specified by the signature.
+ * @returns A piece to turn, for a player who asks for help: the first piece that does not face as `answer` says, nearest the pump first (the water's own order), or null when every piece does. In a drains board a spare piece is never one. In a block it is the block's anchor, the top left cell, whichever piece is out of place.
+ * @example
+ * ```ts
+ * import { SUIDO_5X5 } from "@johnmorrisdotca/suido/levels-5x5";
+ * import { levelSolution } from "@johnmorrisdotca/suido/levels";
+ * import { hintFor, newGame } from "@johnmorrisdotca/suido";
+ *
+ * const row = SUIDO_5X5[0];
+ * const code = row[0];
+ * const solution = levelSolution(row)!;
+ * const game = newGame(code)!;
+ * console.log(hintFor(game,solution));
+ * ```
  */
 export function hintFor(game: Game, answer: readonly number[]): number | null {
   const flow = flowOf(game.start, answer);
@@ -125,6 +265,23 @@ export function hintFor(game: Game, answer: readonly number[]): number | null {
 /**
  * What a Hint does: the piece at `cell` turned clockwise, as many taps as it takes, to face as `answer` says; a block, the whole
  * block, whichever of its cells is named. A game with that piece already right, or one whose answer is not the piece turned, is returned as it was.
+ *
+ * @param game - The current immutable game state.
+ * @param cell - A zero-based row-major cell index.
+ * @param answer - The solved pipe masks or encoded answer specified by the signature.
+ * @returns What a Hint does: the piece at `cell` turned clockwise, as many taps as it takes, to face as `answer` says; a block, the whole block, whichever of its cells is named. A game with that piece already right, or one whose answer is not the piece turned, is returned as it was.
+ * @example
+ * ```ts
+ * import { SUIDO_5X5 } from "@johnmorrisdotca/suido/levels-5x5";
+ * import { levelSolution } from "@johnmorrisdotca/suido/levels";
+ * import { newGame, turnedToFaceAt } from "@johnmorrisdotca/suido";
+ *
+ * const row = SUIDO_5X5[0];
+ * const code = row[0];
+ * const solution = levelSolution(row)!;
+ * const game = newGame(code)!;
+ * console.log(turnedToFaceAt(game,0,solution).turns);
+ * ```
  */
 export function turnedToFaceAt(game: Game, cell: number, answer: readonly number[]): Game {
   const block = blockAt(game.start, cell);
@@ -138,12 +295,40 @@ export function turnedToFaceAt(game: Game, cell: number, answer: readonly number
  * A game half played, as a short string to keep: one digit for each piece (the quarter turns clockwise it has had
  * from the way the board gave it, 0 to 3; the four pieces of a block have the digit of the block), a colon, and the
  * number of taps made. `gameFromProgress` brings it back.
+ *
+ * @param game - The current immutable game state.
+ * @returns A game half played, as a short string to keep: one digit for each piece (the quarter turns clockwise it has had from the way the board gave it, 0 to 3; the four pieces of a block have the digit of the block), a colon, and the number of taps made. `gameFromProgress` brings it back.
+ * @example
+ * ```ts
+ * import { SUIDO_5X5 } from "@johnmorrisdotca/suido/levels-5x5";
+ * import { gameProgress, newGame } from "@johnmorrisdotca/suido";
+ *
+ * const row = SUIDO_5X5[0];
+ * const code = row[0];
+ * const game = newGame(code)!;
+ * console.log(gameProgress(game));
+ * ```
  */
 export function gameProgress(game: Game): string {
   return `${game.quarters.map((quarters) => ((quarters % 4) + 4) % 4).join("")}:${game.turns}`;
 }
 
-/** The game a board's code and a kept `gameProgress` make, or null when the code is not a board or the progress is not one of that board's. */
+/** The game a board's code and a kept `gameProgress` make, or null when the code is not a board or the progress is not one of that board's.
+ *
+ * @param code - A native encoded board string.
+ * @param progress - Native compact saved progress for this board.
+ * @returns The game a board's code and a kept `gameProgress` make, or null when the code is not a board or the progress is not one of that board's.
+ * @example
+ * ```ts
+ * import { SUIDO_5X5 } from "@johnmorrisdotca/suido/levels-5x5";
+ * import { gameFromProgress, gameProgress, newGame } from "@johnmorrisdotca/suido";
+ *
+ * const row = SUIDO_5X5[0];
+ * const code = row[0];
+ * const game = newGame(code)!;
+ * console.log(gameFromProgress(code,gameProgress(game))?.turns);
+ * ```
+ */
 export function gameFromProgress(code: string, progress: string): Game | null {
   const game = newGame(code);
   const match = /^([0-3]*):(\d+)$/.exec(progress);
@@ -164,6 +349,20 @@ export function gameFromProgress(code: string, progress: string): Game | null {
  * code says, with the fewest quarters clockwise that get each there. Null when the kept code is not the same board
  * with its pieces turned: a piece changed, a pump or a drain moved, a locked piece turned, a block with one piece
  * turned alone. How many taps it took to get there is not in a code, so `turns` is 0.
+ *
+ * @param code - A native encoded board string.
+ * @param kept - The saved current board code.
+ * @returns A game from a board's code and the code of the board as it was left (`gameCode`): every piece facing as the kept code says, with the fewest quarters clockwise that get each there. null when the kept code is not the same board with its pieces turned: a piece changed, a pump or a drain moved, a locked piece turned, a block with one piece turned alone. How many taps it took to get there is not in a code, so `turns` is 0.
+ * @example
+ * ```ts
+ * import { SUIDO_5X5 } from "@johnmorrisdotca/suido/levels-5x5";
+ * import { gameCode, gameFromCode, newGame } from "@johnmorrisdotca/suido";
+ *
+ * const row = SUIDO_5X5[0];
+ * const code = row[0];
+ * const game = newGame(code)!;
+ * console.log(gameFromCode(code,gameCode(game))?.masks.length);
+ * ```
  */
 export function gameFromCode(code: string, kept: string): Game | null {
   const game = newGame(code);

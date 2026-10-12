@@ -23,16 +23,52 @@ import type { Layout } from "./code.ts";
  *    on their own.
  *
  * A plain board has none: its single pump feeds a network and every piece must be wet.
+ *
+ * @example
+ * ```ts
+ * import type { Twist } from "@johnmorrisdotca/suido";
+ *
+ * const value: Twist = "walls";
+ * console.log(value);
+ * ```
  */
 export type Twist = "drains" | "pumps" | "locked" | "walls" | "wrap" | "inlet-outlet" | "big-pieces" | "block-turns";
 
-/** Every twist, the six the fixed levels teach in the order they teach them, then the two of boards made on request. */
+/** Every twist, the six the fixed levels teach in the order they teach them, then the two of boards made on request.
+ *
+ * @example
+ * ```ts
+ * import { SUIDO_TWISTS } from "@johnmorrisdotca/suido";
+ * console.log(SUIDO_TWISTS);
+ * ```
+ */
 export const SUIDO_TWISTS: readonly Twist[] = ["drains", "pumps", "locked", "walls", "wrap", "inlet-outlet", "big-pieces", "block-turns"];
 
-/** The six twists the fixed levels have, in the order they teach them. */
+/** The six twists the fixed levels have, in the order they teach them.
+ *
+ * @example
+ * ```ts
+ * import { SUIDO_LEVEL_TWISTS } from "@johnmorrisdotca/suido";
+ * console.log(SUIDO_LEVEL_TWISTS);
+ * ```
+ */
 export const SUIDO_LEVEL_TWISTS: readonly Twist[] = ["drains", "pumps", "locked", "walls", "wrap", "inlet-outlet"];
 
-/** The twists a board has, in the order the levels teach them: none for a plain board. */
+/** The twists a board has, in the order the levels teach them: none for a plain board.
+ *
+ * @param layout - The decoded board with its dimensions, pipe masks and rule settings.
+ * @returns The twists a board has, in the order the levels teach them: none for a plain board.
+ * @example
+ * ```ts
+ * import { SUIDO_5X5 } from "@johnmorrisdotca/suido/levels-5x5";
+ * import { decodeLayout, twistsOf } from "@johnmorrisdotca/suido";
+ *
+ * const row = SUIDO_5X5[0];
+ * const code = row[0];
+ * const layout = decodeLayout(code)!;
+ * console.log(twistsOf(layout));
+ * ```
+ */
 export function twistsOf(layout: Pick<Layout, "kind" | "wrap" | "sources" | "locked" | "walls" | "bigs" | "blocks">): Twist[] {
   const has: Record<Twist, boolean> = {
     drains: layout.kind === "drains",
@@ -47,7 +83,21 @@ export function twistsOf(layout: Pick<Layout, "kind" | "wrap" | "sources" | "loc
   return SUIDO_TWISTS.filter((twist) => has[twist]);
 }
 
-/** Whether a board has any twist. */
+/** Whether a board has any twist.
+ *
+ * @param layout - The decoded board with its dimensions, pipe masks and rule settings.
+ * @returns Whether a board has any twist.
+ * @example
+ * ```ts
+ * import { SUIDO_5X5 } from "@johnmorrisdotca/suido/levels-5x5";
+ * import { decodeLayout, isTwisted } from "@johnmorrisdotca/suido";
+ *
+ * const row = SUIDO_5X5[0];
+ * const code = row[0];
+ * const layout = decodeLayout(code)!;
+ * console.log(isTwisted(layout));
+ * ```
+ */
 export function isTwisted(layout: Pick<Layout, "kind" | "wrap" | "sources" | "locked" | "walls" | "bigs" | "blocks">): boolean {
   return twistsOf(layout).length > 0;
 }

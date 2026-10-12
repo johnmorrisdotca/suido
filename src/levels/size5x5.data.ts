@@ -7,6 +7,12 @@
  * answer has it), and the twists it declares. Every level is proved to have exactly
  * one answer by `levels.test.ts`, no two are the same board under a turn or a
  * mirror, and the order is held to the measure.
+ *
+ * @example
+ * ```ts
+ * import { SUIDO_5X5 } from "@johnmorrisdotca/suido/levels-5x5";
+ * console.log(SUIDO_5X5.length, SUIDO_5X5[0][0]);
+ * ```
  */
 export const SUIDO_5X5: readonly (readonly [string, string, string])[] = [
   ["5x5:j5a5C5I59Ib75f7a6CCa35aIC", "1101202133111021323101003", ""],

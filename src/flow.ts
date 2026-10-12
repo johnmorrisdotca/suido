@@ -1,7 +1,23 @@
 import { neighboursOf, type Layout } from "./code.ts";
 import { armsOf, opposite } from "./pieces.ts";
 
-/** Where the water is on a board as it is turned: the whole picture, from the pump outwards. */
+/** Where the water is on a board as it is turned: the whole picture, from the pump outwards.
+ *
+ * @example
+ * ```ts
+ * import { SUIDO_5X5 } from "@johnmorrisdotca/suido/levels-5x5";
+ * import { decodeLayout, flowOf } from "@johnmorrisdotca/suido";
+ * import { levelSolution } from "@johnmorrisdotca/suido/levels";
+ * import type { Flow } from "@johnmorrisdotca/suido";
+ *
+ * const row = SUIDO_5X5[0];
+ * const code = row[0];
+ * const layout = decodeLayout(code)!;
+ * const solution = levelSolution(row)!;
+ * const value: Flow = flowOf(layout,solution);
+ * console.log(value);
+ * ```
+ */
 export type Flow = {
   /** Whether the water has reached each cell. */
   wet: boolean[];
@@ -30,6 +46,22 @@ export type Flow = {
  * source and goes through every opening that meets an opening of the piece
  * beside it; whatever it reaches is wet. Plain breadth-first search, one visit
  * to each cell.
+ *
+ * @param layout - The decoded board with its dimensions, pipe masks and rule settings.
+ * @param masks - Current pipe masks in row-major cell order.
+ * @returns The water on a board whose pieces face as `masks` say. It starts at every source and goes through every opening that meets an opening of the piece beside it; whatever it reaches is wet. Plain breadth-first search, one visit to each cell.
+ * @example
+ * ```ts
+ * import { SUIDO_5X5 } from "@johnmorrisdotca/suido/levels-5x5";
+ * import { decodeLayout, flowOf } from "@johnmorrisdotca/suido";
+ * import { levelSolution } from "@johnmorrisdotca/suido/levels";
+ *
+ * const row = SUIDO_5X5[0];
+ * const code = row[0];
+ * const layout = decodeLayout(code)!;
+ * const solution = levelSolution(row)!;
+ * console.log(flowOf(layout,solution).solved);
+ * ```
  */
 export function flowOf(layout: Layout, masks: readonly number[] = layout.cells): Flow {
   const count = layout.width * layout.height;
@@ -72,7 +104,24 @@ export function flowOf(layout: Layout, masks: readonly number[] = layout.cells):
   return { wet, from, entry, depth, spills, order, pieces, wetPieces, drains: layout.drains.length, wetDrains, solved: reached && spills.length === 0 && !branched };
 }
 
-/** Whether a board facing as `masks` say is solved. */
+/** Whether a board facing as `masks` say is solved.
+ *
+ * @param layout - The decoded board with its dimensions, pipe masks and rule settings.
+ * @param masks - Current pipe masks in row-major cell order.
+ * @returns Whether a board facing as `masks` say is solved.
+ * @example
+ * ```ts
+ * import { SUIDO_5X5 } from "@johnmorrisdotca/suido/levels-5x5";
+ * import { decodeLayout, isSolved } from "@johnmorrisdotca/suido";
+ * import { levelSolution } from "@johnmorrisdotca/suido/levels";
+ *
+ * const row = SUIDO_5X5[0];
+ * const code = row[0];
+ * const layout = decodeLayout(code)!;
+ * const solution = levelSolution(row)!;
+ * console.log(isSolved(layout,solution));
+ * ```
+ */
 export function isSolved(layout: Layout, masks: readonly number[] = layout.cells): boolean {
   return flowOf(layout, masks).solved;
 }

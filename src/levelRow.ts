@@ -16,7 +16,24 @@ import { SUIDO_TWISTS, type Twist } from "./twists.ts";
  * written at its top left cell, with 0 at the other three.
  */
 
-/** The answer to a board as one digit a cell: how many quarter turns clockwise each piece needs, the fewest. Null when `solution` is not the board's pieces turned. */
+/** The answer to a board as one digit a cell: how many quarter turns clockwise each piece needs, the fewest. Null when `solution` is not the board's pieces turned.
+ *
+ * @param layout - The decoded board with its dimensions, pipe masks and rule settings.
+ * @param solution - The solved pipe masks in row-major cell order.
+ * @returns The answer to a board as one digit a cell: how many quarter turns clockwise each piece needs, the fewest. null when `solution` is not the board's pieces turned.
+ * @example
+ * ```ts
+ * import { SUIDO_5X5 } from "@johnmorrisdotca/suido/levels-5x5";
+ * import { decodeLayout } from "@johnmorrisdotca/suido";
+ * import { levelSolution, turnsOf } from "@johnmorrisdotca/suido/levels";
+ *
+ * const row = SUIDO_5X5[0];
+ * const code = row[0];
+ * const layout = decodeLayout(code)!;
+ * const solution = levelSolution(row)!;
+ * console.log(turnsOf(layout,solution));
+ * ```
+ */
 export function turnsOf(layout: Layout, solution: readonly number[]): string | null {
   const info = blockInfo(layout);
   let out = "";
@@ -40,12 +57,36 @@ export function turnsOf(layout: Layout, solution: readonly number[]): string | n
   return out;
 }
 
-/** The board a row stands for, or null for a row whose code is not a board. */
+/** The board a row stands for, or null for a row whose code is not a board.
+ *
+ * @param row - The board code, quarter-turn digits and declared twists of one shipped level.
+ * @returns The board a row stands for, or null for a row whose code is not a board.
+ * @example
+ * ```ts
+ * import { SUIDO_5X5 } from "@johnmorrisdotca/suido/levels-5x5";
+ * import { levelBoard } from "@johnmorrisdotca/suido/levels";
+ *
+ * const row = SUIDO_5X5[0];
+ * console.log(levelBoard(row)?.width);
+ * ```
+ */
 export function levelBoard(row: LevelRow): Layout | null {
   return decodeLayout(row[0]);
 }
 
-/** The pieces of a row's answer, each facing as the answer has it; null for a row that is not a board and its turns. */
+/** The pieces of a row's answer, each facing as the answer has it; null for a row that is not a board and its turns.
+ *
+ * @param row - The board code, quarter-turn digits and declared twists of one shipped level.
+ * @returns The pieces of a row's answer, each facing as the answer has it; null for a row that is not a board and its turns.
+ * @example
+ * ```ts
+ * import { SUIDO_5X5 } from "@johnmorrisdotca/suido/levels-5x5";
+ * import { levelSolution } from "@johnmorrisdotca/suido/levels";
+ *
+ * const row = SUIDO_5X5[0];
+ * console.log(levelSolution(row)?.length);
+ * ```
+ */
 export function levelSolution(row: LevelRow): number[] | null {
   const layout = decodeLayout(row[0]);
   if (layout === null || row[1].length !== layout.cells.length || !/^[0-3]+$/.test(row[1])) return null;
@@ -58,14 +99,38 @@ export function levelSolution(row: LevelRow): number[] | null {
   return out;
 }
 
-/** A row's answer as a code, the board's own code with every piece facing as the answer has it: what `checkSuidoAnswer` is given. Null for a row that is not a board and its turns. */
+/** A row's answer as a code, the board's own code with every piece facing as the answer has it: what `checkSuidoAnswer` is given. Null for a row that is not a board and its turns.
+ *
+ * @param row - The board code, quarter-turn digits and declared twists of one shipped level.
+ * @returns A row's answer as a code, the board's own code with every piece facing as the answer has it: what `checkSuidoAnswer` is given. null for a row that is not a board and its turns.
+ * @example
+ * ```ts
+ * import { SUIDO_5X5 } from "@johnmorrisdotca/suido/levels-5x5";
+ * import { levelAnswer } from "@johnmorrisdotca/suido/levels";
+ *
+ * const row = SUIDO_5X5[0];
+ * console.log(levelAnswer(row));
+ * ```
+ */
 export function levelAnswer(row: LevelRow): string | null {
   const layout = decodeLayout(row[0]);
   const solution = levelSolution(row);
   return layout === null || solution === null ? null : encodeLayout({ ...layout, cells: solution });
 }
 
-/** The twists a row declares, in the order the levels teach them. A word that is no twist is dropped; `levels.test.ts` holds each row's list to its board. */
+/** The twists a row declares, in the order the levels teach them. A word that is no twist is dropped; `levels.test.ts` holds each row's list to its board.
+ *
+ * @param row - The board code, quarter-turn digits and declared twists of one shipped level.
+ * @returns The twists a row declares, in the order the levels teach them. A word that is no twist is dropped; `levels.test.ts` holds each row's list to its board.
+ * @example
+ * ```ts
+ * import { SUIDO_5X5 } from "@johnmorrisdotca/suido/levels-5x5";
+ * import { declaredTwists } from "@johnmorrisdotca/suido/levels";
+ *
+ * const row = SUIDO_5X5[0];
+ * console.log(declaredTwists(row));
+ * ```
+ */
 export function declaredTwists(row: LevelRow): Twist[] {
   const words = new Set(row[2].split(" "));
   return SUIDO_TWISTS.filter((twist) => words.has(twist));

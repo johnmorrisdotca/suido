@@ -15,24 +15,98 @@
  *  - `zoomIn`, `zoomOut` and `fit` are for buttons; `show` brings a piece into view, for the keyboard.
  */
 
-/** The part of a board shown: how far in (1 is the whole board), and where its top left corner is, in the drawing's units. */
+/** The part of a board shown: how far in (1 is the whole board), and where its top left corner is, in the drawing's units.
+ *
+ * @example
+ * ```ts
+ * import type { SuidoView } from "@johnmorrisdotca/suido/draw";
+ *
+ * const view = {zoom:1,x:0,y:0};
+ * const value: SuidoView = view;
+ * console.log(value);
+ * ```
+ */
 export type SuidoView = { zoom: number; x: number; y: number };
 
-/** The whole board. */
+/** The whole board.
+ *
+ * @example
+ * ```ts
+ * import { SUIDO_FIT } from "@johnmorrisdotca/suido/draw";
+ * console.log(SUIDO_FIT);
+ * ```
+ */
 export const SUIDO_FIT: SuidoView = { zoom: 1, x: 0, y: 0 };
 
-/** The furthest in a view goes: this many times the whole board. */
+/** The furthest in a view goes: this many times the whole board.
+ *
+ * @example
+ * ```ts
+ * import { SUIDO_MOST_ZOOM } from "@johnmorrisdotca/suido/draw";
+ * console.log(SUIDO_MOST_ZOOM);
+ * ```
+ */
 export const SUIDO_MOST_ZOOM = 6;
 
-/** A board's size in the drawing's units: a hundred across a cell. */
+/** A board's size in the drawing's units: a hundred across a cell.
+ *
+ * @example
+ * ```ts
+ * import { SUIDO_5X5 } from "@johnmorrisdotca/suido/levels-5x5";
+ * import { decodeLayout } from "@johnmorrisdotca/suido";
+ * import { boxOf } from "@johnmorrisdotca/suido/draw";
+ * import type { SuidoBox } from "@johnmorrisdotca/suido/draw";
+ *
+ * const row = SUIDO_5X5[0];
+ * const code = row[0];
+ * const layout = decodeLayout(code)!;
+ * const box = boxOf(layout);
+ * const value: SuidoBox = box;
+ * console.log(value);
+ * ```
+ */
 export type SuidoBox = { width: number; height: number };
 
-/** The size of a board in the drawing's units. */
+/** The size of a board in the drawing's units.
+ *
+ * @param layout - The decoded board with its dimensions, pipe masks and rule settings.
+ * @returns The size of a board in the drawing's units.
+ * @example
+ * ```ts
+ * import { SUIDO_5X5 } from "@johnmorrisdotca/suido/levels-5x5";
+ * import { decodeLayout } from "@johnmorrisdotca/suido";
+ * import { boxOf } from "@johnmorrisdotca/suido/draw";
+ *
+ * const row = SUIDO_5X5[0];
+ * const code = row[0];
+ * const layout = decodeLayout(code)!;
+ * console.log(boxOf(layout));
+ * ```
+ */
 export function boxOf(layout: { width: number; height: number }): SuidoBox {
   return { width: layout.width * 100, height: layout.height * 100 };
 }
 
-/** A view kept inside the board, never further in than `most` and never showing past an edge. */
+/** A view kept inside the board, never further in than `most` and never showing past an edge.
+ *
+ * @param view - Current zoom and translation in board drawing units.
+ * @param box - The board drawing dimensions or DOM viewport specified by this signature.
+ * @param most - The maximum zoom factor.
+ * @returns A view kept inside the board, never further in than `most` and never showing past an edge.
+ * @example
+ * ```ts
+ * import { SUIDO_5X5 } from "@johnmorrisdotca/suido/levels-5x5";
+ * import { decodeLayout } from "@johnmorrisdotca/suido";
+ * import { boxOf, clampView } from "@johnmorrisdotca/suido/draw";
+ *
+ * const row = SUIDO_5X5[0];
+ * const code = row[0];
+ * const layout = decodeLayout(code)!;
+ * const view = {zoom:1,x:0,y:0};
+ * const box = boxOf(layout);
+ * console.log(clampView(view,box,4));
+ * ```
+ */
 export function clampView(view: SuidoView, box: SuidoBox, most = SUIDO_MOST_ZOOM): SuidoView {
   const zoom = Math.min(most, Math.max(1, view.zoom));
   const across = box.width / zoom;
@@ -40,7 +114,25 @@ export function clampView(view: SuidoView, box: SuidoBox, most = SUIDO_MOST_ZOOM
   return { zoom, x: Math.min(box.width - across, Math.max(0, view.x)), y: Math.min(box.height - down, Math.max(0, view.y)) };
 }
 
-/** The `viewBox` that shows a view. */
+/** The `viewBox` that shows a view.
+ *
+ * @param view - Current zoom and translation in board drawing units.
+ * @param box - The board drawing dimensions or DOM viewport specified by this signature.
+ * @returns The `viewBox` that shows a view.
+ * @example
+ * ```ts
+ * import { SUIDO_5X5 } from "@johnmorrisdotca/suido/levels-5x5";
+ * import { decodeLayout } from "@johnmorrisdotca/suido";
+ * import { boxOf, viewBoxOf } from "@johnmorrisdotca/suido/draw";
+ *
+ * const row = SUIDO_5X5[0];
+ * const code = row[0];
+ * const layout = decodeLayout(code)!;
+ * const view = {zoom:1,x:0,y:0};
+ * const box = boxOf(layout);
+ * console.log(viewBoxOf(view,box));
+ * ```
+ */
 export function viewBoxOf(view: SuidoView, box: SuidoBox): string {
   const clamped = clampView(view, box);
   return `${round(clamped.x)} ${round(clamped.y)} ${round(box.width / clamped.zoom)} ${round(box.height / clamped.zoom)}`;
@@ -48,19 +140,81 @@ export function viewBoxOf(view: SuidoView, box: SuidoBox): string {
 
 const round = (value: number): number => Math.round(value * 100) / 100;
 
-/** A view zoomed by `factor` about the point (`ax`, `ay`) of the board, which stays under the same place in the box. */
+/** A view zoomed by `factor` about the point (`ax`, `ay`) of the board, which stays under the same place in the box.
+ *
+ * @param view - Current zoom and translation in board drawing units.
+ * @param factor - The positive zoom multiplier.
+ * @param ax - The horizontal zoom anchor in board drawing units.
+ * @param ay - The vertical zoom anchor in board drawing units.
+ * @param box - The board drawing dimensions or DOM viewport specified by this signature.
+ * @param most - The maximum zoom factor.
+ * @returns A view zoomed by `factor` about the point (`ax`, `ay`) of the board, which stays under the same place in the box.
+ * @example
+ * ```ts
+ * import { SUIDO_5X5 } from "@johnmorrisdotca/suido/levels-5x5";
+ * import { decodeLayout } from "@johnmorrisdotca/suido";
+ * import { boxOf, zoomAbout } from "@johnmorrisdotca/suido/draw";
+ *
+ * const row = SUIDO_5X5[0];
+ * const code = row[0];
+ * const layout = decodeLayout(code)!;
+ * const view = {zoom:1,x:0,y:0};
+ * const box = boxOf(layout);
+ * console.log(zoomAbout(view,1.5,100,100,box));
+ * ```
+ */
 export function zoomAbout(view: SuidoView, factor: number, ax: number, ay: number, box: SuidoBox, most = SUIDO_MOST_ZOOM): SuidoView {
   const zoom = Math.min(most, Math.max(1, view.zoom * factor));
   const scale = view.zoom / zoom;
   return clampView({ zoom, x: ax - (ax - view.x) * scale, y: ay - (ay - view.y) * scale }, box, most);
 }
 
-/** A view moved by (`dx`, `dy`) in the drawing's units. */
+/** A view moved by (`dx`, `dy`) in the drawing's units.
+ *
+ * @param view - Current zoom and translation in board drawing units.
+ * @param dx - The horizontal pan distance in board drawing units.
+ * @param dy - The vertical pan distance in board drawing units.
+ * @param box - The board drawing dimensions or DOM viewport specified by this signature.
+ * @returns A view moved by (`dx`, `dy`) in the drawing's units.
+ * @example
+ * ```ts
+ * import { SUIDO_5X5 } from "@johnmorrisdotca/suido/levels-5x5";
+ * import { decodeLayout } from "@johnmorrisdotca/suido";
+ * import { boxOf, panView } from "@johnmorrisdotca/suido/draw";
+ *
+ * const row = SUIDO_5X5[0];
+ * const code = row[0];
+ * const layout = decodeLayout(code)!;
+ * const view = {zoom:1,x:0,y:0};
+ * const box = boxOf(layout);
+ * console.log(panView(view,10,20,box));
+ * ```
+ */
 export function panView(view: SuidoView, dx: number, dy: number, box: SuidoBox): SuidoView {
   return clampView({ ...view, x: view.x + dx, y: view.y + dy }, box);
 }
 
-/** The view moved the least that shows the whole of a cell (a margin of half a cell round it where there is room), and no further in than it was. */
+/** The view moved the least that shows the whole of a cell (a margin of half a cell round it where there is room), and no further in than it was.
+ *
+ * @param view - Current zoom and translation in board drawing units.
+ * @param box - The board drawing dimensions or DOM viewport specified by this signature.
+ * @param width - The board width in cells.
+ * @param cell - A zero-based row-major cell index.
+ * @returns The view moved the least that shows the whole of a cell (a margin of half a cell round it where there is room), and no further in than it was.
+ * @example
+ * ```ts
+ * import { SUIDO_5X5 } from "@johnmorrisdotca/suido/levels-5x5";
+ * import { decodeLayout } from "@johnmorrisdotca/suido";
+ * import { boxOf, viewShowing } from "@johnmorrisdotca/suido/draw";
+ *
+ * const row = SUIDO_5X5[0];
+ * const code = row[0];
+ * const layout = decodeLayout(code)!;
+ * const view = {zoom:1,x:0,y:0};
+ * const box = boxOf(layout);
+ * console.log(viewShowing(view,box,layout.width,0));
+ * ```
+ */
 export function viewShowing(view: SuidoView, box: SuidoBox, width: number, cell: number): SuidoView {
   const left = (cell % width) * 100 - 50;
   const top = Math.floor(cell / width) * 100 - 50;
@@ -74,12 +228,49 @@ export function viewShowing(view: SuidoView, box: SuidoBox, width: number, cell:
   return clampView({ ...view, x, y }, box);
 }
 
-/** Whether the pieces of a board across a box `boxPx` wide are smaller than a thumb is comfortable with, so that a board offers to be zoomed. */
+/** Whether the pieces of a board across a box `boxPx` wide are smaller than a thumb is comfortable with, so that a board offers to be zoomed.
+ *
+ * @param layout - The decoded board with its dimensions, pipe masks and rule settings.
+ * @param boxPx - The available viewport width in pixels.
+ * @param smallest - The minimum desirable cell width in pixels.
+ * @returns Whether the pieces of a board across a box `boxPx` wide are smaller than a thumb is comfortable with, so that a board offers to be zoomed.
+ * @example
+ * ```ts
+ * import { SUIDO_5X5 } from "@johnmorrisdotca/suido/levels-5x5";
+ * import { decodeLayout } from "@johnmorrisdotca/suido";
+ * import { needsZoom } from "@johnmorrisdotca/suido/draw";
+ *
+ * const row = SUIDO_5X5[0];
+ * const code = row[0];
+ * const layout = decodeLayout(code)!;
+ * console.log(needsZoom(layout,390));
+ * ```
+ */
 export function needsZoom(layout: { width: number }, boxPx: number, smallest = 22): boolean {
   return boxPx > 0 && boxPx / layout.width < smallest;
 }
 
-/** What `attachSuidoView` hands back. */
+/** What `attachSuidoView` hands back.
+ *
+ * @example
+ * ```ts no-run
+ * import { SUIDO_5X5 } from "@johnmorrisdotca/suido/levels-5x5";
+ * import { decodeLayout } from "@johnmorrisdotca/suido";
+ * import { attachSuidoView, drawSuido } from "@johnmorrisdotca/suido/draw";
+ * import type { SuidoViewer } from "@johnmorrisdotca/suido/draw";
+ *
+ * const row = SUIDO_5X5[0];
+ * const code = row[0];
+ * const layout = decodeLayout(code)!;
+ * const host = document.createElement("div");
+ * document.body.append(host);
+ * host.innerHTML = drawSuido(layout);
+ * const svg = host.querySelector("svg")!;
+ * const viewer: SuidoViewer = attachSuidoView(host,svg,layout);
+ * console.log(viewer.get().zoom);
+ * viewer.destroy();
+ * ```
+ */
 export type SuidoViewer = {
   /** The view as it is now. */
   get: () => SuidoView;
@@ -95,7 +286,16 @@ export type SuidoViewer = {
   destroy: () => void;
 };
 
-/** What a viewer may be asked for. */
+/** What a viewer may be asked for.
+ *
+ * @example
+ * ```ts
+ * import type { SuidoViewerOptions } from "@johnmorrisdotca/suido/draw";
+ *
+ * const value: SuidoViewerOptions = {most:4,onChange:changed=>console.log(changed.zoom)};
+ * console.log(value);
+ * ```
+ */
 export type SuidoViewerOptions = {
   /** Told after every change of view. */
   onChange?: (view: SuidoView) => void;
@@ -110,6 +310,29 @@ const DRAG_PX = 9;
  * Lets the box `box` move and zoom the board drawn in `svg` (which must have a `viewBox` of the whole board). A
  * press that moves is not a tap: the click that follows a drag is swallowed. Call it once the drawing is in
  * the page; `destroy` removes every listener it added.
+ *
+ * @param box - The board drawing dimensions or DOM viewport specified by this signature.
+ * @param svg - The existing native SVG board element.
+ * @param layout - The decoded board with its dimensions, pipe masks and rule settings.
+ * @param options - Drawing, mounting or generator choices specified by the signature.
+ * @returns Lets the box `box` move and zoom the board drawn in `svg` (which must have a `viewBox` of the whole board). A press that moves is not a tap: the click that follows a drag is swallowed. Call it once the drawing is in the page; `destroy` removes every listener it added.
+ * @example
+ * ```ts no-run
+ * import { SUIDO_5X5 } from "@johnmorrisdotca/suido/levels-5x5";
+ * import { decodeLayout } from "@johnmorrisdotca/suido";
+ * import { attachSuidoView, drawSuido } from "@johnmorrisdotca/suido/draw";
+ *
+ * const row = SUIDO_5X5[0];
+ * const code = row[0];
+ * const layout = decodeLayout(code)!;
+ * const host = document.createElement("div");
+ * document.body.append(host);
+ * host.innerHTML = drawSuido(layout);
+ * const svg = host.querySelector("svg")!;
+ * const viewer = attachSuidoView(host,svg,layout);
+ * console.log(viewer.get().zoom);
+ * viewer.destroy();
+ * ```
  */
 export function attachSuidoView(box: HTMLElement, svg: SVGSVGElement, layout: { width: number; height: number }, options: SuidoViewerOptions = {}): SuidoViewer {
   const size = boxOf(layout);

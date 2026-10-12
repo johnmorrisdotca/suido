@@ -1,3 +1,4 @@
+import { withLevelExamples } from "./suido-level-docs.ts";
 // Makes src/difficulty.reference.ts: for every size, kind and wrap, a set of boards from the package's own
 // generator, each measured, and the measures kept as quantiles. Seeded, so the same run writes the same file.
 //
@@ -55,7 +56,7 @@ if (mode === "--merge") {
     .map(([key, set]) => `  ${JSON.stringify(key)}: ${JSON.stringify(set)},`);
   writeFileSync(
     new URL("../src/difficulty.reference.ts", import.meta.url),
-    `import type { Reference } from "./difficulty.ts";
+    withLevelExamples(`import type { Reference } from "./difficulty.ts";
 
 /** The sizes (side of the board) there is a reference set for. */
 export const DIFFICULTY_SIDES: readonly number[] = ${JSON.stringify([...sides].sort((a, b) => a - b))};
@@ -68,7 +69,7 @@ export const DIFFICULTY_SIDES: readonly number[] = ${JSON.stringify([...sides].s
 export const DIFFICULTY_REFERENCE: Record<string, Reference> = {
 ${rows.join("\n")}
 };
-`,
+`, "@johnmorrisdotca/suido"),
   );
   console.log("src/difficulty.reference.ts written with", Object.keys(merged).length, "sets");
   process.exit(0);
@@ -90,7 +91,7 @@ if (only === null) {
   const rows = Object.entries(sets).map(([key, set]) => `  ${JSON.stringify(key)}: ${JSON.stringify(set)},`);
   writeFileSync(
     new URL("../src/difficulty.reference.ts", import.meta.url),
-    `import type { Reference } from "./difficulty.ts";
+    withLevelExamples(`import type { Reference } from "./difficulty.ts";
 
 /** The sizes (side of the board) there is a reference set for. */
 export const DIFFICULTY_SIDES: readonly number[] = ${JSON.stringify(SIDES)};
@@ -102,7 +103,7 @@ export const DIFFICULTY_SIDES: readonly number[] = ${JSON.stringify(SIDES)};
 export const DIFFICULTY_REFERENCE: Record<string, Reference> = {
 ${rows.join("\n")}
 };
-`,
+`, "@johnmorrisdotca/suido"),
   );
   console.log("src/difficulty.reference.ts written");
 }

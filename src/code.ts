@@ -32,7 +32,16 @@ import { armsOf, SIDE_STEPS } from "./pieces.ts";
  * is solved. So a code is also all a server needs to hear back to check a solve.
  */
 
-/** What a board asks of the water. */
+/** What a board asks of the water.
+ *
+ * @example
+ * ```ts
+ * import type { Kind } from "@johnmorrisdotca/suido";
+ *
+ * const value: Kind = "network";
+ * console.log(value);
+ * ```
+ */
 export type Kind = "network" | "drains" | "inlet-outlet";
 
 /**
@@ -42,6 +51,19 @@ export type Kind = "network" | "drains" | "inlet-outlet";
  * `inlet-outlet`: one pump and one drain, each an end piece; the water must run
  * from the one to the other through one unbranched path (every wet piece opens on
  * two sides and no more), with nothing left open. Spares may face any way.
+ *
+ * @example
+ * ```ts
+ * import { SUIDO_5X5 } from "@johnmorrisdotca/suido/levels-5x5";
+ * import { decodeLayout } from "@johnmorrisdotca/suido";
+ * import type { Layout } from "@johnmorrisdotca/suido";
+ *
+ * const row = SUIDO_5X5[0];
+ * const code = row[0];
+ * const layout = decodeLayout(code)!;
+ * const value: Layout = layout;
+ * console.log(value);
+ * ```
  */
 export type Layout = {
   width: number;
@@ -85,14 +107,32 @@ export type Layout = {
   blocks?: readonly number[];
 };
 
-/** The largest side a board may have. */
+/** The largest side a board may have.
+ *
+ * @example
+ * ```ts
+ * import { MAX_SIDE } from "@johnmorrisdotca/suido";
+ * console.log(MAX_SIDE);
+ * ```
+ */
 export const MAX_SIDE = 64;
 
 const PLAIN = "0123456789abcdef";
 const SOURCE = "ghijklmnopqrstuv";
 const DRAIN = "ABCDEFGHIJKLMNOP";
 
-/** A cell's character: its piece, marked as a source or a drain if it is one. */
+/** A cell's character: its piece, marked as a source or a drain if it is one.
+ *
+ * @param mask - A pipe mask: north 1, east 2, south 4 and west 8.
+ * @param role - Whether the piece is a source, drain or plain pipe.
+ * @returns A cell's character: its piece, marked as a source or a drain if it is one.
+ * @example
+ * ```ts
+ * import { cellChar } from "@johnmorrisdotca/suido";
+ *
+ * console.log(cellChar(3));
+ * ```
+ */
 export function cellChar(mask: number, role: "source" | "drain" | "plain" = "plain"): string {
   return (role === "source" ? SOURCE : role === "drain" ? DRAIN : PLAIN)[mask & 15]!;
 }
@@ -100,7 +140,21 @@ export function cellChar(mask: number, role: "source" | "drain" | "plain" = "pla
 /** The flag letter each kind but a network is written with. */
 const KIND_FLAG: Record<Kind, string> = { network: "", drains: "d", "inlet-outlet": "i" };
 
-/** The code of a board. */
+/** The code of a board.
+ *
+ * @param layout - The decoded board with its dimensions, pipe masks and rule settings.
+ * @returns The code of a board.
+ * @example
+ * ```ts
+ * import { SUIDO_5X5 } from "@johnmorrisdotca/suido/levels-5x5";
+ * import { decodeLayout, encodeLayout } from "@johnmorrisdotca/suido";
+ *
+ * const row = SUIDO_5X5[0];
+ * const code = row[0];
+ * const layout = decodeLayout(code)!;
+ * console.log(encodeLayout(layout));
+ * ```
+ */
 export function encodeLayout(layout: Layout): string {
   const sources = new Set(layout.sources);
   const drains = new Set(layout.drains);
@@ -121,7 +175,20 @@ function numbersOf(text: string, below: number): number[] | null {
   return list;
 }
 
-/** The board a code stands for, or null when it is not one: a bad size, an unknown character, a source or drain on bare ground, or no source at all. */
+/** The board a code stands for, or null when it is not one: a bad size, an unknown character, a source or drain on bare ground, or no source at all.
+ *
+ * @param code - A native encoded board string.
+ * @returns The board a code stands for, or null when it is not one: a bad size, an unknown character, a source or drain on bare ground, or no source at all.
+ * @example
+ * ```ts
+ * import { SUIDO_5X5 } from "@johnmorrisdotca/suido/levels-5x5";
+ * import { decodeLayout } from "@johnmorrisdotca/suido";
+ *
+ * const row = SUIDO_5X5[0];
+ * const code = row[0];
+ * console.log(decodeLayout(code)?.width);
+ * ```
+ */
 export function decodeLayout(code: string): Layout | null {
   if (typeof code !== "string") return null;
   const match = /^(\d{1,2})x(\d{1,2})([diw]{0,3}):([^;]+)(?:;l([\d,]+))?(?:;w([\d,]+))?(?:;b([\d,]+))?(?:;k([\d,]+))?$/.exec(code);
@@ -215,12 +282,44 @@ function sharesBlock(layout: Layout, a: number, b: number): boolean {
   return false;
 }
 
-/** Whether a piece is locked on this board. */
+/** Whether a piece is locked on this board.
+ *
+ * @param layout - The decoded board with its dimensions, pipe masks and rule settings.
+ * @param cell - A zero-based row-major cell index.
+ * @returns Whether a piece is locked on this board.
+ * @example
+ * ```ts
+ * import { SUIDO_5X5 } from "@johnmorrisdotca/suido/levels-5x5";
+ * import { decodeLayout, isLocked } from "@johnmorrisdotca/suido";
+ *
+ * const row = SUIDO_5X5[0];
+ * const code = row[0];
+ * const layout = decodeLayout(code)!;
+ * console.log(isLocked(layout,0));
+ * ```
+ */
 export function isLocked(layout: Pick<Layout, "locked">, cell: number): boolean {
   return layout.locked !== undefined && layout.locked.includes(cell);
 }
 
-/** The same board with its pieces facing as `masks` says, which is how a half-played board or an answer is kept. */
+/** The same board with its pieces facing as `masks` says, which is how a half-played board or an answer is kept.
+ *
+ * @param layout - The decoded board with its dimensions, pipe masks and rule settings.
+ * @param masks - Current pipe masks in row-major cell order.
+ * @returns The same board with its pieces facing as `masks` says, which is how a half-played board or an answer is kept.
+ * @example
+ * ```ts
+ * import { SUIDO_5X5 } from "@johnmorrisdotca/suido/levels-5x5";
+ * import { decodeLayout, withMasks } from "@johnmorrisdotca/suido";
+ * import { levelSolution } from "@johnmorrisdotca/suido/levels";
+ *
+ * const row = SUIDO_5X5[0];
+ * const code = row[0];
+ * const layout = decodeLayout(code)!;
+ * const solution = levelSolution(row)!;
+ * console.log(withMasks(layout,solution).cells.length);
+ * ```
+ */
 export function withMasks(layout: Layout, masks: readonly number[]): Layout {
   return { ...layout, cells: [...masks] };
 }
@@ -228,6 +327,19 @@ export function withMasks(layout: Layout, masks: readonly number[]): Layout {
 /**
  * Which cell is next to each cell on each side: `table[cell * 4 + side]`, or -1
  * where there is no cell (the edge of a board that does not wrap) or a wall.
+ *
+ * @param layout - The decoded board with its dimensions, pipe masks and rule settings.
+ * @returns Which cell is next to each cell on each side: `table[cell * 4 + side]`, or -1 where there is no cell (the edge of a board that does not wrap) or a wall.
+ * @example
+ * ```ts
+ * import { SUIDO_5X5 } from "@johnmorrisdotca/suido/levels-5x5";
+ * import { decodeLayout, neighboursOf } from "@johnmorrisdotca/suido";
+ *
+ * const row = SUIDO_5X5[0];
+ * const code = row[0];
+ * const layout = decodeLayout(code)!;
+ * console.log(neighboursOf(layout).slice(0,8));
+ * ```
  */
 export function neighboursOf(layout: Pick<Layout, "width" | "height" | "wrap"> & { walls?: readonly number[] }): Int32Array {
   const { width, height, wrap } = layout;

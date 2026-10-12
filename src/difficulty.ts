@@ -31,7 +31,24 @@ import { solve } from "./solve.ts";
  * It does not compare across sizes.
  */
 
-/** What is measured of one board. */
+/** What is measured of one board.
+ *
+ * @example
+ * ```ts
+ * import { SUIDO_5X5 } from "@johnmorrisdotca/suido/levels-5x5";
+ * import { decodeLayout, measureSuido } from "@johnmorrisdotca/suido";
+ * import { levelSolution } from "@johnmorrisdotca/suido/levels";
+ * import type { Measure } from "@johnmorrisdotca/suido";
+ *
+ * const row = SUIDO_5X5[0];
+ * const code = row[0];
+ * const layout = decodeLayout(code)!;
+ * const solution = levelSolution(row)!;
+ * const measure = measureSuido(layout,solution);
+ * const value: Measure = measure;
+ * console.log(value);
+ * ```
+ */
 export type Measure = {
   kind: Kind;
   wrap: boolean;
@@ -49,10 +66,26 @@ export type Measure = {
   spares: number;
 };
 
-/** The measures, by name. */
+/** The measures, by name.
+ *
+ * @example
+ * ```ts
+ * import type { MeasureName } from "@johnmorrisdotca/suido";
+ *
+ * const value: MeasureName = "rounds";
+ * console.log(value);
+ * ```
+ */
 export type MeasureName = "obscure" | "rounds" | "unsettled" | "guessing" | "spares";
 
-/** The weights of the measures in the blend, for each kind. */
+/** The weights of the measures in the blend, for each kind.
+ *
+ * @example
+ * ```ts
+ * import { DIFFICULTY_WEIGHTS } from "@johnmorrisdotca/suido";
+ * console.log(DIFFICULTY_WEIGHTS);
+ * ```
+ */
 export const DIFFICULTY_WEIGHTS: Record<Kind, Record<MeasureName, number>> = {
   network: { obscure: 0.25, rounds: 0.3, unsettled: 0.2, guessing: 0.25, spares: 0 },
   drains: { obscure: 0.2, rounds: 0.25, unsettled: 0.15, guessing: 0.2, spares: 0.2 },
@@ -60,13 +93,52 @@ export const DIFFICULTY_WEIGHTS: Record<Kind, Record<MeasureName, number>> = {
   "inlet-outlet": { obscure: 0.2, rounds: 0.25, unsettled: 0.15, guessing: 0.2, spares: 0.2 },
 };
 
-/** The measures, in the order the reference lists them. */
+/** The measures, in the order the reference lists them.
+ *
+ * @example
+ * ```ts
+ * import { MEASURE_NAMES } from "@johnmorrisdotca/suido";
+ * console.log(MEASURE_NAMES);
+ * ```
+ */
 export const MEASURE_NAMES: readonly MeasureName[] = ["obscure", "rounds", "unsettled", "guessing", "spares"];
 
-/** A reference set of boards, as quantiles: every measure at 21 even steps from its least to its greatest, and the blend of the five at 101. */
+/** A reference set of boards, as quantiles: every measure at 21 even steps from its least to its greatest, and the blend of the five at 101.
+ *
+ * @example
+ * ```ts
+ * import { SUIDO_5X5 } from "@johnmorrisdotca/suido/levels-5x5";
+ * import { decodeLayout, referenceFor } from "@johnmorrisdotca/suido";
+ * import type { Reference } from "@johnmorrisdotca/suido";
+ *
+ * const row = SUIDO_5X5[0];
+ * const code = row[0];
+ * const layout = decodeLayout(code)!;
+ * const reference = referenceFor(layout);
+ * const value: Reference = reference;
+ * console.log(value);
+ * ```
+ */
 export type Reference = Record<MeasureName, number[]> & { blend: number[] };
 
-/** Every measure of one board, from the board as given and one of its answers. */
+/** Every measure of one board, from the board as given and one of its answers.
+ *
+ * @param layout - The decoded board with its dimensions, pipe masks and rule settings.
+ * @param solution - The solved pipe masks in row-major cell order.
+ * @returns Every measure of one board, from the board as given and one of its answers.
+ * @example
+ * ```ts
+ * import { SUIDO_5X5 } from "@johnmorrisdotca/suido/levels-5x5";
+ * import { decodeLayout, measureSuido } from "@johnmorrisdotca/suido";
+ * import { levelSolution } from "@johnmorrisdotca/suido/levels";
+ *
+ * const row = SUIDO_5X5[0];
+ * const code = row[0];
+ * const layout = decodeLayout(code)!;
+ * const solution = levelSolution(row)!;
+ * console.log(measureSuido(layout,solution));
+ * ```
+ */
 export function measureSuido(layout: Layout, solution: readonly number[]): Measure {
   const flow = flowOf(layout, solution);
   const found = solve(layout, 2);
@@ -85,7 +157,18 @@ export function measureSuido(layout: Layout, solution: readonly number[]): Measu
   };
 }
 
-/** Where `value` stands among sorted quantiles, 0 to 1: how far through them it is, by the share of the way between neighbours. */
+/** Where `value` stands among sorted quantiles, 0 to 1: how far through them it is, by the share of the way between neighbours.
+ *
+ * @param quantiles - Ordered reference quantiles.
+ * @param value - The measurement to rank among the quantiles.
+ * @returns Where `value` stands among sorted quantiles, 0 to 1: how far through them it is, by the share of the way between neighbours.
+ * @example
+ * ```ts
+ * import { percentileIn } from "@johnmorrisdotca/suido";
+ *
+ * console.log(percentileIn([0,10,20],15));
+ * ```
+ */
 export function percentileIn(quantiles: readonly number[], value: number): number {
   const last = quantiles.length - 1;
   if (last <= 0 || value <= quantiles[0]!) return 0;
@@ -97,23 +180,92 @@ export function percentileIn(quantiles: readonly number[], value: number): numbe
   return (at - 1 + (above === below ? 0 : (value - below) / (above - below))) / last;
 }
 
-/** The blend of a board's five percentiles against `reference`, 0 to 1, before it is ranked among the blends. */
+/** The blend of a board's five percentiles against `reference`, 0 to 1, before it is ranked among the blends.
+ *
+ * @param measure - The measured puzzle difficulty features.
+ * @param reference - The matching size, kind and wrap reference quantiles.
+ * @returns The blend of a board's five percentiles against `reference`, 0 to 1, before it is ranked among the blends.
+ * @example
+ * ```ts
+ * import { SUIDO_5X5 } from "@johnmorrisdotca/suido/levels-5x5";
+ * import { blendOf, decodeLayout, measureSuido, referenceFor } from "@johnmorrisdotca/suido";
+ * import { levelSolution } from "@johnmorrisdotca/suido/levels";
+ *
+ * const row = SUIDO_5X5[0];
+ * const code = row[0];
+ * const layout = decodeLayout(code)!;
+ * const solution = levelSolution(row)!;
+ * const measure = measureSuido(layout,solution);
+ * const reference = referenceFor(layout);
+ * console.log(blendOf(measure,reference));
+ * ```
+ */
 export function blendOf(measure: Measure, reference: Reference): number {
   const weights = DIFFICULTY_WEIGHTS[measure.kind];
   return MEASURE_NAMES.reduce((sum, name) => sum + weights[name] * percentileIn(reference[name], measure[name]), 0);
 }
 
-/** The score of a measure against a reference set before it is rounded, from 1 to 100: what boards are put in order by, so that two boards of one whole score still have an order. */
+/** The score of a measure against a reference set before it is rounded, from 1 to 100: what boards are put in order by, so that two boards of one whole score still have an order.
+ *
+ * @param measure - The measured puzzle difficulty features.
+ * @param reference - The matching size, kind and wrap reference quantiles.
+ * @returns The score of a measure against a reference set before it is rounded, from 1 to 100: what boards are put in order by, so that two boards of one whole score still have an order.
+ * @example
+ * ```ts
+ * import { SUIDO_5X5 } from "@johnmorrisdotca/suido/levels-5x5";
+ * import { decodeLayout, exactScoreOf, measureSuido, referenceFor } from "@johnmorrisdotca/suido";
+ * import { levelSolution } from "@johnmorrisdotca/suido/levels";
+ *
+ * const row = SUIDO_5X5[0];
+ * const code = row[0];
+ * const layout = decodeLayout(code)!;
+ * const solution = levelSolution(row)!;
+ * const measure = measureSuido(layout,solution);
+ * const reference = referenceFor(layout);
+ * console.log(exactScoreOf(measure,reference));
+ * ```
+ */
 export function exactScoreOf(measure: Measure, reference: Reference): number {
   return 1 + 99 * percentileIn(reference.blend, blendOf(measure, reference));
 }
 
-/** The score of a measure against a reference set: 1 (the plainest of its size) to 100. */
+/** The score of a measure against a reference set: 1 (the plainest of its size) to 100.
+ *
+ * @param measure - The measured puzzle difficulty features.
+ * @param reference - The matching size, kind and wrap reference quantiles.
+ * @returns The score of a measure against a reference set: 1 (the plainest of its size) to 100.
+ * @example
+ * ```ts
+ * import { SUIDO_5X5 } from "@johnmorrisdotca/suido/levels-5x5";
+ * import { decodeLayout, measureSuido, referenceFor, scoreOf } from "@johnmorrisdotca/suido";
+ * import { levelSolution } from "@johnmorrisdotca/suido/levels";
+ *
+ * const row = SUIDO_5X5[0];
+ * const code = row[0];
+ * const layout = decodeLayout(code)!;
+ * const solution = levelSolution(row)!;
+ * const measure = measureSuido(layout,solution);
+ * const reference = referenceFor(layout);
+ * console.log(scoreOf(measure,reference));
+ * ```
+ */
 export function scoreOf(measure: Measure, reference: Reference): number {
   return Math.min(100, Math.max(1, Math.round(exactScoreOf(measure, reference))));
 }
 
-/** The key a reference set is kept under. */
+/** The key a reference set is kept under.
+ *
+ * @param side - A side index from 0 north to 3 west, or reference-board side length specified by the signature.
+ * @param kind - The native network, drains or inlet-outlet rule.
+ * @param wrap - Whether opposite board edges connect.
+ * @returns The key a reference set is kept under.
+ * @example
+ * ```ts
+ * import { referenceKey } from "@johnmorrisdotca/suido";
+ *
+ * console.log(referenceKey(5,"network",false));
+ * ```
+ */
 export function referenceKey(side: number, kind: Kind, wrap: boolean): string {
   return `${side}${kind === "network" ? "" : kind === "drains" ? "d" : "i"}${wrap ? "w" : ""}`;
 }
@@ -124,6 +276,19 @@ export function referenceKey(side: number, kind: Kind, wrap: boolean): string {
  * wrap. A board of a size no set was made for is scored among the nearest. A
  * board's walls and locked pieces are not part of its set: they make it easier
  * than the boards of its set, and its score says so.
+ *
+ * @param layout - The decoded board with its dimensions, pipe masks and rule settings.
+ * @returns The reference set a board is scored against: that of the board's side (the square root of its cells, to the nearest size there is a set for), kind and wrap. A board of a size no set was made for is scored among the nearest. A board's walls and locked pieces are not part of its set: they make it easier than the boards of its set, and its score says so.
+ * @example
+ * ```ts
+ * import { SUIDO_5X5 } from "@johnmorrisdotca/suido/levels-5x5";
+ * import { decodeLayout, referenceFor } from "@johnmorrisdotca/suido";
+ *
+ * const row = SUIDO_5X5[0];
+ * const code = row[0];
+ * const layout = decodeLayout(code)!;
+ * console.log(referenceFor(layout).blend.length);
+ * ```
  */
 export function referenceFor(layout: Pick<Layout, "width" | "height" | "kind" | "wrap">): Reference {
   const side = Math.sqrt(layout.width * layout.height);
@@ -133,17 +298,62 @@ export function referenceFor(layout: Pick<Layout, "width" | "height" | "kind" | 
   return DIFFICULTY_REFERENCE[referenceKey(nearest, layout.kind, layout.wrap)]!;
 }
 
-/** How hard a board is, 1 to 100 among boards of its size, from the board as given and one of its answers. */
+/** How hard a board is, 1 to 100 among boards of its size, from the board as given and one of its answers.
+ *
+ * @param layout - The decoded board with its dimensions, pipe masks and rule settings.
+ * @param solution - The solved pipe masks in row-major cell order.
+ * @returns How hard a board is, 1 to 100 among boards of its size, from the board as given and one of its answers.
+ * @example
+ * ```ts
+ * import { SUIDO_5X5 } from "@johnmorrisdotca/suido/levels-5x5";
+ * import { decodeLayout, difficultyOf } from "@johnmorrisdotca/suido";
+ * import { levelSolution } from "@johnmorrisdotca/suido/levels";
+ *
+ * const row = SUIDO_5X5[0];
+ * const code = row[0];
+ * const layout = decodeLayout(code)!;
+ * const solution = levelSolution(row)!;
+ * console.log(difficultyOf(layout,solution));
+ * ```
+ */
 export function difficultyOf(layout: Layout, solution: readonly number[]): number {
   return scoreOf(measureSuido(layout, solution), referenceFor(layout));
 }
 
-/** The same before it is rounded to a whole number, from 1 to 100: the order boards are put in. */
+/** The same before it is rounded to a whole number, from 1 to 100: the order boards are put in.
+ *
+ * @param layout - The decoded board with its dimensions, pipe masks and rule settings.
+ * @param solution - The solved pipe masks in row-major cell order.
+ * @returns The same before it is rounded to a whole number, from 1 to 100: the order boards are put in.
+ * @example
+ * ```ts
+ * import { SUIDO_5X5 } from "@johnmorrisdotca/suido/levels-5x5";
+ * import { decodeLayout, exactDifficultyOf } from "@johnmorrisdotca/suido";
+ * import { levelSolution } from "@johnmorrisdotca/suido/levels";
+ *
+ * const row = SUIDO_5X5[0];
+ * const code = row[0];
+ * const layout = decodeLayout(code)!;
+ * const solution = levelSolution(row)!;
+ * console.log(exactDifficultyOf(layout,solution));
+ * ```
+ */
 export function exactDifficultyOf(layout: Layout, solution: readonly number[]): number {
   return exactScoreOf(measureSuido(layout, solution), referenceFor(layout));
 }
 
-/** Quantiles of a list of numbers, at `points` even steps from least to greatest, for a reference set. */
+/** Quantiles of a list of numbers, at `points` even steps from least to greatest, for a reference set.
+ *
+ * @param values - Values to interpolate, or numerical measurements to sort as specified by the signature.
+ * @param points - The number of quantile points.
+ * @returns Quantiles of a list of numbers, at `points` even steps from least to greatest, for a reference set.
+ * @example
+ * ```ts
+ * import { quantilesOf } from "@johnmorrisdotca/suido";
+ *
+ * console.log(quantilesOf([1,2,3,4,5],3));
+ * ```
+ */
 export function quantilesOf(values: readonly number[], points: number): number[] {
   const sorted = [...values].sort((a, b) => a - b);
   return Array.from({ length: points }, (_, step) => {

@@ -4,7 +4,21 @@ import { drainFacings, rotationsOfLayout, scanFacings, SCAN } from "./facing.ts"
 import { opposite } from "./pieces.ts";
 import { countBits, refreshCells, unitsOf, wayHolds, type CellSets } from "./units.ts";
 
-/** What the solver found. */
+/** What the solver found.
+ *
+ * @example
+ * ```ts
+ * import { SUIDO_5X5 } from "@johnmorrisdotca/suido/levels-5x5";
+ * import { decodeLayout, solve } from "@johnmorrisdotca/suido";
+ * import type { SolveResult } from "@johnmorrisdotca/suido";
+ *
+ * const row = SUIDO_5X5[0];
+ * const code = row[0];
+ * const layout = decodeLayout(code)!;
+ * const value: SolveResult = solve(layout,2,20000);
+ * console.log(value);
+ * ```
+ */
 export type SolveResult = {
   /** How many answers there are, counted up to the limit asked for. */
   count: number;
@@ -38,13 +52,44 @@ export type SolveResult = {
  * neighbour table does not cross, so neither needs a rule of its own. A network
  * is solved in units (`units.ts`): a single piece is one, and a block that turns
  * as one is one, with its four turns for its facings.
+ *
+ * @param layout - The decoded board with its dimensions, pipe masks and rule settings.
+ * @param limit - Stop after finding this many solutions.
+ * @param budget - The maximum search-node budget; exhaustion is inconclusive.
+ * @returns Counts the answers to a board, up to `limit`, stopping early when `budget` positions have been looked at. One answer is the whole point of a board: `count === 1 && complete` is the proof.
+ * @example
+ * ```ts
+ * import { SUIDO_5X5 } from "@johnmorrisdotca/suido/levels-5x5";
+ * import { decodeLayout, solve } from "@johnmorrisdotca/suido";
+ *
+ * const row = SUIDO_5X5[0];
+ * const code = row[0];
+ * const layout = decodeLayout(code)!;
+ * console.log(solve(layout,2,20000));
+ * ```
  */
 export function solve(layout: Layout, limit = 2, budget = 200_000): SolveResult {
   if (layout.kind !== "network" && hasBlocks(layout)) throw new Error("Only a network can have big pieces or blocks that turn.");
   return layout.kind === "network" ? solveNetwork(layout, limit, budget) : solveDrains(layout, limit, budget);
 }
 
-/** How many answers there are, counted up to `limit`. */
+/** How many answers there are, counted up to `limit`.
+ *
+ * @param layout - The decoded board with its dimensions, pipe masks and rule settings.
+ * @param limit - Stop after finding this many solutions.
+ * @param budget - The maximum search-node budget; exhaustion is inconclusive.
+ * @returns How many answers there are, counted up to `limit`.
+ * @example
+ * ```ts
+ * import { SUIDO_5X5 } from "@johnmorrisdotca/suido/levels-5x5";
+ * import { countSolutions, decodeLayout } from "@johnmorrisdotca/suido";
+ *
+ * const row = SUIDO_5X5[0];
+ * const code = row[0];
+ * const layout = decodeLayout(code)!;
+ * console.log(countSolutions(layout,2,20000));
+ * ```
+ */
 export function countSolutions(layout: Layout, limit = 2, budget = 200_000): number {
   return solve(layout, limit, budget).count;
 }

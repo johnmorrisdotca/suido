@@ -1,3 +1,4 @@
+import { withLevelExamples } from "./suido-level-docs.ts";
 /**
  * THE SUIDO LEVELS, MADE ON A DESK:
  *
@@ -198,7 +199,7 @@ function make(size: string): void {
     before = pick.score;
     rows.push([pick.code, pick.turns, twistsOf(pick.layout).join(" ")]);
   }
-  writeFileSync(`src/levels/size${size}.data.ts`, fileFor(size, rows));
+  writeFileSync(`src/levels/size${size}.data.ts`, withLevelExamples(fileFor(size, rows), `@johnmorrisdotca/suido/levels-${size}`));
   const worst = Math.max(...picked.map((one, at) => Math.abs(one.score - (1 + (99 * at) / (count - 1)))));
   const twisted = picked.filter((one) => one.profile !== "plain").length;
   console.log(`${size}: ${count} levels (${twisted} with twists), furthest from its aim ${worst.toFixed(1)}, ${fallbacks.length} fallbacks, pools in ${Math.round((made - started) / 1000)} s, all in ${Math.round((performance.now() - started) / 1000)} s`);
@@ -248,7 +249,7 @@ async function marks(): Promise<void> {
     );
     console.log(`${size}: marks and roles written (${Object.keys(rolesBy[size]!).length} twist levels in places 15 and 16)`);
   }
-  writeFileSync("src/levels/marks.data.ts", marksFile(marksBy, rolesBy));
+  writeFileSync("src/levels/marks.data.ts", withLevelExamples(marksFile(marksBy, rolesBy), "@johnmorrisdotca/suido/marks"));
 }
 
 /** What a size's boards of each kind measure: their scores at a few places, and how long they take to make. */

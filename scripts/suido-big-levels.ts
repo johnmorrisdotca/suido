@@ -1,3 +1,4 @@
+import { withLevelExamples } from "./suido-level-docs.ts";
 /**
  * THE BIG-PIECES LEVELS, MADE ON A DESK:
  *
@@ -313,7 +314,7 @@ for (const [at, one] of picked.entries()) {
   );
 }
 if (!probe) {
-  writeFileSync("src/levels/big.data.ts", dataFile(rows));
-  writeFileSync("src/levels/bigInfo.data.ts", infoFile(picked));
+  writeFileSync("src/levels/big.data.ts", withLevelExamples(dataFile(rows), "@johnmorrisdotca/suido/levels-big"));
+  writeFileSync("src/levels/bigInfo.data.ts", withLevelExamples(infoFile(picked), "@johnmorrisdotca/suido/levels-info"));
   console.error("src/levels/big.data.ts and src/levels/bigInfo.data.ts written");
 }

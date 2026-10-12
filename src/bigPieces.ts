@@ -19,6 +19,12 @@ import { shuffled } from "./random.ts";
  * A big piece is turned in place a quarter at a time, and faces any of its four
  * turns (two for a straight): turning moves the piece in each cell round to the
  * next and turns it a quarter, as `turnBlock` does.
+ *
+ * @example
+ * ```ts
+ * import { BIG_KINDS } from "@johnmorrisdotca/suido";
+ * console.log(BIG_KINDS);
+ * ```
  */
 export const BIG_KINDS = {
   end: [3, 12, 9, 2],
@@ -28,10 +34,26 @@ export const BIG_KINDS = {
   tee: [5, 7, 7, 5],
 } as const;
 
-/** The name of a kind of big piece. */
+/** The name of a kind of big piece.
+ *
+ * @example
+ * ```ts
+ * import type { BigKind } from "@johnmorrisdotca/suido";
+ *
+ * const value: BigKind = "elbow";
+ * console.log(value);
+ * ```
+ */
 export type BigKind = keyof typeof BIG_KINDS;
 
-/** Every kind of big piece, in the order the generator draws them, with how often each is drawn. */
+/** Every kind of big piece, in the order the generator draws them, with how often each is drawn.
+ *
+ * @example
+ * ```ts
+ * import { BIG_KIND_LIST } from "@johnmorrisdotca/suido";
+ * console.log(BIG_KIND_LIST);
+ * ```
+ */
 export const BIG_KIND_LIST: readonly BigKind[] = ["end", "hairpin", "hairpin", "straight", "elbow", "elbow", "tee"];
 
 /**
@@ -43,13 +65,39 @@ export const BIG_KIND_LIST: readonly BigKind[] = ["end", "hairpin", "hairpin", "
  *  - `all`: every family of `BIG_SHAPES` equally often, three pipes in one plate included.
  *
  * Each of the last three draws a family of its own shapes equally often, then a shape of the family.
+ *
+ * @example
+ * ```ts
+ * import type { BigMix } from "@johnmorrisdotca/suido";
+ *
+ * const value: BigMix = "simple";
+ * console.log(value);
+ * ```
  */
 export type BigMix = "five" | "simple" | "more" | "all";
 
-/** The mixes a generator draws a plate from, plainest first. */
+/** The mixes a generator draws a plate from, plainest first.
+ *
+ * @example
+ * ```ts
+ * import { BIG_MIXES } from "@johnmorrisdotca/suido";
+ * console.log(BIG_MIXES);
+ * ```
+ */
 export const BIG_MIXES: readonly BigMix[] = ["five", "simple", "more", "all"];
 
-/** Whether a shape belongs to a mix of the shapes (`BigMix`, not `five`). */
+/** Whether a shape belongs to a mix of the shapes (`BigMix`, not `five`).
+ *
+ * @param shape - A big-piece shape or its pipe/opening counts.
+ * @param mix - The supported big-piece family mix.
+ * @returns Whether a shape belongs to a mix of the shapes (`BigMix`, not `five`).
+ * @example
+ * ```ts
+ * import { BIG_SHAPES, inBigMix } from "@johnmorrisdotca/suido";
+ *
+ * console.log(inBigMix(BIG_SHAPES[0],"simple"));
+ * ```
+ */
 export function inBigMix(shape: Pick<BigShape, "pipes" | "openings">, mix: BigMix): boolean {
   if (mix === "simple") return shape.pipes <= 2 && shape.openings <= 4;
   if (mix === "more") return shape.pipes <= 2;
@@ -73,7 +121,18 @@ function drawShape(random: Random, mix: BigMix): string {
   return family.shapes[Math.floor(random() * family.shapes.length)]!.id;
 }
 
-/** The masks of a big piece's four cells (clockwise from the top left) once it has been turned `quarters` quarters clockwise from facing north. */
+/** The masks of a big piece's four cells (clockwise from the top left) once it has been turned `quarters` quarters clockwise from facing north.
+ *
+ * @param kind - The native network, drains or inlet-outlet rule.
+ * @param quarters - Clockwise quarter turns, per cell or for the piece specified by the signature.
+ * @returns The masks of a big piece's four cells (clockwise from the top left) once it has been turned `quarters` quarters clockwise from facing north.
+ * @example
+ * ```ts
+ * import { bigMasksOf } from "@johnmorrisdotca/suido";
+ *
+ * console.log(bigMasksOf("elbow",1));
+ * ```
+ */
 export function bigMasksOf(kind: BigKind | string, quarters: number): number[] {
   const cells = [0, 1, 2, 3];
   const shape = kind in BIG_KINDS ? undefined : SHAPE_BY_ID.get(kind);
@@ -86,6 +145,15 @@ export function bigMasksOf(kind: BigKind | string, quarters: number): number[] {
 /**
  * Which kind of big piece four masks make, and the fewest quarters clockwise from facing north that bring it
  * to them; null for four masks that are none of the five.
+ *
+ * @param masks - Current pipe masks in row-major cell order.
+ * @returns Which kind of big piece four masks make, and the fewest quarters clockwise from facing north that bring it to them; null for four masks that are none of the five.
+ * @example
+ * ```ts
+ * import { bigKindOf, bigMasksOf } from "@johnmorrisdotca/suido";
+ *
+ * console.log(bigKindOf(bigMasksOf("elbow",1)));
+ * ```
  */
 export function bigKindOf(masks: readonly number[]): { kind: BigKind; quarters: number } | null {
   for (const kind of Object.keys(BIG_KINDS) as BigKind[]) {
@@ -108,6 +176,15 @@ export function bigKindOf(masks: readonly number[]): { kind: BigKind; quarters: 
  * A PIPE here is a run of joined cells, and the water in one does not reach another: two pipes side by side are two, however
  * close. A plate has one, two or three, with one to eight openings in all, at most two on each side. A FAMILY is the plates
  * with the same openings on their pipes, written largest first (`3+2` is a pipe with three openings and one with two).
+ *
+ * @example
+ * ```ts
+ * import type { BigShape } from "@johnmorrisdotca/suido";
+ * import { BIG_SHAPES } from "@johnmorrisdotca/suido";
+ *
+ * const value: BigShape = BIG_SHAPES[0];
+ * console.log(value);
+ * ```
  */
 export type BigShape = {
   /** The four masks, hex, of the shape's first facing in order of the masks: the same in every facing a plate is turned to. */
@@ -182,10 +259,24 @@ function shapesOf(): BigShape[] {
   return [...found.values()].sort((a, b) => a.pipes - b.pipes || a.openings - b.openings || (a.family < b.family ? 1 : a.family > b.family ? -1 : 0) || (a.id < b.id ? -1 : 1));
 }
 
-/** Every big piece there is, up to turning (`BigShape`): 699, ordered by how many pipes they hold, then how many openings they have, then family. */
+/** Every big piece there is, up to turning (`BigShape`): 699, ordered by how many pipes they hold, then how many openings they have, then family.
+ *
+ * @example
+ * ```ts
+ * import { BIG_SHAPES } from "@johnmorrisdotca/suido";
+ * console.log(BIG_SHAPES.length);
+ * ```
+ */
 export const BIG_SHAPES: readonly BigShape[] = shapesOf();
 
-/** The families of `BIG_SHAPES`, each with how many shapes it holds, in the order they first appear there. */
+/** The families of `BIG_SHAPES`, each with how many shapes it holds, in the order they first appear there.
+ *
+ * @example
+ * ```ts
+ * import { BIG_FAMILIES } from "@johnmorrisdotca/suido";
+ * console.log(BIG_FAMILIES);
+ * ```
+ */
 export const BIG_FAMILIES: readonly { family: string; pipes: number; openings: number; shapes: number }[] = (() => {
   const out = new Map<string, { family: string; pipes: number; openings: number; shapes: number }>();
   for (const shape of BIG_SHAPES) {
@@ -198,7 +289,17 @@ export const BIG_FAMILIES: readonly { family: string; pipes: number; openings: n
 
 const SHAPE_BY_ID = new Map(BIG_SHAPES.map((shape) => [shape.id, shape]));
 
-/** The shape with this id, or undefined for four masks that make none. */
+/** The shape with this id, or undefined for four masks that make none.
+ *
+ * @param id - The native big-shape or guide-piece identifier.
+ * @returns The shape with that identifier, or undefined when it is not a known shape.
+ * @example
+ * ```ts
+ * import { BIG_SHAPES, bigShapeById } from "@johnmorrisdotca/suido";
+ *
+ * console.log(bigShapeById(BIG_SHAPES[0].id)?.openings);
+ * ```
+ */
 export function bigShapeById(id: string): BigShape | undefined {
   return SHAPE_BY_ID.get(id);
 }
@@ -206,6 +307,15 @@ export function bigShapeById(id: string): BigShape | undefined {
 /**
  * Which shape four masks make, and the fewest quarters clockwise from the shape's own facing (`BigShape.masks`) that bring it to them;
  * null for four masks that are none of the 699: a blank cell, a ring, a pipe with no opening to the outside.
+ *
+ * @param masks - Current pipe masks in row-major cell order.
+ * @returns Which shape four masks make, and the fewest quarters clockwise from the shape's own facing (`BigShape.masks`) that bring it to them; null for four masks that are none of the 699: a blank cell, a ring, a pipe with no opening to the outside.
+ * @example
+ * ```ts
+ * import { bigMasksOf, bigShapeOf } from "@johnmorrisdotca/suido";
+ *
+ * console.log(bigShapeOf(bigMasksOf("elbow",0))?.shape.id);
+ * ```
  */
 export function bigShapeOf(masks: readonly number[]): { shape: BigShape; quarters: number } | null {
   if (masks.length !== 4) return null;
@@ -215,7 +325,16 @@ export function bigShapeOf(masks: readonly number[]): { shape: BigShape; quarter
   return null;
 }
 
-/** A block placed on a board by the generator: `kind` is a kind of `BIG_KINDS` or the id of a `BigShape`, and null for a block that turns as one. */
+/** A block placed on a board by the generator: `kind` is a kind of `BIG_KINDS` or the id of a `BigShape`, and null for a block that turns as one.
+ *
+ * @example
+ * ```ts
+ * import type { Placed } from "@johnmorrisdotca/suido";
+ *
+ * const value: Placed = {anchor:0,kind:"elbow",quarters:0};
+ * console.log(value);
+ * ```
+ */
 export type Placed = { anchor: number; kind: string | null; quarters: number };
 
 /**
@@ -224,6 +343,25 @@ export type Placed = { anchor: number; kind: string | null; quarters: number };
  * off the edge of the board, and `turning` blocks that turn as one. No two overlap, no big piece touches
  * another big piece along a side, and none stands across the edge of a board that wraps. Fewer are placed
  * where the board has no room for them.
+ *
+ * @param near - The board neighbour table.
+ * @param width - The board width in cells.
+ * @param height - The board height in cells.
+ * @param bigs - The desired number of big pieces.
+ * @param turning - The desired number of blocks that turn together.
+ * @param random - A random source returning values in [0,1).
+ * @param mix - The supported big-piece family mix.
+ * @returns Places blocks on a board of `width` by `height`, where `near` is the table of neighbours with no walls (`neighboursOf`): `bigs` big pieces, each of a kind drawn at random facing a way that has no opening off the edge of the board, and `turning` blocks that turn as one. No two overlap, no big piece touches another big piece along a side, and none stands across the edge of a board that wraps. Fewer are placed where the board has no room for them.
+ * @example
+ * ```ts no-run
+ * import { SUIDO_5X5 } from "@johnmorrisdotca/suido/levels-5x5";
+ * import { decodeLayout, neighboursOf, placeBlocks, seededRandom } from "@johnmorrisdotca/suido";
+ *
+ * const row = SUIDO_5X5[0];
+ * const code = row[0];
+ * const layout = decodeLayout(code)!;
+ * console.log(placeBlocks(neighboursOf(layout),layout.width,layout.height,1,0,seededRandom(42)));
+ * ```
  */
 export function placeBlocks(near: Int32Array, width: number, height: number, bigs: number, turning: number, random: Random, mix: BigMix = "five"): Placed[] {
   const anchors: number[] = [];
@@ -282,13 +420,38 @@ function openingsFit(near: Int32Array, cells: readonly number[], masks: readonly
   return true;
 }
 
-/** One big piece on a board: its top left cell, which of the 699 shapes it is, and how many quarters clockwise from the shape's own facing it is turned. */
+/** One big piece on a board: its top left cell, which of the 699 shapes it is, and how many quarters clockwise from the shape's own facing it is turned.
+ *
+ * @example
+ * ```ts
+ * import type { BigOnBoard } from "@johnmorrisdotca/suido";
+ * import { BIG_SHAPES } from "@johnmorrisdotca/suido";
+ *
+ * const value: BigOnBoard = {anchor:0,shape:BIG_SHAPES[0],quarters:0};
+ * console.log(value);
+ * ```
+ */
 export type BigOnBoard = { anchor: number; shape: BigShape; quarters: number };
 
 /**
  * The big pieces of a board and which shape each is, read from `masks` (one for every cell of the board, as a board's pieces or an
  * answer's stand): the board's pieces for the facing it starts in, an answer's for the facing the water needs. A big piece whose four
  * masks make none of the shapes is left out, which no board that decodes has.
+ *
+ * @param layout - The decoded board with its dimensions, pipe masks and rule settings.
+ * @param masks - Current pipe masks in row-major cell order.
+ * @returns The big pieces of a board and which shape each is, read from `masks` (one for every cell of the board, as a board's pieces or an answer's stand): the board's pieces for the facing it starts in, an answer's for the facing the water needs. A big piece whose four masks make none of the shapes is left out, which no board that decodes has.
+ * @example
+ * ```ts
+ * import { SUIDO_5X5 } from "@johnmorrisdotca/suido/levels-5x5";
+ * import { bigShapesIn, decodeLayout } from "@johnmorrisdotca/suido";
+ *
+ * const row = SUIDO_5X5[0];
+ * const code = row[0];
+ * const layout = decodeLayout(code)!;
+ * const blockLayout = {...layout,bigs:[0]};
+ * console.log(bigShapesIn(blockLayout,blockLayout.cells).length);
+ * ```
  */
 export function bigShapesIn(layout: { width: number; bigs?: readonly number[] }, masks: readonly number[]): BigOnBoard[] {
   const out: BigOnBoard[] = [];

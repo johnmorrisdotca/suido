@@ -12,13 +12,38 @@ import { NORTH, SHAPE_MASKS, rotationsOf } from "./pieces.ts";
  *     twist   what a board adds to a piece or to an edge: a locked piece, a wall, edges that join
  *     big     big pieces: a square of four cells that is one piece, with one, two or three separate pipes inside
  *     block   a block that turns as one: four ordinary pieces that a tap turns together
+ *
+ * @example
+ * ```ts
+ * import type { PieceGroup } from "@johnmorrisdotca/suido";
+ *
+ * const value: PieceGroup = "turn";
+ * console.log(value);
+ * ```
  */
 export type PieceGroup = "turn" | "water" | "twist" | "big" | "block";
 
-/** The groups, in the order a guide shows them. */
+/** The groups, in the order a guide shows them.
+ *
+ * @example
+ * ```ts
+ * import { PIECE_GROUPS } from "@johnmorrisdotca/suido";
+ * console.log(PIECE_GROUPS);
+ * ```
+ */
 export const PIECE_GROUPS: readonly PieceGroup[] = ["turn", "water", "twist", "big", "block"];
 
-/** One piece of the guide. */
+/** One piece of the guide.
+ *
+ * @example
+ * ```ts
+ * import type { GuidePiece } from "@johnmorrisdotca/suido";
+ * import { SUIDO_PIECE_GUIDE } from "@johnmorrisdotca/suido";
+ *
+ * const value: GuidePiece = SUIDO_PIECE_GUIDE[0];
+ * console.log(value);
+ * ```
+ */
 export type GuidePiece = {
   /** Its name in the address of a page or the name of a picture: lower case words joined with hyphens. */
   id: string;
@@ -57,6 +82,12 @@ function bigFacings(shape: string): number {
 /**
  * EVERY PIECE, with a picture to draw it by. The big pieces here are the five kinds the generator always drew (`BIG_KINDS`) and a few of
  * the 699 shapes a big piece can be (`BIG_SHAPES`), picked to show what can be inside one; `SUIDO_BIG_FAMILIES_GUIDE` has one of each of its 32 families.
+ *
+ * @example
+ * ```ts
+ * import { SUIDO_PIECE_GUIDE } from "@johnmorrisdotca/suido";
+ * console.log(SUIDO_PIECE_GUIDE.length);
+ * ```
  */
 export const SUIDO_PIECE_GUIDE: readonly GuidePiece[] = [
   turning("ground", "Ground", 0, "Bare ground, with nothing on it. Only boards whose water need not reach every piece have it, and it is never turned."),
@@ -87,12 +118,32 @@ export const SUIDO_PIECE_GUIDE: readonly GuidePiece[] = [
   { id: "block-turn", group: "block", name: "Block that turns as one", text: "Four ordinary pieces, a corner, an end, a straight and a tee, that cannot be turned on their own. A tap turns the whole square a quarter, and each piece moves round to the next place as it turns, like a bigger piece that is not joined inside.", layout: { ...board(2, 2, [3, 8, 5, 7]), kind: "network", blocks: [0] }, water: false, facings: 4 },
 ];
 
-/** The entry with this id, or undefined. */
+/** The entry with this id, or undefined.
+ *
+ * @param id - The native big-shape or guide-piece identifier.
+ * @returns The guide piece with that identifier, or undefined when none exists.
+ * @example
+ * ```ts
+ * import { SUIDO_PIECE_GUIDE, guidePieceById } from "@johnmorrisdotca/suido";
+ *
+ * console.log(guidePieceById(SUIDO_PIECE_GUIDE[0].id)?.name);
+ * ```
+ */
 export function guidePieceById(id: string): GuidePiece | undefined {
   return SUIDO_PIECE_GUIDE.find((piece) => piece.id === id);
 }
 
-/** The pieces of one group, in the order of the guide. */
+/** The pieces of one group, in the order of the guide.
+ *
+ * @param group - The guide-piece category.
+ * @returns The pieces of one group, in the order of the guide.
+ * @example
+ * ```ts
+ * import { guidePiecesOf } from "@johnmorrisdotca/suido";
+ *
+ * console.log(guidePiecesOf("turn").length);
+ * ```
+ */
 export function guidePiecesOf(group: PieceGroup): GuidePiece[] {
   return SUIDO_PIECE_GUIDE.filter((piece) => piece.group === group);
 }
@@ -101,6 +152,12 @@ export function guidePiecesOf(group: PieceGroup): GuidePiece[] {
  * ONE BIG PIECE OF EACH FAMILY. A family is the big pieces whose pipes have the same number of openings, written largest first: `2+2` is two
  * pipes of two openings each, and `1+1+1` is three pipes of one opening each. There are 32, and each entry shows the first shape of its family
  * (`BIG_SHAPES`), with how many shapes the family has in all.
+ *
+ * @example
+ * ```ts
+ * import { SUIDO_BIG_FAMILIES_GUIDE } from "@johnmorrisdotca/suido";
+ * console.log(SUIDO_BIG_FAMILIES_GUIDE.length);
+ * ```
  */
 export const SUIDO_BIG_FAMILIES_GUIDE: readonly GuidePiece[] = BIG_FAMILIES.map((family) => {
   const shape = BIG_SHAPES.find((each) => each.family === family.family)!;

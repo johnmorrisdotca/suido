@@ -7,6 +7,12 @@
  * answer has it), and the twists it declares. Every level is proved to have exactly
  * one answer by `bigLevels.test.ts`, no two are the same board under a turn or a
  * mirror, and the order is held to the score.
+ *
+ * @example
+ * ```ts
+ * import { SUIDO_BIG } from "@johnmorrisdotca/suido/levels-big";
+ * console.log(SUIDO_BIG.length, SUIDO_BIG[0][0]);
+ * ```
  */
 export const SUIDO_BIG: readonly (readonly [string, string, string])[] = [
   ["5x5:6CCeca6caIa1563aEfCaj5d5c;b6", "0200010011100321302101111", "big-pieces"],

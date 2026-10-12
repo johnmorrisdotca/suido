@@ -6,9 +6,25 @@
  *
  * `{name}` in a line is a value filled in; a line `foo` that has a `fooOne`
  * beside it is said as `fooOne` when its `{n}` is 1.
+ *
+ * @example
+ * ```ts
+ * import type { SuidoLanguage } from "@johnmorrisdotca/suido/play";
+ *
+ * const value: SuidoLanguage = "ja";
+ * console.log(value);
+ * ```
  */
 export type SuidoLanguage = "en" | "ja";
 
+/** The native English and Japanese labels, announcements and interpolation templates.
+ *
+ * @example
+ * ```ts
+ * import { SUIDO_STRINGS } from "@johnmorrisdotca/suido/play";
+ * console.log(SUIDO_STRINGS);
+ * ```
+ */
 export const SUIDO_STRINGS: Record<SuidoLanguage, Record<string, string>> = {
   en: {
     board: "Suido board, {width} by {height}",
@@ -132,7 +148,19 @@ export const SUIDO_STRINGS: Record<SuidoLanguage, Record<string, string>> = {
   },
 };
 
-/** A line in a language, with its values filled in; the line itself if there is none by that name. */
+/** A line in a language, with its values filled in; the line itself if there is none by that name.
+ *
+ * @param language - The English or Japanese display language.
+ * @param key - The native localized label key.
+ * @param values - Values to interpolate, or numerical measurements to sort as specified by the signature.
+ * @returns A line in a language, with its values filled in; the line itself if there is none by that name.
+ * @example
+ * ```ts
+ * import { suidoSay } from "@johnmorrisdotca/suido/play";
+ *
+ * console.log(suidoSay("en","restart"));
+ * ```
+ */
 export function suidoSay(language: SuidoLanguage, key: string, values: Record<string, string | number> = {}): string {
   const table = SUIDO_STRINGS[language] ?? SUIDO_STRINGS.en;
   const one = values.n === 1 ? table[`${key}One`] : undefined;
@@ -140,7 +168,17 @@ export function suidoSay(language: SuidoLanguage, key: string, values: Record<st
   return line.replace(/\{(\w+)\}/g, (whole, name: string) => (name in values ? String(values[name]) : whole));
 }
 
-/** The language a piece of text is in: Japanese for anything starting `ja`, English for everything else. */
+/** The language a piece of text is in: Japanese for anything starting `ja`, English for everything else.
+ *
+ * @param tag - A language tag such as en or ja-JP.
+ * @returns The language a piece of text is in: Japanese for anything starting `ja`, English for everything else.
+ * @example
+ * ```ts
+ * import { suidoLanguageOf } from "@johnmorrisdotca/suido/play";
+ *
+ * console.log(suidoLanguageOf("ja-JP"));
+ * ```
+ */
 export function suidoLanguageOf(tag: string | null | undefined): SuidoLanguage {
   return typeof tag === "string" && tag.toLowerCase().startsWith("ja") ? "ja" : "en";
 }

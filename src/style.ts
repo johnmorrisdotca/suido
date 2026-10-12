@@ -21,6 +21,12 @@
  * `.suido` (`--sd-ground`, `--sd-edge`, `--sd-pipe`, `--sd-water`, `--sd-source`,
  * `--sd-bowl`, `--sd-leak`, ...), so a
  * page's own style needs only to set the ones it wants different.
+ *
+ * @example
+ * ```ts
+ * import { SUIDO_STYLE } from "@johnmorrisdotca/suido/draw";
+ * console.log(SUIDO_STYLE.length);
+ * ```
  */
 export const SUIDO_STYLE = `
 .suido {

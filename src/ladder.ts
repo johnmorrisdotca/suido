@@ -11,10 +11,31 @@ import type { Twist } from "./twists.ts";
  * early blocks and mix twists in later.
  */
 
-/** Where a level sits in its block's lesson: its 15th teaches the twist, its 16th tests it. `newOnes` are the twists no earlier level of the size has. */
+/** Where a level sits in its block's lesson: its 15th teaches the twist, its 16th tests it. `newOnes` are the twists no earlier level of the size has.
+ *
+ * @example
+ * ```ts
+ * import type { TwistRole } from "@johnmorrisdotca/suido/levels";
+ *
+ * const value: TwistRole = {role:"teaches",twists:["walls"],newOnes:["walls"]};
+ * console.log(value);
+ * ```
+ */
 export type TwistRole = { role: "teaches" | "tests"; twists: Twist[]; newOnes: Twist[] };
 
-/** A level's part in its block's lesson, or null for a level that has none (1 to 14 of a block, or a 15th or 16th with no twist). */
+/** A level's part in its block's lesson, or null for a level that has none (1 to 14 of a block, or a 15th or 16th with no twist).
+ *
+ * @param rows - The level rows whose twist lesson is examined.
+ * @param level - The one-based level number.
+ * @returns A level's part in its block's lesson, or null for a level that has none (1 to 14 of a block, or a 15th or 16th with no twist).
+ * @example
+ * ```ts
+ * import { twistRole } from "@johnmorrisdotca/suido/levels";
+ * import { SUIDO_5X5 } from "@johnmorrisdotca/suido/levels-5x5";
+ *
+ * console.log(twistRole(SUIDO_5X5,31));
+ * ```
+ */
 export function twistRole(rows: readonly LevelRow[], level: number): TwistRole | null {
   const slot = ((level - 1) % SUIDO_BLOCK) + 1;
   const row = rows[level - 1];
@@ -25,13 +46,35 @@ export function twistRole(rows: readonly LevelRow[], level: number): TwistRole |
   return { role: slot === SUIDO_BLOCK - 1 ? "teaches" : "tests", twists, newOnes: twists.filter((each) => !before.has(each)) };
 }
 
-/** A level's measured difficulty, 1 (easiest) to 5, or null for a level the marks do not have: read without loading the size's boards. */
+/** A level's measured difficulty, 1 (easiest) to 5, or null for a level the marks do not have: read without loading the size's boards.
+ *
+ * @param size - The native widthxheight size string, such as 5x5.
+ * @param level - The one-based level number.
+ * @returns A level's measured difficulty, 1 (easiest) to 5, or null for a level the marks do not have: read without loading the size's boards.
+ * @example
+ * ```ts
+ * import { suidoMarks } from "@johnmorrisdotca/suido/levels";
+ *
+ * console.log(suidoMarks("5x5",1));
+ * ```
+ */
 export function suidoMarks(size: string, level: number): number | null {
   const digit = SUIDO_MARKS[size]?.[level - 1];
   return digit === undefined ? null : Number(digit);
 }
 
-/** A level's part in its block's lesson, from the data the level script wrote (`marks.data.ts`), without its size's boards; null for none. */
+/** A level's part in its block's lesson, from the data the level script wrote (`marks.data.ts`), without its size's boards; null for none.
+ *
+ * @param size - The native widthxheight size string, such as 5x5.
+ * @param level - The one-based level number.
+ * @returns A level's part in its block's lesson, from the data the level script wrote (`marks.data.ts`), without its size's boards; null for none.
+ * @example
+ * ```ts
+ * import { suidoRole } from "@johnmorrisdotca/suido/levels";
+ *
+ * console.log(suidoRole("5x5",31));
+ * ```
+ */
 export function suidoRole(size: string, level: number): TwistRole | null {
   return SUIDO_ROLES[size]?.[level] ?? null;
 }

@@ -8,7 +8,16 @@ import { seededRandom, shuffled, type Random } from "./random.ts";
 import { solve } from "./solve.ts";
 import { canTurn } from "./game.ts";
 
-/** What a new board may be asked for. Everything has a default but the seed, and a seed has one too. */
+/** What a new board may be asked for. Everything has a default but the seed, and a seed has one too.
+ *
+ * @example
+ * ```ts
+ * import type { MakeOptions } from "@johnmorrisdotca/suido";
+ *
+ * const value: MakeOptions = {size:5,seed:42,kind:"network"};
+ * console.log(value);
+ * ```
+ */
 export type MakeOptions = {
   /** The same seed and the same options make the same board, in every browser and every Node. */
   seed?: number;
@@ -67,7 +76,24 @@ export type MakeOptions = {
   tolerance?: number;
 };
 
-/** A new board: its code, the code of its one answer, and what it was made from. */
+/** A new board: its code, the code of its one answer, and what it was made from.
+ *
+ * @example
+ * ```ts
+ * import { SUIDO_5X5 } from "@johnmorrisdotca/suido/levels-5x5";
+ * import { decodeLayout } from "@johnmorrisdotca/suido";
+ * import { levelAnswer, levelSolution } from "@johnmorrisdotca/suido/levels";
+ * import type { Made } from "@johnmorrisdotca/suido";
+ *
+ * const row = SUIDO_5X5[0];
+ * const code = row[0];
+ * const layout = decodeLayout(code)!;
+ * const answer = levelAnswer(row)!;
+ * const solution = levelSolution(row)!;
+ * const value: Made = {code,answer,layout,solution,seed:42,discarded:0};
+ * console.log(value);
+ * ```
+ */
 export type Made = {
   /** The board as the player first sees it, every piece turned at random. */
   code: string;
@@ -81,7 +107,24 @@ export type Made = {
   discarded: number;
 };
 
-/** A new board with how hard it is. */
+/** A new board with how hard it is.
+ *
+ * @example
+ * ```ts
+ * import { SUIDO_5X5 } from "@johnmorrisdotca/suido/levels-5x5";
+ * import { decodeLayout } from "@johnmorrisdotca/suido";
+ * import { levelAnswer, levelSolution } from "@johnmorrisdotca/suido/levels";
+ * import type { MadeScored } from "@johnmorrisdotca/suido";
+ *
+ * const row = SUIDO_5X5[0];
+ * const code = row[0];
+ * const layout = decodeLayout(code)!;
+ * const answer = levelAnswer(row)!;
+ * const solution = levelSolution(row)!;
+ * const value: MadeScored = {...{code,answer,layout,solution,seed:42,discarded:0},difficulty:50,tried:1};
+ * console.log(value);
+ * ```
+ */
 export type MadeScored = Made & {
   /** 1 to 100 among boards of its size: see `difficultyOf`. */
   difficulty: number;
@@ -454,6 +497,18 @@ function madeOf(plan: Plan, random: Random, seed: number, discarded: number): Ma
 /**
  * A board laid out and turned at random, with no promise about how many answers
  * it has: the raw material `makeSuido` shapes. Its `solution` is one answer.
+ *
+ * @param options - Drawing, mounting or generator choices specified by the signature.
+ * @returns A board laid out and turned at random, with no promise about how many answers it has: the raw material `makeSuido` shapes. Its `solution` is one answer.
+ * @example
+ * ```ts no-run
+ * import { SUIDO_5X5 } from "@johnmorrisdotca/suido/levels-5x5";
+ * import { laySuido } from "@johnmorrisdotca/suido";
+ *
+ * const row = SUIDO_5X5[0];
+ * const code = row[0];
+ * console.log(laySuido({size:5,seed:42}).code);
+ * ```
  */
 export function laySuido(options: MakeOptions = {}): Made {
   const settings = settingsOf(options);
@@ -565,6 +620,18 @@ function furnish(plan: Plan, settings: Settings, random: Random): void {
  * moved (or a spare piece taken off) until it does. Where walls or locks are
  * asked for, they are what is built first, and any not needed are added at the
  * end. A board the solver cannot prove inside its budget is thrown away.
+ *
+ * @param options - Drawing, mounting or generator choices specified by the signature.
+ * @returns Makes a board that has exactly one answer. A random forest rarely has one the first time: where the solver finds a second answer, the cells the two answers disagree on are where to look, and a pipe beside one of them is moved (or a spare piece taken off) until it does. Where walls or locks are asked for, they are what is built first, and any not needed are added at the end. A board the solver cannot prove inside its budget is thrown away.
+ * @example
+ * ```ts no-run
+ * import { SUIDO_5X5 } from "@johnmorrisdotca/suido/levels-5x5";
+ * import { makeUnscored } from "@johnmorrisdotca/suido";
+ *
+ * const row = SUIDO_5X5[0];
+ * const code = row[0];
+ * console.log(makeUnscored({size:5,seed:42}).code);
+ * ```
  */
 export function makeUnscored(options: MakeOptions = {}): Made {
   const settings = settingsOf(options);
@@ -617,6 +684,15 @@ export function makeUnscored(options: MakeOptions = {}): Made {
  * seed given) until one is within `tolerance` of it, or `attempts` have been
  * made, and gives the nearest. The board's `seed` is the one that made it, so
  * `makeSuido({ ...options, seed: made.seed })` makes it again.
+ *
+ * @param options - Drawing, mounting or generator choices specified by the signature.
+ * @returns Makes a board with exactly one answer and says how hard it is. With a `difficulty` asked for it makes boards (each its own seed, the first the seed given) until one is within `tolerance` of it, or `attempts` have been made, and gives the nearest. The board's `seed` is the one that made it, so `makeSuido({ ...options, seed: made.seed })` makes it again.
+ * @example
+ * ```ts no-run
+ * import { makeSuido } from "@johnmorrisdotca/suido";
+ *
+ * console.log(makeSuido({size:5,seed:42,difficulty:50,attempts:3}).difficulty);
+ * ```
  */
 export function makeSuido(options: MakeOptions = {}): MadeScored {
   const aim = options.difficulty;
@@ -635,7 +711,24 @@ export function makeSuido(options: MakeOptions = {}): MadeScored {
   return { ...best!, tried };
 }
 
-/** The turns a board needs, when taps turn a piece either way: how far it is from solved. */
+/** The turns a board needs, when taps turn a piece either way: how far it is from solved.
+ *
+ * @param given - The starting pipe masks.
+ * @param solution - The solved pipe masks in row-major cell order.
+ * @returns The turns a board needs, when taps turn a piece either way: how far it is from solved.
+ * @example
+ * ```ts
+ * import { SUIDO_5X5 } from "@johnmorrisdotca/suido/levels-5x5";
+ * import { decodeLayout, turnsFromAnswer } from "@johnmorrisdotca/suido";
+ * import { levelSolution } from "@johnmorrisdotca/suido/levels";
+ *
+ * const row = SUIDO_5X5[0];
+ * const code = row[0];
+ * const layout = decodeLayout(code)!;
+ * const solution = levelSolution(row)!;
+ * console.log(turnsFromAnswer(layout.cells,solution));
+ * ```
+ */
 export function turnsFromAnswer(given: readonly number[], solution: readonly number[]): number {
   let total = 0;
   for (let cell = 0; cell < given.length; cell += 1) {

@@ -1,3 +1,5 @@
+/** Pipe masks, board codes, water flow, game state, bounded solvers and seeded puzzle generation. */
+
 export * from "./pieces.ts";
 export * from "./code.ts";
 export * from "./flow.ts";

@@ -17,10 +17,34 @@ import { SUIDO_STYLE } from "./style.ts";
  * flow along the pipes and to run back out of one that is turned away.
  */
 
-/** What the water does at one opening of a piece. */
+/** What the water does at one opening of a piece.
+ *
+ * @example
+ * ```ts
+ * import type { ArmState } from "@johnmorrisdotca/suido/draw";
+ *
+ * const value: ArmState = "in";
+ * console.log(value);
+ * ```
+ */
 export type ArmState = "in" | "out" | "leak" | "";
 
-/** How one cell is to look. */
+/** How one cell is to look.
+ *
+ * @example
+ * ```ts
+ * import { SUIDO_5X5 } from "@johnmorrisdotca/suido/levels-5x5";
+ * import { decodeLayout } from "@johnmorrisdotca/suido";
+ * import type { CellState } from "@johnmorrisdotca/suido/draw";
+ * import { cellStates } from "@johnmorrisdotca/suido/draw";
+ *
+ * const row = SUIDO_5X5[0];
+ * const code = row[0];
+ * const layout = decodeLayout(code)!;
+ * const value: CellState = cellStates(layout)[0];
+ * console.log(value);
+ * ```
+ */
 export type CellState = {
   cell: number;
   /** Quarter turns clockwise from the piece as the board gave it, as the drawing turns it. */
@@ -32,7 +56,16 @@ export type CellState = {
   arms: [ArmState, ArmState, ArmState, ArmState];
 };
 
-/** What to draw with. */
+/** What to draw with.
+ *
+ * @example
+ * ```ts
+ * import type { DrawOptions } from "@johnmorrisdotca/suido/draw";
+ *
+ * const value: DrawOptions = {label:"Sample",water:true};
+ * console.log(value);
+ * ```
+ */
 export type DrawOptions = {
   /** How every piece faces now; the board's own, if left out. */
   masks?: readonly number[];
@@ -51,7 +84,17 @@ export type DrawOptions = {
 /** The longest the water is let take to fill a whole board, in milliseconds, when no step is given. */
 const FILL_MS = 2000;
 
-/** The milliseconds the water takes through one cell, so that the deepest cell is reached in `FILL_MS` at most. */
+/** The milliseconds the water takes through one cell, so that the deepest cell is reached in `FILL_MS` at most.
+ *
+ * @param deepest - The greatest water depth, measured in cell steps.
+ * @returns The milliseconds the water takes through one cell, so that the deepest cell is reached in `FILL_MS` at most.
+ * @example
+ * ```ts
+ * import { stepFor } from "@johnmorrisdotca/suido/draw";
+ *
+ * console.log(stepFor(10));
+ * ```
+ */
 export function stepFor(deepest: number): number {
   return Math.max(12, Math.min(90, Math.round(FILL_MS / Math.max(1, deepest + 1))));
 }
@@ -60,6 +103,23 @@ export function stepFor(deepest: number): number {
  * The state of every piece of a board whose pieces face as `masks` say. A piece is named by the cell it was
  * given in, which is where it is unless it is in a block that turns as one (`blocks.ts`): the block carries it
  * round, so its water is read where it is now, and its quarters are the block's.
+ *
+ * @param layout - The decoded board with its dimensions, pipe masks and rule settings.
+ * @param masks - Current pipe masks in row-major cell order.
+ * @param quarters - Clockwise quarter turns, per cell or for the piece specified by the signature.
+ * @param flow - Optional previously computed water flow for these masks.
+ * @returns The state of every piece of a board whose pieces face as `masks` say. A piece is named by the cell it was given in, which is where it is unless it is in a block that turns as one (`blocks.ts`): the block carries it round, so its water is read where it is now, and its quarters are the block's.
+ * @example
+ * ```ts
+ * import { SUIDO_5X5 } from "@johnmorrisdotca/suido/levels-5x5";
+ * import { decodeLayout } from "@johnmorrisdotca/suido";
+ * import { cellStates } from "@johnmorrisdotca/suido/draw";
+ *
+ * const row = SUIDO_5X5[0];
+ * const code = row[0];
+ * const layout = decodeLayout(code)!;
+ * console.log(cellStates(layout).slice(0,2));
+ * ```
  */
 export function cellStates(layout: Layout, masks: readonly number[] = layout.cells, quarters?: readonly number[], flow: Flow = flowOf(layout, masks)): CellState[] {
   const spills = new Set(flow.spills.map((spill) => spill.cell * 4 + spill.side));
@@ -170,6 +230,21 @@ const escape = (text: string): string => text.replace(/&/g, "&amp;").replace(/</
  * A board as SVG text. The pieces face as `options.masks` say, with the water
  * in them as it runs from the pumps through every opening that meets another.
  * The drawing is `class="suido"`; its colours and its flowing are `SUIDO_STYLE`.
+ *
+ * @param layout - The decoded board with its dimensions, pipe masks and rule settings.
+ * @param options - Drawing, mounting or generator choices specified by the signature.
+ * @returns A board as SVG text. The pieces face as `options.masks` say, with the water in them as it runs from the pumps through every opening that meets another. The drawing is `class="suido"`; its colours and its flowing are `SUIDO_STYLE`.
+ * @example
+ * ```ts
+ * import { SUIDO_5X5 } from "@johnmorrisdotca/suido/levels-5x5";
+ * import { decodeLayout } from "@johnmorrisdotca/suido";
+ * import { drawSuido } from "@johnmorrisdotca/suido/draw";
+ *
+ * const row = SUIDO_5X5[0];
+ * const code = row[0];
+ * const layout = decodeLayout(code)!;
+ * console.log(drawSuido(layout,{label:"Sample board"}).startsWith("<svg"));
+ * ```
  */
 export function drawSuido(layout: Layout, options: DrawOptions = {}): string {
   const masks = options.masks ?? layout.cells;
@@ -191,6 +266,21 @@ export function drawSuido(layout: Layout, options: DrawOptions = {}): string {
  * whole block of levels at once. The pipes are one path, the water in them (where the pieces face as
  * `masks` say and the water reaches) another, with the pumps, the drains, the padlocks and the walls on
  * them. It carries no cells to tap and nothing that moves; it is `class="suido"` so it takes the same colours.
+ *
+ * @param layout - The decoded board with its dimensions, pipe masks and rule settings.
+ * @param options - Drawing, mounting or generator choices specified by the signature.
+ * @returns A board as a small picture, in a few dozen elements however big the board is: for a page that shows a whole block of levels at once. The pipes are one path, the water in them (where the pieces face as `masks` say and the water reaches) another, with the pumps, the drains, the padlocks and the walls on them. It carries no cells to tap and nothing that moves; it is `class="suido"` so it takes the same colours.
+ * @example
+ * ```ts
+ * import { SUIDO_5X5 } from "@johnmorrisdotca/suido/levels-5x5";
+ * import { decodeLayout } from "@johnmorrisdotca/suido";
+ * import { drawSuidoThumb } from "@johnmorrisdotca/suido/draw";
+ *
+ * const row = SUIDO_5X5[0];
+ * const code = row[0];
+ * const layout = decodeLayout(code)!;
+ * console.log(drawSuidoThumb(layout).startsWith("<svg"));
+ * ```
  */
 export function drawSuidoThumb(layout: Layout, options: { masks?: readonly number[]; label?: string; style?: boolean; water?: boolean } = {}): string {
   const masks = options.masks ?? layout.cells;
@@ -217,7 +307,18 @@ export function drawSuidoThumb(layout: Layout, options: { masks?: readonly numbe
   return `<svg xmlns="http://www.w3.org/2000/svg" class="suido" viewBox="0 0 ${width} ${height}" role="img" aria-label="${escape(label)}" data-solved="${flow.solved}">${options.style === true ? `<style>${SUIDO_STYLE}</style>` : ""}<rect class="sd-board" width="${width}" height="${height}" rx="12"/>${platesSvg(layout)}<path class="sd-edge" d="${all}"/><path class="sd-pipe" d="${all}"/><path class="sd-thumbwater" d="${wet.join("")}"/>${marks.join("")}${wallsSvg(layout)}${layout.wrap ? `<rect class="sd-rim" x="3" y="3" width="${width - 6}" height="${height - 6}" rx="10"/>` : ""}</svg>`;
 }
 
-/** One piece on its own, as SVG text: for a legend, an icon, or a page that shows how the pieces look. `wet` fills it with water. */
+/** One piece on its own, as SVG text: for a legend, an icon, or a page that shows how the pieces look. `wet` fills it with water.
+ *
+ * @param mask - A pipe mask: north 1, east 2, south 4 and west 8.
+ * @param options - Drawing, mounting or generator choices specified by the signature.
+ * @returns One piece on its own, as SVG text: for a legend, an icon, or a page that shows how the pieces look. `wet` fills it with water.
+ * @example
+ * ```ts
+ * import { drawPiece } from "@johnmorrisdotca/suido/draw";
+ *
+ * console.log(drawPiece(3,{label:"Elbow"}).startsWith("<svg"));
+ * ```
+ */
 export function drawPiece(mask: number, options: { wet?: boolean; label?: string; style?: boolean } = {}): string {
   const base = { width: 1, height: 1, kind: "network" as const, wrap: false, cells: [mask], sources: [], drains: [] };
   const arms = [0, 1, 2, 3].map((side) => (((mask >> side) & 1) === 1 && options.wet === true ? "out" : "")) as CellState["arms"];

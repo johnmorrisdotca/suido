@@ -20,43 +20,153 @@ import { flowOf } from "./flow.ts";
  * order by.
  */
 
-/** The fewest pieces the water goes through that count for anything: a board of 5×5. */
+/** The fewest pieces the water goes through that count for anything: a board of 5×5.
+ *
+ * @example
+ * ```ts
+ * import { BIG_PIECES_SMALLEST } from "@johnmorrisdotca/suido";
+ * console.log(BIG_PIECES_SMALLEST);
+ * ```
+ */
 export const BIG_PIECES_SMALLEST = 25;
 
-/** The most, which scores full marks for size: a board of 20×20. */
+/** The most, which scores full marks for size: a board of 20×20.
+ *
+ * @example
+ * ```ts
+ * import { BIG_PIECES_LARGEST } from "@johnmorrisdotca/suido";
+ * console.log(BIG_PIECES_LARGEST);
+ * ```
+ */
 export const BIG_PIECES_LARGEST = 400;
 
-/** The weight of the size in the score, and of the tangle; they add to 1. */
+/** The weight of the size in the score, and of the tangle; they add to 1.
+ *
+ * @example
+ * ```ts
+ * import { BIG_SCORE_WEIGHTS } from "@johnmorrisdotca/suido";
+ * console.log(BIG_SCORE_WEIGHTS);
+ * ```
+ */
 export const BIG_SCORE_WEIGHTS = { size: 0.5, tangle: 0.5 } as const;
 
-/** The share of a board's pieces the water goes through in an answer, 0 to 1: 1 for a network, which the water reaches every piece of. A board with nothing on it is 0. */
+/** The share of a board's pieces the water goes through in an answer, 0 to 1: 1 for a network, which the water reaches every piece of. A board with nothing on it is 0.
+ *
+ * @param layout - The decoded board with its dimensions, pipe masks and rule settings.
+ * @param solution - The solved pipe masks in row-major cell order.
+ * @returns The share of a board's pieces the water goes through in an answer, 0 to 1: 1 for a network, which the water reaches every piece of. A board with nothing on it is 0.
+ * @example
+ * ```ts
+ * import { SUIDO_5X5 } from "@johnmorrisdotca/suido/levels-5x5";
+ * import { coverageOf, decodeLayout } from "@johnmorrisdotca/suido";
+ * import { levelSolution } from "@johnmorrisdotca/suido/levels";
+ *
+ * const row = SUIDO_5X5[0];
+ * const code = row[0];
+ * const layout = decodeLayout(code)!;
+ * const solution = levelSolution(row)!;
+ * console.log(coverageOf(layout,solution));
+ * ```
+ */
 export function coverageOf(layout: Layout, solution: readonly number[]): number {
   const pieces = layout.cells.filter((mask) => mask !== 0).length;
   return pieces === 0 ? 0 : flowOf(layout, solution).wetPieces / pieces;
 }
 
-/** How many pieces the water goes through in an answer. */
+/** How many pieces the water goes through in an answer.
+ *
+ * @param layout - The decoded board with its dimensions, pipe masks and rule settings.
+ * @param solution - The solved pipe masks in row-major cell order.
+ * @returns How many pieces the water goes through in an answer.
+ * @example
+ * ```ts
+ * import { SUIDO_5X5 } from "@johnmorrisdotca/suido/levels-5x5";
+ * import { decodeLayout, usedPiecesOf } from "@johnmorrisdotca/suido";
+ * import { levelSolution } from "@johnmorrisdotca/suido/levels";
+ *
+ * const row = SUIDO_5X5[0];
+ * const code = row[0];
+ * const layout = decodeLayout(code)!;
+ * const solution = levelSolution(row)!;
+ * console.log(usedPiecesOf(layout,solution));
+ * ```
+ */
 export function usedPiecesOf(layout: Layout, solution: readonly number[]): number {
   return flowOf(layout, solution).wetPieces;
 }
 
-/** How big a board is for scoring, 0 to 1: the pieces its answer uses, on a log scale from `BIG_PIECES_SMALLEST` to `BIG_PIECES_LARGEST`. */
+/** How big a board is for scoring, 0 to 1: the pieces its answer uses, on a log scale from `BIG_PIECES_SMALLEST` to `BIG_PIECES_LARGEST`.
+ *
+ * @param used - The number of pieces used in the solved board.
+ * @returns How big a board is for scoring, 0 to 1: the pieces its answer uses, on a log scale from `BIG_PIECES_SMALLEST` to `BIG_PIECES_LARGEST`.
+ * @example
+ * ```ts
+ * import { sizeTermOf } from "@johnmorrisdotca/suido";
+ *
+ * console.log(sizeTermOf(100));
+ * ```
+ */
 export function sizeTermOf(used: number): number {
   const term = Math.log(Math.max(1, used) / BIG_PIECES_SMALLEST) / Math.log(BIG_PIECES_LARGEST / BIG_PIECES_SMALLEST);
   return Math.min(1, Math.max(0, term));
 }
 
-/** The score of a board of `used` pieces whose tangle (`exactDifficultyOf`, 1 to 100 among boards of its size) is `tangle`, before it is rounded. */
+/** The score of a board of `used` pieces whose tangle (`exactDifficultyOf`, 1 to 100 among boards of its size) is `tangle`, before it is rounded.
+ *
+ * @param used - The number of pieces used in the solved board.
+ * @param tangle - The cross-size tangle score.
+ * @returns The score of a board of `used` pieces whose tangle (`exactDifficultyOf`, 1 to 100 among boards of its size) is `tangle`, before it is rounded.
+ * @example
+ * ```ts
+ * import { blendBigScore } from "@johnmorrisdotca/suido";
+ *
+ * console.log(blendBigScore(100,50));
+ * ```
+ */
 export function blendBigScore(used: number, tangle: number): number {
   return 1 + 99 * (BIG_SCORE_WEIGHTS.size * sizeTermOf(used) + BIG_SCORE_WEIGHTS.tangle * ((tangle - 1) / 99));
 }
 
-/** How hard a board is across the set, 1 to 100, before it is rounded: what the levels are put in order by. */
+/** How hard a board is across the set, 1 to 100, before it is rounded: what the levels are put in order by.
+ *
+ * @param layout - The decoded board with its dimensions, pipe masks and rule settings.
+ * @param solution - The solved pipe masks in row-major cell order.
+ * @returns How hard a board is across the set, 1 to 100, before it is rounded: what the levels are put in order by.
+ * @example
+ * ```ts
+ * import { SUIDO_5X5 } from "@johnmorrisdotca/suido/levels-5x5";
+ * import { decodeLayout, exactBigScoreOf } from "@johnmorrisdotca/suido";
+ * import { levelSolution } from "@johnmorrisdotca/suido/levels";
+ *
+ * const row = SUIDO_5X5[0];
+ * const code = row[0];
+ * const layout = decodeLayout(code)!;
+ * const solution = levelSolution(row)!;
+ * console.log(exactBigScoreOf(layout,solution));
+ * ```
+ */
 export function exactBigScoreOf(layout: Layout, solution: readonly number[]): number {
   return blendBigScore(usedPiecesOf(layout, solution), exactDifficultyOf(layout, solution));
 }
 
-/** How hard a board is across the set, 1 to 100: a whole number. */
+/** How hard a board is across the set, 1 to 100: a whole number.
+ *
+ * @param layout - The decoded board with its dimensions, pipe masks and rule settings.
+ * @param solution - The solved pipe masks in row-major cell order.
+ * @returns How hard a board is across the set, 1 to 100: a whole number.
+ * @example
+ * ```ts
+ * import { SUIDO_5X5 } from "@johnmorrisdotca/suido/levels-5x5";
+ * import { bigScoreOf, decodeLayout } from "@johnmorrisdotca/suido";
+ * import { levelSolution } from "@johnmorrisdotca/suido/levels";
+ *
+ * const row = SUIDO_5X5[0];
+ * const code = row[0];
+ * const layout = decodeLayout(code)!;
+ * const solution = levelSolution(row)!;
+ * console.log(bigScoreOf(layout,solution));
+ * ```
+ */
 export function bigScoreOf(layout: Layout, solution: readonly number[]): number {
   return Math.min(100, Math.max(1, Math.round(exactBigScoreOf(layout, solution))));
 }

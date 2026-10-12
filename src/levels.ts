@@ -33,7 +33,17 @@ async function importSize(size: string): Promise<readonly LevelRow[]> {
   throw new Error(`No Suido at ${size}.`);
 }
 
-/** A size's levels, loaded once and kept. */
+/** A size's levels, loaded once and kept.
+ *
+ * @param size - The native widthxheight size string, such as 5x5.
+ * @returns A size's levels, loaded once and kept.
+ * @example
+ * ```ts
+ * import { loadSuidoLevels } from "@johnmorrisdotca/suido/levels";
+ *
+ * console.log((await loadSuidoLevels("5x5")).length);
+ * ```
+ */
 export async function loadSuidoLevels(size: string): Promise<readonly LevelRow[]> {
   const already = loaded.get(size);
   if (already !== undefined) return already;
@@ -42,19 +52,55 @@ export async function loadSuidoLevels(size: string): Promise<readonly LevelRow[]
   return levels;
 }
 
-/** Every size's levels, loaded. */
+/** Every size's levels, loaded.
+ *
+ * @returns Nothing; all classic size collections are loaded and cached.
+ * @example
+ * ```ts no-run
+ * import { loadEverySuidoLevel, suidoLevelsOf } from "@johnmorrisdotca/suido/levels";
+ *
+ * await loadEverySuidoLevel();
+ * console.log(suidoLevelsOf("5x5").length);
+ * ```
+ */
 export async function loadEverySuidoLevel(): Promise<void> {
   await Promise.all(SUIDO_SIZES.map((size) => loadSuidoLevels(size)));
 }
 
-/** A size already loaded, or a refusal: nothing answers for a list it does not have. */
+/** A size already loaded, or a refusal: nothing answers for a list it does not have.
+ *
+ * @param size - The native widthxheight size string, such as 5x5.
+ * @returns A size already loaded, or a refusal: nothing answers for a list it does not have.
+ * @example
+ * ```ts
+ * import { loadSuidoLevels, suidoLevelsOf } from "@johnmorrisdotca/suido/levels";
+ *
+ * await loadSuidoLevels("5x5");
+ * console.log(suidoLevelsOf("5x5").length);
+ * ```
+ */
 export function suidoLevelsOf(size: string): readonly LevelRow[] {
   const levels = loaded.get(size);
   if (levels === undefined) throw new Error(`The ${size} Suido levels have not been loaded (loadSuidoLevels).`);
   return levels;
 }
 
-/** The level a board is, at a loaded size, or null for a board no level has. */
+/** The level a board is, at a loaded size, or null for a board no level has.
+ *
+ * @param size - The native widthxheight size string, such as 5x5.
+ * @param board - The original native board code.
+ * @returns The level a board is, at a loaded size, or null for a board no level has.
+ * @example
+ * ```ts
+ * import { loadSuidoLevels, suidoLevelOf } from "@johnmorrisdotca/suido/levels";
+ * import { SUIDO_5X5 } from "@johnmorrisdotca/suido/levels-5x5";
+ *
+ * await loadSuidoLevels("5x5");
+ * const row = SUIDO_5X5[0];
+ * const code = row[0];
+ * console.log(suidoLevelOf("5x5",code));
+ * ```
+ */
 export function suidoLevelOf(size: string, board: string): number | null {
   const at = suidoLevelsOf(size).findIndex(([code]) => code === board);
   return at === -1 ? null : at + 1;
@@ -62,19 +108,50 @@ export function suidoLevelOf(size: string, board: string): number | null {
 
 let bigLevels: readonly LevelRow[] | null = null;
 
-/** The sixty-four big-pieces levels (`bigLevels.ts`), loaded once and kept: its own file, fetched only when asked for. */
+/** The sixty-four big-pieces levels (`bigLevels.ts`), loaded once and kept: its own file, fetched only when asked for.
+ *
+ * @returns The sixty-four big-pieces levels (`bigLevels.ts`), loaded once and kept: its own file, fetched only when asked for.
+ * @example
+ * ```ts
+ * import { loadSuidoBigLevels } from "@johnmorrisdotca/suido/levels";
+ *
+ * console.log((await loadSuidoBigLevels()).length);
+ * ```
+ */
 export async function loadSuidoBigLevels(): Promise<readonly LevelRow[]> {
   if (bigLevels === null) bigLevels = (await import("./levels/big.data.ts")).SUIDO_BIG;
   return bigLevels;
 }
 
-/** The big-pieces levels already loaded, or a refusal: nothing answers for a list it does not have. */
+/** The big-pieces levels already loaded, or a refusal: nothing answers for a list it does not have.
+ *
+ * @returns The big-pieces levels already loaded, or a refusal: nothing answers for a list it does not have.
+ * @example
+ * ```ts
+ * import { loadSuidoBigLevels, suidoBigLevelsLoaded } from "@johnmorrisdotca/suido/levels";
+ *
+ * await loadSuidoBigLevels();
+ * console.log(suidoBigLevelsLoaded().length);
+ * ```
+ */
 export function suidoBigLevelsLoaded(): readonly LevelRow[] {
   if (bigLevels === null) throw new Error("The big-pieces levels have not been loaded (loadSuidoBigLevels).");
   return bigLevels;
 }
 
-/** The level a board is in the big-pieces set (1 to 64), once it is loaded, or null for a board no level has. */
+/** The level a board is in the big-pieces set (1 to 64), once it is loaded, or null for a board no level has.
+ *
+ * @param board - The original native board code.
+ * @returns The level a board is in the big-pieces set (1 to 64), once it is loaded, or null for a board no level has.
+ * @example
+ * ```ts
+ * import { loadSuidoBigLevels, suidoBigLevelOf } from "@johnmorrisdotca/suido/levels";
+ * import { SUIDO_BIG } from "@johnmorrisdotca/suido/levels-big";
+ *
+ * await loadSuidoBigLevels();
+ * console.log(suidoBigLevelOf(SUIDO_BIG[0][0]));
+ * ```
+ */
 export function suidoBigLevelOf(board: string): number | null {
   const at = suidoBigLevelsLoaded().findIndex(([code]) => code === board);
   return at === -1 ? null : at + 1;

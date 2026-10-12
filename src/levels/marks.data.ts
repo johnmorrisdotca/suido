@@ -8,6 +8,15 @@
  */
 import type { TwistRole } from "../ladder.ts";
 
+/** The native difficulty digits for each classic size, one digit per level in level order.
+ *
+ *
+ * @example
+ * ```ts
+ * import { SUIDO_MARKS } from "@johnmorrisdotca/suido/marks";
+ * console.log(Object.keys(SUIDO_MARKS));
+ * ```
+ */
 export const SUIDO_MARKS: Readonly<Record<string, string>> = {
   "5x5": "1111111111111111111111111111111111111111111111222222222222222222222222222222222222222222222222223333333333333333333333333333333333333333333333344444444444444444444444444444444455555555555555555555555555555555555555555555555555555555555555555555555555555555",
   "6x6": "1111111111111111111111111111111111111111111111122222222222222222222222222222222222222222222222222223333333333333333333333333333333333333333333333333333444444444444444444444444444444444444444444444444444455555555555555555555555555555555555555555555555555555",
@@ -27,6 +36,15 @@ export const SUIDO_MARKS: Readonly<Record<string, string>> = {
   "20x50": "1111111111112222222222222333333333333344444444444455555555555555",
 };
 
+/** The teaching or testing role of classic twist levels, keyed by size and one-based level number.
+ *
+ *
+ * @example
+ * ```ts
+ * import { SUIDO_ROLES } from "@johnmorrisdotca/suido/marks";
+ * console.log(Object.keys(SUIDO_ROLES));
+ * ```
+ */
 export const SUIDO_ROLES: Readonly<Record<string, Readonly<Record<number, TwistRole>>>> = {
   "5x5": {"31":{"role":"teaches","twists":["drains"],"newOnes":["drains"]},"32":{"role":"tests","twists":["drains"],"newOnes":[]},"47":{"role":"teaches","twists":["pumps"],"newOnes":["pumps"]},"48":{"role":"tests","twists":["pumps"],"newOnes":[]},"63":{"role":"teaches","twists":["locked"],"newOnes":["locked"]},"64":{"role":"tests","twists":["locked"],"newOnes":[]},"79":{"role":"teaches","twists":["walls"],"newOnes":["walls"]},"80":{"role":"tests","twists":["walls"],"newOnes":[]},"95":{"role":"teaches","twists":["wrap"],"newOnes":["wrap"]},"96":{"role":"tests","twists":["wrap"],"newOnes":[]},"111":{"role":"teaches","twists":["inlet-outlet"],"newOnes":["inlet-outlet"]},"112":{"role":"tests","twists":["inlet-outlet"],"newOnes":[]},"127":{"role":"teaches","twists":["locked","wrap"],"newOnes":[]},"128":{"role":"tests","twists":["locked","wrap"],"newOnes":[]},"143":{"role":"teaches","twists":["locked","walls"],"newOnes":[]},"144":{"role":"tests","twists":["locked","walls"],"newOnes":[]},"159":{"role":"teaches","twists":["drains","pumps"],"newOnes":[]},"160":{"role":"tests","twists":["drains","pumps"],"newOnes":[]},"175":{"role":"teaches","twists":["locked","inlet-outlet"],"newOnes":[]},"176":{"role":"tests","twists":["locked","inlet-outlet"],"newOnes":[]},"191":{"role":"teaches","twists":["drains","wrap"],"newOnes":[]},"192":{"role":"tests","twists":["drains","wrap"],"newOnes":[]},"207":{"role":"teaches","twists":["pumps","wrap"],"newOnes":[]},"208":{"role":"tests","twists":["pumps","wrap"],"newOnes":[]},"223":{"role":"teaches","twists":["walls","inlet-outlet"],"newOnes":[]},"224":{"role":"tests","twists":["walls","inlet-outlet"],"newOnes":[]},"239":{"role":"teaches","twists":["drains","pumps","wrap"],"newOnes":[]},"240":{"role":"tests","twists":["drains","pumps","wrap"],"newOnes":[]},"255":{"role":"teaches","twists":["drains","walls","wrap"],"newOnes":[]},"256":{"role":"tests","twists":["drains","walls","wrap"],"newOnes":[]}},
   "6x6": {"31":{"role":"teaches","twists":["drains"],"newOnes":["drains"]},"32":{"role":"tests","twists":["drains"],"newOnes":[]},"47":{"role":"teaches","twists":["pumps"],"newOnes":["pumps"]},"48":{"role":"tests","twists":["pumps"],"newOnes":[]},"63":{"role":"teaches","twists":["locked"],"newOnes":["locked"]},"64":{"role":"tests","twists":["locked"],"newOnes":[]},"79":{"role":"teaches","twists":["walls"],"newOnes":["walls"]},"80":{"role":"tests","twists":["walls"],"newOnes":[]},"95":{"role":"teaches","twists":["wrap"],"newOnes":["wrap"]},"96":{"role":"tests","twists":["wrap"],"newOnes":[]},"111":{"role":"teaches","twists":["inlet-outlet"],"newOnes":["inlet-outlet"]},"112":{"role":"tests","twists":["inlet-outlet"],"newOnes":[]},"127":{"role":"teaches","twists":["locked","wrap"],"newOnes":[]},"128":{"role":"tests","twists":["locked","wrap"],"newOnes":[]},"143":{"role":"teaches","twists":["locked","walls"],"newOnes":[]},"144":{"role":"tests","twists":["locked","walls"],"newOnes":[]},"159":{"role":"teaches","twists":["drains","pumps"],"newOnes":[]},"160":{"role":"tests","twists":["drains","pumps"],"newOnes":[]},"175":{"role":"teaches","twists":["locked","inlet-outlet"],"newOnes":[]},"176":{"role":"tests","twists":["locked","inlet-outlet"],"newOnes":[]},"191":{"role":"teaches","twists":["drains","wrap"],"newOnes":[]},"192":{"role":"tests","twists":["drains","wrap"],"newOnes":[]},"207":{"role":"teaches","twists":["pumps","wrap"],"newOnes":[]},"208":{"role":"tests","twists":["pumps","wrap"],"newOnes":[]},"223":{"role":"teaches","twists":["walls","inlet-outlet"],"newOnes":[]},"224":{"role":"tests","twists":["walls","inlet-outlet"],"newOnes":[]},"239":{"role":"teaches","twists":["drains","pumps","wrap"],"newOnes":[]},"240":{"role":"tests","twists":["drains","pumps","wrap"],"newOnes":[]},"255":{"role":"teaches","twists":["drains","walls","wrap"],"newOnes":[]},"256":{"role":"tests","twists":["drains","walls","wrap"],"newOnes":[]}},

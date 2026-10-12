@@ -4,7 +4,23 @@ import { drainFacings, rotationsOfLayout } from "./facing.ts";
 import { flowOf } from "./flow.ts";
 import { refreshCells, unitsOf, wayHolds, type CellSets } from "./units.ts";
 
-/** What a player can work out without guessing, as a person would: look at every piece, fix what is forced, and look again. */
+/** What a player can work out without guessing, as a person would: look at every piece, fix what is forced, and look again.
+ *
+ * @example
+ * ```ts
+ * import { SUIDO_5X5 } from "@johnmorrisdotca/suido/levels-5x5";
+ * import { decodeLayout, deduce } from "@johnmorrisdotca/suido";
+ * import { levelSolution } from "@johnmorrisdotca/suido/levels";
+ * import type { Deduction } from "@johnmorrisdotca/suido";
+ *
+ * const row = SUIDO_5X5[0];
+ * const code = row[0];
+ * const layout = decodeLayout(code)!;
+ * const solution = levelSolution(row)!;
+ * const value: Deduction = deduce(layout,solution);
+ * console.log(value);
+ * ```
+ */
 export type Deduction = {
   /** The pieces the water goes through in the answer. */
   pieces: number;
@@ -24,6 +40,22 @@ export type Deduction = {
  * board does it by growing from the pumps and the drains. `solution` is an
  * answer to the board, which says which pieces a drains board's water goes
  * through.
+ *
+ * @param layout - The decoded board with its dimensions, pipe masks and rule settings.
+ * @param solution - The solved pipe masks in row-major cell order.
+ * @returns The deductions of a board, in rounds. Each round looks at every piece at once, as the board stood at the end of the last, and fixes every piece whose facing is now forced. A network does it by what each piece may still face (a piece must open back on a neighbour that must open towards it); a drains board does it by growing from the pumps and the drains. `solution` is an answer to the board, which says which pieces a drains board's water goes through.
+ * @example
+ * ```ts
+ * import { SUIDO_5X5 } from "@johnmorrisdotca/suido/levels-5x5";
+ * import { decodeLayout, deduce } from "@johnmorrisdotca/suido";
+ * import { levelSolution } from "@johnmorrisdotca/suido/levels";
+ *
+ * const row = SUIDO_5X5[0];
+ * const code = row[0];
+ * const layout = decodeLayout(code)!;
+ * const solution = levelSolution(row)!;
+ * console.log(deduce(layout,solution));
+ * ```
  */
 export function deduce(layout: Layout, solution: readonly number[]): Deduction {
   if (layout.kind !== "network" && hasBlocks(layout)) throw new Error("Only a network can have big pieces or blocks that turn.");

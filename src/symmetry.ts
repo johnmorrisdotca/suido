@@ -9,7 +9,22 @@ function mirrored(mask: number): number {
   return (mask & 5) | ((mask & 2) << 2) | ((mask & 8) >> 2);
 }
 
-/** A board's cells, pumps, drains, locks, walls and blocks moved by one of the eight turns and mirrors: `op` 0 to 3 turn it a quarter at a time, 4 to 7 do so after a mirror. */
+/** A board's cells, pumps, drains, locks, walls and blocks moved by one of the eight turns and mirrors: `op` 0 to 3 turn it a quarter at a time, 4 to 7 do so after a mirror.
+ *
+ * @param layout - The decoded board with its dimensions, pipe masks and rule settings.
+ * @param op - One of the eight rectangular symmetry operations.
+ * @returns A board's cells, pumps, drains, locks, walls and blocks moved by one of the eight turns and mirrors: `op` 0 to 3 turn it a quarter at a time, 4 to 7 do so after a mirror.
+ * @example
+ * ```ts
+ * import { SUIDO_5X5 } from "@johnmorrisdotca/suido/levels-5x5";
+ * import { decodeLayout, transformLayout } from "@johnmorrisdotca/suido";
+ *
+ * const row = SUIDO_5X5[0];
+ * const code = row[0];
+ * const layout = decodeLayout(code)!;
+ * console.log(transformLayout(layout,1).width);
+ * ```
+ */
 export function transformLayout(layout: Layout, op: number): Layout {
   const flip = op >= 4;
   const quarters = op & 3;
@@ -71,6 +86,22 @@ export function transformLayout(layout: Layout, op: number): Layout {
  * its eight turns and mirrors, with every piece the water does not go through
  * (it may face any way) set to one facing. Two boards with the same key are the
  * same puzzle. `solution` is the board with its pieces facing as an answer has them.
+ *
+ * @param layout - The decoded board with its dimensions, pipe masks and rule settings.
+ * @param solution - The solved pipe masks in row-major cell order.
+ * @returns A board's identity up to turning and mirroring it: the smallest of the codes of its eight turns and mirrors, with every piece the water does not go through (it may face any way) set to one facing. Two boards with the same key are the same puzzle. `solution` is the board with its pieces facing as an answer has them.
+ * @example
+ * ```ts
+ * import { SUIDO_5X5 } from "@johnmorrisdotca/suido/levels-5x5";
+ * import { decodeLayout, symmetryKey } from "@johnmorrisdotca/suido";
+ * import { levelSolution } from "@johnmorrisdotca/suido/levels";
+ *
+ * const row = SUIDO_5X5[0];
+ * const code = row[0];
+ * const layout = decodeLayout(code)!;
+ * const solution = levelSolution(row)!;
+ * console.log(symmetryKey(layout,solution));
+ * ```
  */
 export function symmetryKey(layout: Layout, solution: readonly number[]): string {
   const answer: Layout = { ...layout, cells: [...solution] };

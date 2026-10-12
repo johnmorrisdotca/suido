@@ -10,6 +10,12 @@ import { SUIDO_STYLE } from "./style.ts";
  * Nothing moves when something is chosen: the board is one box in the board's
  * own shape, the lines of words keep the room their longest wording takes, and
  * the buttons are one size.
+ *
+ * @example
+ * ```ts
+ * import { SUIDO_PLAY_STYLE } from "@johnmorrisdotca/suido/play";
+ * console.log(SUIDO_PLAY_STYLE.length);
+ * ```
  */
 export const SUIDO_PLAY_STYLE = `${SUIDO_STYLE}
 .suido-play {

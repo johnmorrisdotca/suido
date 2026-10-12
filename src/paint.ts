@@ -18,6 +18,32 @@ import { flowOf, type Flow } from "./flow.ts";
  */
 const painted = new WeakMap<Element, string>();
 
+/** Update the existing board SVG with current facings and water, returning its flow state.
+ *
+ * @param svg - The existing native SVG board element.
+ * @param layout - The decoded board with its dimensions, pipe masks and rule settings.
+ * @param masks - Current pipe masks in row-major cell order.
+ * @param quarters - Clockwise quarter turns, per cell or for the piece specified by the signature.
+ * @returns Update the existing board SVG with current facings and water, returning its flow state.
+ * @example
+ * ```ts no-run
+ * import { SUIDO_5X5 } from "@johnmorrisdotca/suido/levels-5x5";
+ * import { decodeLayout, newGame } from "@johnmorrisdotca/suido";
+ * import { levelSolution } from "@johnmorrisdotca/suido/levels";
+ * import { drawSuido, paintSuido } from "@johnmorrisdotca/suido/draw";
+ *
+ * const row = SUIDO_5X5[0];
+ * const code = row[0];
+ * const layout = decodeLayout(code)!;
+ * const solution = levelSolution(row)!;
+ * const game = newGame(code)!;
+ * const host = document.createElement("div");
+ * document.body.append(host);
+ * host.innerHTML = drawSuido(layout);
+ * const svg = host.querySelector("svg")!;
+ * console.log(paintSuido(svg,layout,solution,game.quarters).solved);
+ * ```
+ */
 export function paintSuido(svg: Element, layout: Layout, masks: readonly number[], quarters: readonly number[]): Flow {
   const flow = flowOf(layout, masks);
   const states = cellStates(layout, masks, quarters, flow);

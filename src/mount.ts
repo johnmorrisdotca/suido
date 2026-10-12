@@ -37,10 +37,33 @@ import { attachSuidoView, needsZoom, SUIDO_FIT, type SuidoView, type SuidoViewer
  * `drawSuido`'s, and both are usable alone.
  */
 
-/** The way a tap turns a piece. */
+/** The way a tap turns a piece.
+ *
+ * @example
+ * ```ts
+ * import type { SuidoTurning } from "@johnmorrisdotca/suido/play";
+ *
+ * const value: SuidoTurning = "clockwise";
+ * console.log(value);
+ * ```
+ */
 export type SuidoTurning = "clockwise" | "anticlockwise";
 
-/** What a mounted board tells of itself in every event. */
+/** What a mounted board tells of itself in every event.
+ *
+ * @example
+ * ```ts
+ * import { SUIDO_5X5 } from "@johnmorrisdotca/suido/levels-5x5";
+ * import { gameProgress, isGameSolved, newGame } from "@johnmorrisdotca/suido";
+ * import type { SuidoEventDetail } from "@johnmorrisdotca/suido/play";
+ *
+ * const row = SUIDO_5X5[0];
+ * const code = row[0];
+ * const game = newGame(code)!;
+ * const value: SuidoEventDetail = {code,progress:gameProgress(game),turns:game.turns,hints:0,solved:isGameSolved(game)};
+ * console.log(value);
+ * ```
+ */
 export type SuidoEventDetail = {
   /** The game as a code, every piece facing as it does now: what `checkSuidoAnswer` takes, with the board's own code. */
   code: string;
@@ -55,6 +78,21 @@ export type SuidoEventDetail = {
   cell?: number;
 };
 
+/** The initial puzzle, native controls, language and event callbacks for mounting a board.
+ *
+ * @example
+ * ```ts
+ * import { SUIDO_5X5 } from "@johnmorrisdotca/suido/levels-5x5";
+ * import { levelAnswer } from "@johnmorrisdotca/suido/levels";
+ * import type { SuidoMountOptions } from "@johnmorrisdotca/suido/play";
+ *
+ * const row = SUIDO_5X5[0];
+ * const code = row[0];
+ * const answer = levelAnswer(row)!;
+ * const value: SuidoMountOptions = {code,answer,controls:true,language:"en"};
+ * console.log(value);
+ * ```
+ */
 export type SuidoMountOptions = {
   /** The board, as its code (`makeSuido(...).code`, or a level's `row[0]`). */
   code: string;
@@ -84,6 +122,25 @@ export type SuidoMountOptions = {
   onSolve?: (detail: SuidoEventDetail) => void;
 };
 
+/** The native mounted board, its game and view, actions and cleanup methods.
+ *
+ * @example
+ * ```ts no-run
+ * import { SUIDO_5X5 } from "@johnmorrisdotca/suido/levels-5x5";
+ * import { levelAnswer } from "@johnmorrisdotca/suido/levels";
+ * import type { SuidoMount } from "@johnmorrisdotca/suido/play";
+ * import { mountSuido } from "@johnmorrisdotca/suido/play";
+ *
+ * const row = SUIDO_5X5[0];
+ * const code = row[0];
+ * const answer = levelAnswer(row)!;
+ * const host = document.createElement("div");
+ * document.body.append(host);
+ * const board: SuidoMount | null = mountSuido(host,{code,answer,controls:true});
+ * console.log(board?.progress());
+ * board?.destroy();
+ * ```
+ */
 export type SuidoMount = {
   readonly host: HTMLElement;
   /** The game as it stands. */
@@ -110,7 +167,20 @@ export type SuidoMount = {
   destroy: () => void;
 };
 
-/** Put the style in the page once: in the document's head, or in the shadow root the host is in. */
+/** Put the style in the page once: in the document's head, or in the shadow root the host is in.
+ *
+ * @param host - The DOM host for the scoped native board styles.
+ * @returns Nothing; native scoped styles are installed for the host.
+ * @example
+ * ```ts no-run
+ * import { ensureSuidoPlayStyle } from "@johnmorrisdotca/suido/play";
+ *
+ * const host = document.createElement("div");
+ * document.body.append(host);
+ * ensureSuidoPlayStyle(host);
+ * console.log(host.tagName);
+ * ```
+ */
 export function ensureSuidoPlayStyle(host: Element): void {
   const root = host.getRootNode();
   const target: ParentNode = typeof ShadowRoot !== "undefined" && root instanceof ShadowRoot ? root : host.ownerDocument.head;

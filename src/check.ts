@@ -3,7 +3,22 @@ import { decodeLayout } from "./code.ts";
 import { flowOf } from "./flow.ts";
 import { quartersBetween } from "./pieces.ts";
 
-/** What a check says: solved, or the first reason it is not. */
+/** What a check says: solved, or the first reason it is not.
+ *
+ * @example
+ * ```ts
+ * import { SUIDO_5X5 } from "@johnmorrisdotca/suido/levels-5x5";
+ * import { levelAnswer } from "@johnmorrisdotca/suido/levels";
+ * import type { SuidoCheck } from "@johnmorrisdotca/suido";
+ * import { checkSuidoAnswer } from "@johnmorrisdotca/suido";
+ *
+ * const row = SUIDO_5X5[0];
+ * const code = row[0];
+ * const answer = levelAnswer(row)!;
+ * const value: SuidoCheck = checkSuidoAnswer(code,answer);
+ * console.log(value);
+ * ```
+ */
 export type SuidoCheck = { ok: true } | { ok: false; reason: string };
 
 /**
@@ -24,6 +39,21 @@ export type SuidoCheck = { ok: true } | { ok: false; reason: string };
  *
  * It does not ask whether the board is one a site has made: a site that pays
  * or ranks for a solve asks that first.
+ *
+ * @param board - The original native board code.
+ * @param answer - The solved pipe masks or encoded answer specified by the signature.
+ * @returns Whether an answer solves a board: the check a page makes to say "solved" and a server makes before it trusts a solve. O(cells): one walk of the water, no search.
+ * @example
+ * ```ts
+ * import { SUIDO_5X5 } from "@johnmorrisdotca/suido/levels-5x5";
+ * import { levelAnswer } from "@johnmorrisdotca/suido/levels";
+ * import { checkSuidoAnswer } from "@johnmorrisdotca/suido";
+ *
+ * const row = SUIDO_5X5[0];
+ * const code = row[0];
+ * const answer = levelAnswer(row)!;
+ * console.log(checkSuidoAnswer(code,answer));
+ * ```
  */
 export function checkSuidoAnswer(board: string, answer: string): SuidoCheck {
   const layout = decodeLayout(board);
