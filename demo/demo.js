@@ -14,6 +14,7 @@ import { blockOf, blockRange, dailySuidoLevel, declaredTwists, levelAnswer, leve
 // (its lines, buttons, twists) are the package's.
 const WORDS = {
   en: {
+    pageDocs: "Docs",
     pageApi: "API reference",
     pitch: "Turn the pieces of pipe until the water from the pump reaches every drain.",
     name: "Suido (水道) is Japanese for a waterworks: the pipes that carry water.",
@@ -85,6 +86,7 @@ const WORDS = {
     foot: "Every level was made once and is proved on every build to have exactly one answer. Nothing here leaves your device.",
   },
   ja: {
+    pageDocs: "ドキュメント",
     pageApi: "API（英語）",
     pitch: "パイプの駒を回して、ポンプからの水をすべての排水口に届けましょう。",
     name: "「水道」は、水を通す道、つまり水道管のことです。",
@@ -255,7 +257,7 @@ for (const key of Object.keys(progress)) progress[key] = legacy(progress[key]);
 
 const IDS = ["modes", "sets", "classic-sizes", "classic-shapes", "pieces-small", "pieces-big", "pieces-families", "sizes", "shapes", "kinds", "wrap", "sources", "lockedamount", "wallsamount", "bigsamount", "blocksamount", "difficulty", "difficulty-value", "new", "timer-toggle", "kind-note", "board", "table", "meter", "previous", "next", "today", "level-number", "level-of", "open", "marks", "role", "block", "block-title"];
 const els = Object.fromEntries(IDS.map((id) => [id, document.getElementById(id)]));
-const language = familyLanguage({ id: "suido", words: WORDS, onChange: () => refresh() });
+const language = familyLanguage({ id: "suido", words: WORDS, onChange: () => { docsLink(); refresh(); } });
 const say = (key, ...args) => {
   const word = WORDS[language.lang][key];
   return typeof word === "function" ? word(...args) : word;
@@ -715,3 +717,6 @@ els["timer-toggle"].addEventListener("click", () => {
 refresh();
 if (inLevels()) void openAny(null);
 else makeBoard(true);
+
+function docsLink() { document.querySelector('[data-say="pageDocs"]')?.setAttribute("href", language.lang === "ja" ? "docs/ja/index.html" : "docs/index.html"); }
+docsLink();

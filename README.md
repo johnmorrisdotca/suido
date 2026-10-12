@@ -1,4 +1,4 @@
-<h1 align="center">Suido <sub>水道</sub></h1>
+<h1 align="center">Suido <sub>水道</sub> — Pipe-connecting puzzle</h1>
 
 <p align="center"><strong>A pipe puzzle for JavaScript and TypeScript.</strong><br>
 Turn the pieces until the water from the pump reaches every drain and nothing is left open. 3,520 fixed levels from easy to hard, in 5×5 to 28×28 and four long pipe shapes, each with exactly one answer, with walls, locked pieces, wrap-around edges, several pumps, drains and inlet-to-outlet paths, and boards of your own with big pieces that fill four squares and squares of four pieces that turn together. Boards as short codes, a solver that counts answers, a seeded generator whose every board has exactly one, a difficulty from 1 to 100 within each size, and the water drawn as SVG that flows along the pipes as they join, played by tap, mouse and keyboard in any page with one call or one tag. No dependencies.</p>
@@ -9,16 +9,18 @@ Turn the pieces until the water from the pump reaches every drain and nothing is
   <a href="./LICENSE"><img alt="MIT licence" src="https://img.shields.io/badge/licence-MIT-2f5d4a"></a>
   <img alt="No dependencies" src="https://img.shields.io/badge/dependencies-0-2f5d4a">
   <img alt="TypeScript" src="https://img.shields.io/badge/types-TypeScript-3178c6">
+  <a href="https://johnmorrisdotca.github.io/suido/docs/api/main/index.html"><img alt="46.3 kB minified and gzipped" src="https://img.shields.io/badge/min%2Bgzip-46.3%20kB-2f5d4a"></a>
+  <a href="https://www.npmjs.com/package/@johnmorrisdotca/suido#provenance"><img alt="Published with npm provenance" src="https://img.shields.io/badge/npm-provenance-2f5d4a"></a>
 </p>
 
-<p align="center"><a href="https://johnmorrisdotca.github.io/suido/"><strong>Play the levels →</strong></a> · <a href="https://johnmorrisdotca.github.io/suido/api.html">API reference</a> · <a href="docs/API.md">Every export</a></p>
+<p align="center"><a href="https://johnmorrisdotca.github.io/suido/"><strong>Play the levels →</strong></a> · <a href="https://johnmorrisdotca.github.io/suido/docs/">Documentation</a> · <a href="https://johnmorrisdotca.github.io/suido/docs/guides/getting-started.html">Getting started</a> · <a href="https://johnmorrisdotca.github.io/suido/api.html">API reference</a> · <a href="docs/API.md">Every export</a></p>
 
 <table align="center">
 <tr>
 <td align="center" valign="top">
 <picture>
 <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/johnmorrisdotca/suido/main/docs/images/hero-desk-dark.webp">
-<img src="https://raw.githubusercontent.com/johnmorrisdotca/suido/main/docs/images/hero-desk-light.webp" alt="Level 95 of the 9 by 9 levels, solved, on a desk: the page's header, the difficulty marks above the board, a square of pale tiles with blue pipes and round drains, all filled with water, and the buttons under it." width="720">
+<img src="https://raw.githubusercontent.com/johnmorrisdotca/suido/main/docs/images/hero-desk-light.webp" alt="Level 95 of the 9 by 9 levels, solved, on a desk: the page's header with Docs, the difficulty marks above the board, a square of pale tiles with blue pipes and round drains, all filled with water, and the buttons under it." width="720">
 </picture>
 <br><em>A solved level on a desk: the water from the pump has reached every drain.</em>
 </td>
@@ -169,6 +171,17 @@ Each picture is a numbered level from [the demo](https://johnmorrisdotca.github.
 [Build a fixed or daily puzzle embed](https://johnmorrisdotca.github.io/suido/builder.html). Use `grid` and `daily` for the puzzle, `size` and `width` for display, and `theme` and `label` for presentation. The [embed guide](docs/embeds.md) covers properties and event messages.
 
 ## Use it in your project
+
+### Install under another name
+
+```sh
+npm install pipe-puzzle@npm:@johnmorrisdotca/suido
+```
+
+```ts no-check
+import { cellChar } from "pipe-puzzle";
+console.log(cellChar(3));
+```
 
 ### Install
 
@@ -630,7 +643,7 @@ is the one that made the board, so `makeSuido({ ...options, seed: made.seed })` 
 
 ## API
 
-The [API reference](https://johnmorrisdotca.github.io/suido/api.html) lists every export of every entry point with its signature and its doc comment. It is made from the source by `pnpm site`, so it cannot fall behind the code.
+The [documentation](https://johnmorrisdotca.github.io/suido/docs/) includes bilingual guides, local search, signatures, parameters, return values and checked examples, built from source by `pnpm docs:site`. The [API index](https://johnmorrisdotca.github.io/suido/api.html) preserves export anchors.
 
 ### The calls to learn first
 
@@ -776,14 +789,7 @@ The time to make one board is under a millisecond to a few milliseconds up to 12
 
 ## Architecture
 
-The rules, the solver and the generator are plain functions over short codes, with no
-DOM. The drawing is a separate entry.
-
-The file-by-file tree, with a line on each source file, is in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md): the rules and the solver (`layout`, `solve`, `flow`, `game`), the generator and the difficulty (`generate`, `difficulty`, `deduce`), the levels (`levels*`, `marks`, `daily`), the drawing (`draw`), and the page (`mount`, `element`, `view`). Tests sit beside the code they test (`*.test.ts`), and the solver is held to
-`brute.fixture.ts`, which tries every way of facing every piece, on small boards, with locked pieces,
-walls and an inlet and outlet among them. `levels.<size>.test.ts` proves every level of a size again
-(`levelSuite.fixture.ts`). `scripts/` builds the demo, makes the difficulty reference sets and the levels,
-and checks the package as npm packs it; `demo/` is the playable page and `e2e/` plays it in real browsers.
+Pure board rules, separate SVG and native mounting entries, lazy level data and difficulty references are explained in the [architecture guide](docs/guides/architecture.md). The [file-by-file tree](docs/ARCHITECTURE.md) is checked against the source.
 
 ## The name
 

@@ -1,0 +1,105 @@
+{
+  "measured": "esbuild 0.28.2, bundled, minified, ES2020, gzip level 9",
+  "entries": {
+    ".": {
+      "minified": 128919,
+      "gzip": 46264
+    },
+    "./draw": {
+      "minified": 19985,
+      "gzip": 6982
+    },
+    "./play": {
+      "minified": 45448,
+      "gzip": 15358
+    },
+    "./element": {
+      "minified": 1020174,
+      "gzip": 466654
+    },
+    "./element/define": {
+      "minified": 1020179,
+      "gzip": 466657
+    },
+    "./levels": {
+      "minified": 1030576,
+      "gzip": 465311
+    },
+    "./levels-info": {
+      "minified": 37233,
+      "gzip": 4578
+    },
+    "./levels-5x5": {
+      "minified": 17564,
+      "gzip": 7654
+    },
+    "./levels-6x6": {
+      "minified": 23228,
+      "gzip": 10549
+    },
+    "./levels-7x7": {
+      "minified": 29904,
+      "gzip": 13834
+    },
+    "./levels-8x8": {
+      "minified": 37756,
+      "gzip": 17766
+    },
+    "./levels-9x9": {
+      "minified": 46654,
+      "gzip": 22122
+    },
+    "./levels-10x10": {
+      "minified": 56956,
+      "gzip": 26827
+    },
+    "./levels-11x11": {
+      "minified": 67615,
+      "gzip": 31907
+    },
+    "./levels-12x12": {
+      "minified": 79679,
+      "gzip": 37721
+    },
+    "./levels-13x13": {
+      "minified": 92545,
+      "gzip": 43828
+    },
+    "./levels-14x14": {
+      "minified": 106523,
+      "gzip": 50505
+    },
+    "./levels-5x7": {
+      "minified": 22744,
+      "gzip": 10289
+    },
+    "./levels-6x10": {
+      "minified": 36009,
+      "gzip": 16778
+    },
+    "./levels-8x14": {
+      "minified": 62917,
+      "gzip": 29825
+    },
+    "./levels-20x20": {
+      "minified": 52356,
+      "gzip": 25188
+    },
+    "./levels-28x28": {
+      "minified": 101508,
+      "gzip": 48105
+    },
+    "./levels-20x50": {
+      "minified": 129156,
+      "gzip": 60859
+    },
+    "./levels-big": {
+      "minified": 27227,
+      "gzip": 13170
+    },
+    "./marks": {
+      "minified": 26944,
+      "gzip": 770
+    }
+  }
+}

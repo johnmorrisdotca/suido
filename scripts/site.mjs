@@ -38,9 +38,9 @@ const page = `<!doctype html>
   <head>
     ${familyHead({
       id,
-      title: "Suido · turn the pipes, bring the water",
+      title: "Suido 水道 — Pipe-connecting puzzle",
       description: `Play Suido, the pipe puzzle: ${total} levels from 5×5 to 28×28 and long pipe boards, easy to hard, with walls, locked pieces, wrap-around edges, several pumps, drains and inlet-to-outlet paths. Every level has exactly one answer. Free and open source, in English and Japanese.`,
-      ogTitle: "Suido pipe puzzle",
+      ogTitle: "Suido 水道 — Pipe-connecting puzzle",
       ogDescription: `Turn the pipes until the water reaches every drain. ${total} levels, each with one answer.`,
     })}
     <link rel="icon" href="${ICON}" />
@@ -50,7 +50,7 @@ const page = `<!doctype html>
   </head>
   <body>
     <main>
-      ${familyHeader({ id, links: [{ href: "api.html", say: "pageApi" }] })}
+      ${familyHeader({ id, links: [{ href: "docs/index.html", say: "pageDocs" }, { href: "api.html", say: "pageApi" }] })}
       <div class="setup fam-row" data-help-en="Levels are fixed boards from easy to hard: solve a block of sixteen to open the next. Make a board makes a new one from a seed, with the twists you choose." data-help-ja="「レベル」は、やさしい順に並んだ決まった盤面です。16レベルのまとまりを解くと次が開きます。「盤面を作る」は、選んだ仕掛けで新しい盤面を作ります。">
         <span class="fam-label" data-say="mode"></span>
         <div class="fam-seg" role="group" data-say-label="mode" id="modes" data-testid="modes">
@@ -190,7 +190,7 @@ cpSync("demo/embed", "site/embed", { recursive: true });
 writeFileSync("site/family-embed-builder.js", `export const FAMILY_EMBED_BUILDER_WORDS = ${JSON.stringify(FAMILY_EMBED_BUILDER_WORDS)};\nexport ${familyEmbedBuilder.toString()};\n`);
 const builderParts = {
   builderHead: familyHead({ id, title: "Suido · build a pipe-puzzle embed", description: "Choose a fixed or daily pipe puzzle, preview it and copy the embed code." }),
-  builderHeader: familyHeader({ id, links: [{ href: "./", say: "toGallery" }] }),
+  builderHeader: familyHeader({ id, links: [{ href: "./", say: "toGallery" }, { href: "docs/index.html", say: "pageDocs" }, { href: "api.html", say: "pageApi" }] }),
   unreviewed: familyUnreviewed({ id }), footer: familyFooter({ id }), script: `<script>${FAMILY_SCRIPT}</script>`,
 };
 writeFileSync("site/builder.html", readFileSync("demo/builder.html", "utf8").replace(/<!-- family:([A-Za-z]+) -->/g, (_match, key) => builderParts[key]));

@@ -6,7 +6,7 @@ import "./dist/element-define.js";
 import { familyEmbedBuilder, FAMILY_EMBED_BUILDER_WORDS } from "./family-embed-builder.js";
 const words = {
   en: {
-    ...FAMILY_EMBED_BUILDER_WORDS.en,
+    ...FAMILY_EMBED_BUILDER_WORDS.en, pageDocs: "Docs", pageApi: "API reference",
     pitch: "Choose a pipe puzzle or a UTC daily level, preview it, and copy the code for your page.",
     name: "Suido means water supply in Japanese.",
     nameLink: "About the name",
@@ -19,7 +19,7 @@ const words = {
     badLevel: "Choose a level that exists at this grid size."
   },
   ja: {
-    ...FAMILY_EMBED_BUILDER_WORDS.ja,
+    ...FAMILY_EMBED_BUILDER_WORDS.ja, pageDocs: "ドキュメント", pageApi: "API（英語）",
     pitch: "水道のパズル、またはUTCの日替わり問題を選び、表示を確認して、ページに埋め込むコードをコピーできます。",
     name: "「水道」は英語の water supply に当たる日本語です。",
     nameLink: "名前について",
@@ -52,7 +52,7 @@ for (const name of ["onChange", "onTurn", "onHint", "onTurning", "onSolve"]) lef
 const heights = {};
 const key = (settings) => JSON.stringify(settings);
 let mounted;
-const page = globalThis.familyLanguage({ id: "suido", words, onChange: () => mounted?.draw() });
+const page = globalThis.familyLanguage({ id: "suido", words, onChange: () => { docsLink(); mounted?.draw(); } });
 function problem(settings) { try { const day = embedDay(settings.daily); return day !== null || (Number(settings.level ?? 1) >= 1 && Number(settings.level ?? 1) <= SUIDO_LEVEL_COUNTS[settings.grid ?? "7x7"]) ? null : "badLevel"; } catch { return "badDay"; } }
 const builder = familyEmbedBuilder({ id: "suido", packageName: "@johnmorrisdotca/suido", major: VERSION.split(".")[0], site: "https://johnmorrisdotca.github.io/suido/", title: "Suido · pipe puzzle", titleJa: "水道パズルの埋め込み", options, leftOut, groups: { board: { en: "The puzzle", ja: "パズルの設定" } }, makers: { board: { names: "board", element: "board", tag: "suido-board", embed: "embed/", required: ["grid", "level"], description: "makerBoardSays", formats: ["element", "iframe", "module", "react", "vue", "svelte", "angular", "html", "url"], width: 640, height: (settings) => heights[key(settings)] ?? ({ small: 680, medium: 840, large: 1000 }[settings.size] ?? 840) } }, code: ({ maker, format, settings }) => {
   if (problem(settings) !== null) return null;
@@ -68,3 +68,6 @@ mounted = builder.mount({ words, language: () => page, initial: { board: { grid:
   stage.append(board);
   return { destroy() { board.remove(); } };
 } });
+
+function docsLink() { document.querySelector('[data-say="pageDocs"]')?.setAttribute("href", page.lang === "ja" ? "docs/ja/index.html" : "docs/index.html"); }
+docsLink();

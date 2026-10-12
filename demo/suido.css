@@ -66,3 +66,6 @@ input[type="range"] { flex: 1 1 180px; min-width: 0; max-width: 340px; min-heigh
 /* The small pieces' groups stand side by side where there is room, so the guide is a few rows and not a column. */
 #pieces-small { display: flex; flex-wrap: wrap; gap: 4px 36px; align-items: flex-start; }
 #pieces-small .pgroup { flex: 0 1 auto; max-width: 100%; }
+
+/* Keep navigation width stable across languages. */
+header nav a[data-say="pageDocs"] { inline-size: 8rem; justify-content: center; flex: none; }
