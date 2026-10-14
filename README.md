@@ -713,7 +713,7 @@ The demo's own page is the worked example: its green felt and its cloth patches 
 
 ## Limits
 
-All of these are held by tests, and the ones with a name are exported.
+Held by tests; the named ones are exported.
 
 | Limit | Value | Where |
 | --- | --- | --- |
@@ -730,7 +730,7 @@ All of these are held by tests, and the ones with a name are exported.
 | The solver's work | 200,000 positions, then it says it cannot say | the `budget` argument of `solve` and `countSolutions` |
 | A day | `YYYY-MM-DD`, counted in UTC | `isSuidoDay` |
 
-A generator never runs on a server unless you ask it to. The check never searches: it is linear in the size of the board.
+A generator runs only when asked. The check never searches: it is linear in the board's size.
 
 ## Accessibility
 
@@ -759,7 +759,7 @@ Not here yet, and each welcome as an [issue](https://github.com/johnmorrisdotca/
 
 - A command line: make a board, check an answer, solve a code, and print a board as text.
 
-Left out on purpose: levels made from a seed when the page opens, because a fixed level is what lets times be compared (the generator is there for a board of your own); and any account, ranking or storage. A page keeps its own games: the events hand them over.
+Left out on purpose: levels made from a seed when the page opens (a fixed level is what lets times be compared; the generator is for boards of your own), and any account, ranking or storage. A page keeps its own games: the events hand them over.
 
 ## Making boards
 
@@ -806,7 +806,7 @@ Using Suido in something? Open an *Add my project* issue and we will add you.
 ### The family
 
 <!-- family:start (made by scripts/family-readme.mjs from scripts/family-template.mjs; change those, not this) -->
-Suido is one of twenty-six packages, each made for the same site, each at
+Suido is one of twenty-eight packages, each made for the same site, each at
 [github.com/johnmorrisdotca](https://github.com/johnmorrisdotca). The code of every one is MIT.
 
 - [Korokoro](https://github.com/johnmorrisdotca/korokoro) (コロコロ): dice, with notation, exact odds, real sounds and the dice of many games. [Demo](https://johnmorrisdotca.github.io/korokoro/).
@@ -835,8 +835,10 @@ Suido is one of twenty-six packages, each made for the same site, each at
 - [Houseki](https://github.com/johnmorrisdotca/houseki) (宝石): gem and stone matching puzzles: falling triplets, stone collapse, colour chains and gem swap. [Demo](https://johnmorrisdotca.github.io/houseki/).
 - [Kyogijo Stadiums](https://github.com/johnmorrisdotca/kyogijo-stadiums) (競技場): sports fields, rinks, courts and ballparks drawn to scale as SVG, with each team and the score on them. [Demo](https://johnmorrisdotca.github.io/kyogijo-stadiums/).
 - [Taisen Brackets](https://github.com/johnmorrisdotca/taisen-brackets) (対戦): a sport-agnostic tournament bracket, drawn as SVG, from a list of ties. [Demo](https://johnmorrisdotca.github.io/taisen-brackets/).
+- [Dougu Sports](https://github.com/johnmorrisdotca/dougu-sports) (道具): sports emblems as SVG: trophies, medals, crests, and the ball and gear of every sport, with optional 3D turning. [Demo](https://johnmorrisdotca.github.io/dougu-sports/).
+- [Senshu Jerseys](https://github.com/johnmorrisdotca/senshu-jerseys) (選手): sports jerseys, sweaters, kits, caps, helmets and retired-number banners as SVG, front and back, with optional 2.5D turning. [Demo](https://johnmorrisdotca.github.io/senshu-jerseys/).
 
-**This package is Suido.** The demos of all twenty-six share one header and footer, so each links the rest.
+**This package is Suido.** The demos of all twenty-eight share one header and footer, so each links the rest.
 <!-- family:end -->
 
 ## Development
