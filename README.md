@@ -262,25 +262,7 @@ defineProps({ size: String, level: Number });
 <suido-board bind:this={board} size={size} level={level} hints></suido-board>
 ```
 
-```ts no-check
-// Angular: a standalone component with CUSTOM_ELEMENTS_SCHEMA
-import { Component, CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
-import "@johnmorrisdotca/suido/element/define";
-
-@Component({
-  selector: "app-level",
-  standalone: true,
-  schemas: [CUSTOM_ELEMENTS_SCHEMA],
-  template: `<suido-board size="7x7" level="12" hints (suido-solve)="solved($event)"></suido-board>`,
-})
-export class Level {
-  solved(event: Event) { console.log((event as CustomEvent).detail.code); }
-}
-```
-
-In Next.js or any server-rendering framework, import the define entry from a client component, so the tag is defined in the browser. Or skip the tag and call `mountSuido(element, options)` from `@johnmorrisdotca/suido/play` in an effect: the handle it returns has `destroy()`.
-
-`pnpm test:frameworks` builds these recipes from the packed tarball in a scratch project for each of the five and solves a level in each, in Chromium and WebKit; it needs the network and a few minutes, so it is run before a release and in CI rather than with `pnpm check`.
+Angular (a standalone component with `CUSTOM_ELEMENTS_SCHEMA`), Next.js and other server-rendering frameworks (import the define entry from a client component, or call `mountSuido` in an effect) are in [docs/FRAMEWORKS.md](docs/FRAMEWORKS.md); `pnpm test:frameworks` builds all of these recipes from the packed tarball, for each of the five, in Chromium and WebKit.
 
 ### What a developer gets
 
@@ -608,7 +590,7 @@ board?.restart(); board?.load({ code: other.code, answer: other.answer });
 
 A tap turns a piece a quarter clockwise; shift with a tap, or a right click, turns it the other way (or the other way round, with `turning: "anticlockwise"`); the arrows move between pieces and enter or space turns one, with shift the other way. A locked piece, bare ground and a cross are not turned. The water is drawn dry and then painted on the next frame, so the first flow is seen, and it runs back out of a pipe turned away. The board is one box in the board's own shape, and the lines of words under it keep the room they need, so nothing moves as pieces are turned or messages come and go.
 
-**A big board is zoomed and moved about.** Where the pieces would be smaller than 22 pixels across the box they are in (20×20 and bigger on a phone, 28×28 on a desk), a row of three buttons, **Zoom out**, **Zoom in** and **Whole board**, sits under the board, and the board itself answers a pinch of two fingers, a drag once it is zoomed in, and the wheel with control held (a trackpad's pinch is that) or, zoomed in, the wheel alone. A press that moved is not a tap: the click that ends a drag is swallowed, so the piece under a finger that panned the board is not turned. The view is the drawing's own `viewBox`, so the pipes stay crisp however far in it is, and the arrow keys bring the piece they move to into view. `zoom: "off"` leaves the board as it is. `view()` and `zoom("in" | "out" | "fit")` are on the handle, and `attachSuidoView(box, svg, layout)` (in `@johnmorrisdotca/suido/draw`) does the same for a board you draw yourself, with `clampView`, `zoomAbout`, `panView`, `viewShowing`, `viewBoxOf` and `needsZoom` as the arithmetic.
+**A big board is zoomed and moved about.** Where the pieces would be smaller than 22 pixels across the box they are in (20×20 and bigger on a phone, 28×28 on a desk), a row of three buttons, **Zoom out**, **Zoom in** and **Whole board**, sits under the board, and the board itself answers a pinch of two fingers, a drag once it is zoomed in, and the wheel with control held (a trackpad's pinch is that) or, zoomed in, the wheel alone. A press that moved is not a tap: the click that ends a drag is swallowed, so the piece under a finger that panned the board is not turned. The view is the drawing's own `viewBox`, so the pipes stay crisp however far in it is. `zoom: "off"` leaves the board as it is. `view()` and `zoom("in" | "out" | "fit")` are on the handle; for a board you draw yourself, see `attachSuidoView` in [docs/API.md](docs/API.md).
 
 Under the board, unless `controls: false`: a line saying how far the water has got and how many ends leak, or that it is solved; a line of turns, par (if there is an `answer`) and hints; a line for what a hint says; and **Start over**, **Hint** (if `hints` is on and there is an `answer`, which lights a piece to turn) and the direction a tap turns. `chips` adds a row with each twist the board has, or Plain, each with the line that explains it as its hover text. Everything a button does is also a method on the handle (`restart`, `hint`, `turn`, `load`, `set`, `view`, `zoom`, `destroy`).
 
@@ -824,7 +806,7 @@ Using Suido in something? Open an *Add my project* issue and we will add you.
 ### The family
 
 <!-- family:start (made by scripts/family-readme.mjs from scripts/family-template.mjs; change those, not this) -->
-Suido is one of twenty-four packages, each made for the same site, each at
+Suido is one of twenty-six packages, each made for the same site, each at
 [github.com/johnmorrisdotca](https://github.com/johnmorrisdotca). The code of every one is MIT.
 
 - [Korokoro](https://github.com/johnmorrisdotca/korokoro) (コロコロ): dice, with notation, exact odds, real sounds and the dice of many games. [Demo](https://johnmorrisdotca.github.io/korokoro/).
@@ -851,8 +833,10 @@ Suido is one of twenty-four packages, each made for the same site, each at
 - [Gunjin](https://github.com/johnmorrisdotca/gunjin) (軍人): five hidden-rank strategy games with pass-the-device play. [Demo](https://johnmorrisdotca.github.io/gunjin/).
 - [Karakuri](https://github.com/johnmorrisdotca/karakuri) (からくり): eight hyper-casual puzzle games, some of them physics: draw a shield, pull pins, cut ropes, slide blocks, pour tubes. [Demo](https://johnmorrisdotca.github.io/karakuri/).
 - [Houseki](https://github.com/johnmorrisdotca/houseki) (宝石): gem and stone matching puzzles: falling triplets, stone collapse, colour chains and gem swap. [Demo](https://johnmorrisdotca.github.io/houseki/).
+- [Kyogijo Stadiums](https://github.com/johnmorrisdotca/kyogijo-stadiums) (競技場): sports fields, rinks, courts and ballparks drawn to scale as SVG, with each team and the score on them. [Demo](https://johnmorrisdotca.github.io/kyogijo-stadiums/).
+- [Taisen](https://github.com/johnmorrisdotca/taisen-brackets) (対戦): a sport-agnostic tournament bracket, drawn as SVG, from a list of ties. [Demo](https://johnmorrisdotca.github.io/taisen-brackets/). Not on npm yet.
 
-**This package is Suido.** The demos of all twenty-four share one header and footer, so each links the rest.
+**This package is Suido.** The demos of all twenty-six share one header and footer, so each links the rest.
 <!-- family:end -->
 
 ## Development
