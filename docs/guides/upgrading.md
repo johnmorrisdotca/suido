@@ -7,7 +7,7 @@ description: "Preserve fixed board identities and old element size aliases."
 
 ## Within version 1
 
-Suido's current public major is 1. Follow [the changelog](../../CHANGELOG.md) for each minor and patch; there is no second-major migration to invent. This documentation rollout changes discovery, examples and native Docs links, while leaving the public SDK and shipped puzzle values unchanged.
+Suido's current public major is 1. Follow [the changelog](../../CHANGELOG.md) for each minor and patch; there is no second-major migration to invent.
 
 The native embed standard adds `grid`, display sizes, daily selection, themes, width and a text label. Existing `size="7x7"` still selects grid dimensions. New snippets separate `grid="7x7"` from `size="medium"`. A custom code takes precedence over daily mode; changing callbacks on `options` does not restart the board. Review [the embed contract](../embeds.md) when moving old host markup.
 

@@ -6,7 +6,7 @@ import "./dist/element-define.js";
 import { familyEmbedBuilder, FAMILY_EMBED_BUILDER_WORDS } from "./family-embed-builder.js";
 const words = {
   en: {
-    ...FAMILY_EMBED_BUILDER_WORDS.en, pageDocs: "Docs", pageApi: "API reference",
+    ...FAMILY_EMBED_BUILDER_WORDS.en, pageDocs: "Docs", pageApi: "API",
     pitch: "Choose a pipe puzzle or a UTC daily level, preview it, and copy the code for your page.",
     name: "Suido means water supply in Japanese.",
     nameLink: "About the name",
@@ -21,14 +21,14 @@ const words = {
   ja: {
     ...FAMILY_EMBED_BUILDER_WORDS.ja, pageDocs: "ドキュメント", pageApi: "API（英語）",
     pitch: "水道のパズル、またはUTCの日替わり問題を選び、表示を確認して、ページに埋め込むコードをコピーできます。",
-    name: "「水道」は英語の water supply に当たる日本語です。",
+    name: "「水道」は英語のwater supplyに当たる日本語です。",
     nameLink: "名前について",
     foot: "設定はリンクに入ります。ゲームや個人情報は保存しません。",
     toGallery: "パズルの一覧",
     makerBoard: "盤",
     makerBoardSays: "管を回して、水を目的地まで通します。",
     copyLink: "このパズルへのリンクをコピー",
-    badDay: "実在する日付をYYYY-MM-DD形式で入力するか、today または off を指定してください。UTCの日付を使います。",
+    badDay: "実在する日付をYYYY-MM-DD形式で入力するか、todayまたはoffを指定してください。UTCの日付を使います。",
     badLevel: "この盤の大きさにある問題を選んでください。"
   },
 };

@@ -1,6 +1,6 @@
 {
   "name": "@johnmorrisdotca/suido",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "description": "Suido \u6c34\u9053 \u2014 Pipe-connecting puzzle: 3,520 fixed levels, a seeded generator and solver, walls, locked pieces, big pieces and an SVG board. TypeScript, zero dependencies.",
   "keywords": [
     "big-pieces",

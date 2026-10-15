@@ -7,23 +7,23 @@ board and its answer, and a seed makes the board it always made.
 
 ## [Unreleased]
 
-- Synchronize documentation tooling for repository layouts, generated type references, Node entry points and repository-specific README links.
+## [1.6.0] - 2026-10-14
 
-- Keep large documentation resource catalogues on the entry index and the active resource beside core navigation, preserving every reference page; render valid default imports in HTML and Markdown.
-
-- Add the bilingual documentation site, checked public examples, paired guides, local search and machine-readable pages.
-
-- Add a shared embed builder and validated, storage-free iframe for fixed or UTC daily levels.
-- Add display sizes, grid, width, theme and spoken label while preserving old grid-size values, live progress getters and methods. Events now cross shadow boundaries.
+The board is a custom element with the family's standard embed attributes and a shared builder, and the package has an English and Japanese documentation site with a checked example for every export. The rules, levels, generator and saved progress are unchanged.
 
 ### Added
 
+- Add the bilingual documentation site, checked public examples, paired guides, local search and machine-readable pages.
+- Add a shared embed builder and validated, storage-free iframe for fixed or UTC daily levels.
+- Add display sizes, grid, width, theme and spoken label while preserving old grid-size values, live progress getters and methods. Events now cross shadow boundaries.
 - Share a package-independent embed builder for option controls, preview adapters, code tabs and shareable links.
 
 ### Changed
 
+- The API link in the header reads "API" in English, so that the header takes the same number of rows in English and in Japanese on a phone, as the demo's test of a language change asks.
+- Synchronize documentation tooling for repository layouts, generated type references, Node entry points and repository-specific README links.
+- Keep large documentation resource catalogues on the entry index and the active resource beside core navigation, preserving every reference page; render valid default imports in HTML and Markdown.
 - Group the package family by kind, alphabetize each group, and include the geography packages and REST in Pieces in the shared footer and README.
-
 - Update the shared family description for addresses in all seven supported countries, including France and Germany.
 
 ## [1.5.0] - 2026-10-06
@@ -252,7 +252,8 @@ drawing, and a demo to play.
 - A demo in English and Japanese, with the family's cloth patches, a hint, a
   timer, and keyboard play.
 
-[Unreleased]: https://github.com/johnmorrisdotca/suido/compare/v1.4.1...HEAD
+[Unreleased]: https://github.com/johnmorrisdotca/suido/compare/v1.6.0...HEAD
+[1.6.0]: https://github.com/johnmorrisdotca/suido/compare/v1.5.0...v1.6.0
 [1.4.1]: https://github.com/johnmorrisdotca/suido/compare/v1.4.0...v1.4.1
 [1.3.0]: https://github.com/johnmorrisdotca/suido/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/johnmorrisdotca/suido/compare/v1.1.0...v1.2.0

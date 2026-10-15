@@ -15,7 +15,7 @@ import { blockOf, blockRange, dailySuidoLevel, declaredTwists, levelAnswer, leve
 const WORDS = {
   en: {
     pageDocs: "Docs",
-    pageApi: "API reference",
+    pageApi: "API",
     pitch: "Turn the pieces of pipe until the water from the pump reaches every drain.",
     name: "Suido (水道) is Japanese for a waterworks: the pipes that carry water.",
     nameLink: "About the name",

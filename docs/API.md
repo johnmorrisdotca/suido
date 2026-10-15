@@ -48,3 +48,5 @@ Constants: `SUIDO_STYLE`, `SUIDO_PLAY_STYLE`, `SUIDO_STRINGS`, `SUIDO_DAILY_STRI
 the sides `NORTH`, `EAST`, `SOUTH`, `WEST`, `SIDES`, `SIDE_STEPS`. Every function is pure: it
 returns new values and never changes what it was given. Everything is typed, and
 there are no dependencies.
+
+**Zoom.** The view of a zoomed board is the drawing's own `viewBox`, so the pipes stay crisp however far in it is, and the arrow keys bring the piece they move to into view. `attachSuidoView(box, svg, layout)` (in `@johnmorrisdotca/suido/draw`) does the same for a board you draw yourself, with `clampView`, `zoomAbout`, `panView`, `viewShowing`, `viewBoxOf` and `needsZoom` as the arithmetic.
