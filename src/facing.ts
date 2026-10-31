@@ -16,7 +16,11 @@ export const LACKS = HAS.map((has) => ~has & 0xffff);
 /** The pieces in a 16-bit set. */
 export function members(set: number): number[] {
   const out: number[] = [];
-  for (let mask = 0; set !== 0; mask += 1, set >>= 1) if ((set & 1) === 1) out.push(mask);
+  let bits = set;
+  for (let mask = 0; bits !== 0; mask += 1) {
+    if ((bits & 1) === 1) out.push(mask);
+    bits >>= 1;
+  }
   return out;
 }
 
@@ -29,7 +33,11 @@ export const bits = (set: number): number => {
 /** The sides any piece in the set opens on. */
 export const sidesOf = (set: number): number => {
   let sides = 0;
-  for (let mask = 0; set !== 0; mask += 1, set >>= 1) if ((set & 1) === 1) sides |= mask;
+  let bits = set;
+  for (let mask = 0; bits !== 0; mask += 1) {
+    if ((bits & 1) === 1) sides |= mask;
+    bits >>= 1;
+  }
   return sides;
 };
 

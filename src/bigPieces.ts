@@ -236,7 +236,12 @@ function turnedKey(masks: readonly number[]): { key: string; masks: number[] } {
 /** The openings to the outside of each pipe of four masks, largest first; the pipes being the runs of cells joined inside. */
 function pipesOf(masks: readonly number[]): number[] {
   const root = [0, 1, 2, 3];
-  const find = (cell: number): number => (root[cell] === cell ? cell : (root[cell] = find(root[cell]!)));
+  const find = (cell: number): number => {
+    if (root[cell] === cell) return cell;
+    const found = find(root[cell]!);
+    root[cell] = found;
+    return found;
+  };
   for (const [a, b, sideA, sideB] of INSIDE_EDGES)
     if (((masks[a]! >> sideA) & 1) === 1 && ((masks[b]! >> sideB) & 1) === 1) root[find(a)] = find(b);
   const openings = new Map<number, number>();

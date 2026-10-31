@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { decodeLayout, type Layout } from "./code.ts";
 import { flowOf } from "./flow.ts";
-import { makeUnscored, type MakeOptions } from "./generate.ts";
+import { type MakeOptions, makeUnscored } from "./generate.ts";
 import { symmetryKey, transformLayout } from "./symmetry.ts";
 
 const options: MakeOptions[] = [

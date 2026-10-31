@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest";
 
 import { checkSuidoAnswer } from "./check.ts";
 import { decodeLayout, encodeLayout } from "./code.ts";
-import { makeUnscored } from "./generate.ts";
 import { flowOf } from "./flow.ts";
+import { makeUnscored } from "./generate.ts";
 import { rotationsOf, turn } from "./pieces.ts";
 
 const boards = [

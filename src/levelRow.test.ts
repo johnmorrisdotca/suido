@@ -1,10 +1,9 @@
 import { describe, expect, it } from "vitest";
-
+import { checkSuidoAnswer } from "./check.ts";
 import { decodeLayout } from "./code.ts";
+import { flowOf } from "./flow.ts";
 import { makeUnscored } from "./generate.ts";
 import { levelAnswer, levelSolution, turnsOf } from "./levelRow.ts";
-import { checkSuidoAnswer } from "./check.ts";
-import { flowOf } from "./flow.ts";
 
 /** A row keeps an answer as one digit a cell, and a square of four cells (a big piece, or a block that turns as one) as one digit at its top left cell. */
 describe("a level row's answer", () => {

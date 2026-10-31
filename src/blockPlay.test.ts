@@ -9,7 +9,6 @@ import { cellStates, drawSuido, drawSuidoThumb } from "./draw.ts";
 import { flowOf } from "./flow.ts";
 import {
   canTurnAt,
-  turnedToFaceAt,
   gameCode,
   gameFromCode,
   gameFromProgress,
@@ -19,6 +18,7 @@ import {
   newGame,
   tapsToAnswer,
   turnAt,
+  turnedToFaceAt,
 } from "./game.ts";
 import { laySuido, makeSuido, makeUnscored } from "./generate.ts";
 import { SHAPE_MASKS, turn } from "./pieces.ts";

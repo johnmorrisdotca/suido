@@ -4,7 +4,7 @@ import { bruteForce, facingsOf } from "./brute.fixture.ts";
 import { checkSuidoAnswer } from "./check.ts";
 import { decodeLayout } from "./code.ts";
 import { flowOf } from "./flow.ts";
-import { laySuido, makeSuido, makeUnscored, turnsFromAnswer, type MakeOptions } from "./generate.ts";
+import { laySuido, type MakeOptions, makeSuido, makeUnscored, turnsFromAnswer } from "./generate.ts";
 import { armsOf, shapeOf } from "./pieces.ts";
 import { solve } from "./solve.ts";
 

@@ -6,6 +6,7 @@ import type { Flow } from "./flow.ts";
 import {
   canTurnAt,
   flowOfGame,
+  type Game,
   gameCode,
   gameFromProgress,
   gameProgress,
@@ -13,13 +14,12 @@ import {
   newGame,
   tapsToAnswer,
   turnAt,
-  type Game,
 } from "./game.ts";
 import { paintSuido } from "./paint.ts";
 import { quartersBetween, shapeOf } from "./pieces.ts";
 import { SUIDO_PLAY_STYLE } from "./playStyle.ts";
-import { suidoLanguageOf, suidoSay, type SuidoLanguage } from "./strings.ts";
-import { twistsOf, type Twist } from "./twists.ts";
+import { type SuidoLanguage, suidoLanguageOf, suidoSay } from "./strings.ts";
+import { type Twist, twistsOf } from "./twists.ts";
 import { attachSuidoView, needsZoom, SUIDO_FIT, type SuidoView, type SuidoViewer } from "./view.ts";
 
 /**
@@ -407,7 +407,8 @@ export function mountSuido(host: HTMLElement, options: SuidoMountOptions): Suido
 
   /** Draw the board dry, then paint the water onto it on the next frame, so the first flow is seen. */
   function show(): void {
-    const mine = (generation += 1);
+    generation += 1;
+    const mine = generation;
     window.cancelAnimationFrame(frame);
     host.style.setProperty("--sdp-ratio", String(game.start.width / game.start.height));
     boardBox.innerHTML = drawSuido(game.start, {
@@ -469,7 +470,9 @@ export function mountSuido(host: HTMLElement, options: SuidoMountOptions): Suido
     if (host.getAttribute("aria-busy") === "true" || svg === null || !canTurnAt(game, index)) return;
     shown = false;
     game = turnAt(game, index, back ? -1 : 1);
-    lights().forEach((lit) => lit.removeAttribute("data-hint"));
+    lights().forEach((lit) => {
+      lit.removeAttribute("data-hint");
+    });
     said = null;
     flow = paintSuido(svg, game.start, game.masks, game.quarters);
     words();
@@ -582,7 +585,9 @@ export function mountSuido(host: HTMLElement, options: SuidoMountOptions): Suido
     hint: () => {
       if (solution === null || svg === null) return;
       const cell = hintFor(game, solution);
-      lights().forEach((lit) => lit.removeAttribute("data-hint"));
+      lights().forEach((lit) => {
+        lit.removeAttribute("data-hint");
+      });
       if (cell === null) said = "noHint";
       else {
         hints += 1;

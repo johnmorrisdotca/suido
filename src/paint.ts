@@ -1,6 +1,6 @@
 import type { Layout } from "./code.ts";
 import { cellStates, stepFor } from "./draw.ts";
-import { flowOf, type Flow } from "./flow.ts";
+import { type Flow, flowOf } from "./flow.ts";
 
 /**
  * PAINTING the water onto a board `drawSuido` drew, in place: nothing is

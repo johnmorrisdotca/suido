@@ -119,7 +119,7 @@ test("shift-click, right-click and the turning button turn a piece the other way
 test("a cross and bare ground cannot be turned, and a tap on one counts nothing", async ({ page }) => {
   await open(page, "?mode=make&size=9x9&seed=4&kind=drains");
   const made = boardFor({ size: 9, kind: "drains", seed: 4 });
-  const blank = made.layout.cells.findIndex((mask) => mask === 0);
+  const blank = made.layout.cells.indexOf(0);
   expect(blank).toBeGreaterThan(-1);
   await tap(page, cell(page, blank));
   await expect(page.locator(sdp("meter"))).toContainText("0 turns");

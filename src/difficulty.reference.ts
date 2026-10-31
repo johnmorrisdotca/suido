@@ -1,3 +1,4 @@
+// biome-ignore-all lint/suspicious/noApproximativeNumericConstant: measured scores, not stand-ins for mathematical constants
 import type { Reference } from "./difficulty.ts";
 
 /** The sizes (side of the board) there is a reference set for.

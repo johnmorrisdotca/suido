@@ -1,7 +1,7 @@
-import { blockInfo, blockQuartersBetween, placeAfter, type Block } from "./blocks.ts";
+import { type Block, blockInfo, blockQuartersBetween, placeAfter } from "./blocks.ts";
 import { isLocked, type Layout } from "./code.ts";
-import { flowOf, type Flow } from "./flow.ts";
-import { quartersBetween, shapeOf, SIDES } from "./pieces.ts";
+import { type Flow, flowOf } from "./flow.ts";
+import { quartersBetween, SIDES, shapeOf } from "./pieces.ts";
 import { SUIDO_STYLE } from "./style.ts";
 
 /**
@@ -242,7 +242,7 @@ function wallsSvg(layout: Layout): string {
   return bars.join("");
 }
 
-const escape = (text: string): string =>
+const escapeXml = (text: string): string =>
   text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
 /**
@@ -288,7 +288,7 @@ export function drawSuido(layout: Layout, options: DrawOptions = {}): string {
     .join("");
   const solved = flow.solved;
   const label = options.label ?? `Suido board, ${layout.width} by ${layout.height}`;
-  return `<svg xmlns="http://www.w3.org/2000/svg" class="suido" viewBox="0 0 ${width} ${height}" role="group" aria-label="${escape(label)}" data-solved="${solved}" style="--sd-step:${step}ms">${options.style === true ? `<style>${SUIDO_STYLE}</style>` : ""}<rect class="sd-board" width="${width}" height="${height}" rx="12"/>${platesSvg(layout)}${cells}${pivotsSvg(layout)}${wallsSvg(layout)}${layout.wrap ? `<rect class="sd-rim" x="3" y="3" width="${width - 6}" height="${height - 6}" rx="10"/>` : ""}</svg>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" class="suido" viewBox="0 0 ${width} ${height}" role="group" aria-label="${escapeXml(label)}" data-solved="${solved}" style="--sd-step:${step}ms">${options.style === true ? `<style>${SUIDO_STYLE}</style>` : ""}<rect class="sd-board" width="${width}" height="${height}" rx="12"/>${platesSvg(layout)}${cells}${pivotsSvg(layout)}${wallsSvg(layout)}${layout.wrap ? `<rect class="sd-rim" x="3" y="3" width="${width - 6}" height="${height - 6}" rx="10"/>` : ""}</svg>`;
 }
 
 /**
@@ -343,7 +343,7 @@ export function drawSuidoThumb(
   });
   const label = options.label ?? `Suido board, ${layout.width} by ${layout.height}`;
   const all = [...dry, ...wet].join("");
-  return `<svg xmlns="http://www.w3.org/2000/svg" class="suido" viewBox="0 0 ${width} ${height}" role="img" aria-label="${escape(label)}" data-solved="${flow.solved}">${options.style === true ? `<style>${SUIDO_STYLE}</style>` : ""}<rect class="sd-board" width="${width}" height="${height}" rx="12"/>${platesSvg(layout)}<path class="sd-edge" d="${all}"/><path class="sd-pipe" d="${all}"/><path class="sd-thumbwater" d="${wet.join("")}"/>${marks.join("")}${wallsSvg(layout)}${layout.wrap ? `<rect class="sd-rim" x="3" y="3" width="${width - 6}" height="${height - 6}" rx="10"/>` : ""}</svg>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" class="suido" viewBox="0 0 ${width} ${height}" role="img" aria-label="${escapeXml(label)}" data-solved="${flow.solved}">${options.style === true ? `<style>${SUIDO_STYLE}</style>` : ""}<rect class="sd-board" width="${width}" height="${height}" rx="12"/>${platesSvg(layout)}<path class="sd-edge" d="${all}"/><path class="sd-pipe" d="${all}"/><path class="sd-thumbwater" d="${wet.join("")}"/>${marks.join("")}${wallsSvg(layout)}${layout.wrap ? `<rect class="sd-rim" x="3" y="3" width="${width - 6}" height="${height - 6}" rx="10"/>` : ""}</svg>`;
 }
 
 /** One piece on its own, as SVG text: for a legend, an icon, or a page that shows how the pieces look. `wet` fills it with water.
@@ -365,5 +365,5 @@ export function drawPiece(mask: number, options: { wet?: boolean; label?: string
   ) as CellState["arms"];
   const state: CellState = { cell: 0, quarters: 0, wet: options.wet === true, depth: 0, arms };
   const label = options.label ?? shapeOf(mask);
-  return `<svg xmlns="http://www.w3.org/2000/svg" class="suido" viewBox="0 0 100 100" role="img" aria-label="${escape(label)}" style="--sd-step:0ms">${options.style === true ? `<style>${SUIDO_STYLE}</style>` : ""}${cellSvg(base, state, 50, 50, true)}</svg>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" class="suido" viewBox="0 0 100 100" role="img" aria-label="${escapeXml(label)}" style="--sd-step:0ms">${options.style === true ? `<style>${SUIDO_STYLE}</style>` : ""}${cellSvg(base, state, 50, 50, true)}</svg>`;
 }

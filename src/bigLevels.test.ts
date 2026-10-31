@@ -1,10 +1,8 @@
 import { beforeAll, describe, expect, it } from "vitest";
-
-import { bigShapesIn, inBigMix } from "./bigPieces.ts";
 import {
-  blendBigScore,
   BIG_PIECES_LARGEST,
   BIG_PIECES_SMALLEST,
+  blendBigScore,
   coverageOf,
   exactBigScoreOf,
   sizeTermOf,
@@ -28,13 +26,14 @@ import {
   suidoBigSize,
   suidoBigTwists,
 } from "./bigLevels.ts";
+import { bigShapesIn, inBigMix } from "./bigPieces.ts";
 import { checkSuidoAnswer } from "./check.ts";
 import { decodeLayout, type Layout } from "./code.ts";
 import { flowOf } from "./flow.ts";
 import { SUIDO_BIG_COUNT, sizeOf } from "./levelCounts.ts";
 import { declaredTwists, levelAnswer, levelSolution } from "./levelRow.ts";
 import { loadSuidoBigLevels, suidoBigLevelOf, suidoBigLevelsLoaded } from "./levels.ts";
-import { solve, type SolveResult } from "./solve.ts";
+import { type SolveResult, solve } from "./solve.ts";
 import { symmetryKey } from "./symmetry.ts";
 import { SUIDO_TWISTS, twistsOf } from "./twists.ts";
 

@@ -5,7 +5,7 @@
  * checks an answer never loads any of it.
  */
 export * from "./draw.ts";
+export * from "./drawGuide.ts";
 export * from "./paint.ts";
 export { SUIDO_STYLE } from "./style.ts";
 export * from "./view.ts";
-export * from "./drawGuide.ts";

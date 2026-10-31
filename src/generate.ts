@@ -1,12 +1,12 @@
-import { BIG_MIXES, bigMasksOf, placeBlocks, type BigMix, type Placed } from "./bigPieces.ts";
+import { BIG_MIXES, type BigMix, bigMasksOf, type Placed, placeBlocks } from "./bigPieces.ts";
 import { blockCells, turnBlock } from "./blocks.ts";
-import { encodeLayout, MAX_SIDE, neighboursOf, type Kind, type Layout } from "./code.ts";
+import { encodeLayout, type Kind, type Layout, MAX_SIDE, neighboursOf } from "./code.ts";
 import { difficultyOf } from "./difficulty.ts";
 import { flowOf } from "./flow.ts";
-import { armsOf, opposite, rotationsOf, SHAPE_MASKS, turn } from "./pieces.ts";
-import { seededRandom, shuffled, type Random } from "./random.ts";
-import { solve } from "./solve.ts";
 import { canTurn } from "./game.ts";
+import { armsOf, opposite, rotationsOf, SHAPE_MASKS, turn } from "./pieces.ts";
+import { type Random, seededRandom, shuffled } from "./random.ts";
+import { solve } from "./solve.ts";
 
 /** What a new board may be asked for. Everything has a default but the seed, and a seed has one too.
  *
@@ -263,7 +263,7 @@ function grow(
     const from = Math.floor(edge / 4);
     const next = near[edge]!;
     if (next === -1 || parent[next] !== -2) continue;
-    if (rules !== null && rules.banned.has(edgeId(near, from, edge % 4))) continue;
+    if (rules?.banned.has(edgeId(near, from, edge % 4))) continue;
     parent[next] = from;
     add(next);
   }

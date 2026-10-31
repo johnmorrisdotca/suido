@@ -5,9 +5,9 @@
 // which makes a board from a seed as the settings ask. The board is played by the package's own `mountSuido`
 // (the drawing, the turning, the flowing water, the hint, the words in English and Japanese); the page itself
 // only chooses a board, keeps what was solved and times it.
-import { BIG_FAMILIES, makeSuido, SUIDO_BIG_FAMILIES_GUIDE, SUIDO_PIECE_GUIDE, twistsOf } from "./dist/index.js";
+
 import { drawGuidePiece, drawSuidoThumb } from "./dist/draw-entry.js";
-import { mountSuido, suidoSay } from "./dist/play-entry.js";
+import { BIG_FAMILIES, makeSuido, SUIDO_BIG_FAMILIES_GUIDE, SUIDO_PIECE_GUIDE, twistsOf } from "./dist/index.js";
 import {
   blockOf,
   blockRange,
@@ -22,10 +22,10 @@ import {
   nextSuidoLevel,
   openSuidoBigLevels,
   openSuidoLevels,
-  sizeOf,
   SUIDO_BIG_COUNT,
   SUIDO_LEVEL_COUNTS,
   SUIDO_SIZES,
+  sizeOf,
   suidoBigMarks,
   suidoBigPieces,
   suidoBigRole,
@@ -34,6 +34,7 @@ import {
   suidoMarks,
   suidoRole,
 } from "./dist/levels.js";
+import { mountSuido, suidoSay } from "./dist/play-entry.js";
 
 // The page's own words, in the two languages it speaks. Set as text, never as HTML. The board's own words
 // (its lines, buttons, twists) are the package's.
@@ -368,7 +369,7 @@ const settings = {
   reverse: kept.reverse === true,
 };
 let solved = kept.solved ?? {};
-let progress = kept.progress ?? {};
+const progress = kept.progress ?? {};
 let level = 1;
 let rows = [];
 
@@ -700,11 +701,11 @@ function pieces() {
   els["pieces-big"].replaceChildren(bigGrid);
   const familiesGrid = document.createElement("div");
   familiesGrid.className = "pgrid";
-  SUIDO_BIG_FAMILIES_GUIDE.forEach((piece, at) =>
+  SUIDO_BIG_FAMILIES_GUIDE.forEach((piece, at) => {
     familiesGrid.append(
       figureOf(piece, { name: say("family", BIG_FAMILIES[at].family, BIG_FAMILIES[at].shapes), text: undefined }),
-    ),
-  );
+    );
+  });
   els["pieces-families"].replaceChildren(familiesGrid);
 }
 
@@ -771,7 +772,8 @@ function makeBoard(keepSeed = false) {
     settings.seed = Math.floor(Math.random() * 1_000_000_000);
     settings.exact = false;
   }
-  const mine = (generation += 1);
+  generation += 1;
+  const mine = generation;
   els.board.setAttribute("aria-busy", "true");
   setTimeout(() => {
     if (mine !== generation) return;
@@ -809,7 +811,8 @@ async function openLevel(size, wanted, any = false) {
   settings.mode = "levels";
   settings.set = "classic";
   settings.size = size;
-  const mine = (generation += 1);
+  generation += 1;
+  const mine = generation;
   els.board.setAttribute("aria-busy", "true");
   rows = await loadSuidoLevels(size);
   if (mine !== generation) return;
@@ -841,7 +844,8 @@ async function openLevel(size, wanted, any = false) {
 async function openBigLevel(wanted, any = false) {
   settings.mode = "levels";
   settings.set = "big";
-  const mine = (generation += 1);
+  generation += 1;
+  const mine = generation;
   els.board.setAttribute("aria-busy", "true");
   rows = await loadSuidoBigLevels();
   if (mine !== generation) return;
@@ -874,7 +878,7 @@ const openAny = (wanted, any = false) =>
   settings.set === "big" ? openBigLevel(wanted, any) : openLevel(settings.size, wanted, any);
 
 function chooseSize(size) {
-  if (inLevels()) openLevel(size, null);
+  if (inLevels()) void openLevel(size, null);
   else {
     settings.size = size;
     makeBoard();
@@ -886,7 +890,7 @@ function setMode(mode) {
   settings.mode = mode;
   stopTicking();
   refresh();
-  if (mode === "levels") openAny(null);
+  if (mode === "levels") void openAny(null);
   else makeBoard();
 }
 
@@ -903,7 +907,7 @@ choices(els.sets, "set", (set) => {
   if (settings.set === set && inLevels()) return;
   settings.set = set;
   stopTicking();
-  openAny(null);
+  void openAny(null);
 });
 choices(els.kinds, "kind", (kind) => {
   settings.kind = kind;

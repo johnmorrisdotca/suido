@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { decodeLayout, encodeLayout, neighboursOf, withMasks, type Layout } from "./code.ts";
+import { decodeLayout, encodeLayout, type Layout, neighboursOf, withMasks } from "./code.ts";
 import { seededRandom } from "./random.ts";
 
 const sample: Layout = {
@@ -49,7 +49,7 @@ describe("a layout's code", () => {
       "3x2:35C7pz",
       "3x2:0000g0",
       "1x6:gggggg",
-      "41x2:" + "g".repeat(82),
+      `41x2:${"g".repeat(82)}`,
       "3x2ww:35C7pc",
       "3x2wd:35C7pc",
       "2x3w:g00000",

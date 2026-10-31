@@ -1,5 +1,5 @@
-import type { Layout } from "./code.ts";
 import { hasBlocks } from "./blocks.ts";
+import type { Layout } from "./code.ts";
 import { rotationsOfLayout } from "./facing.ts";
 import { flowOf } from "./flow.ts";
 import { unitsOf } from "./units.ts";
@@ -56,7 +56,9 @@ function bruteForceUnits(layout: Layout): number {
       return;
     }
     for (const facing of units.facings[unit]!) {
-      units.cells[unit]!.forEach((cell, at) => (masks[cell] = facing[at]!));
+      units.cells[unit]!.forEach((cell, at) => {
+        masks[cell] = facing[at]!;
+      });
       walk(unit + 1);
     }
   };

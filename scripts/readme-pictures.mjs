@@ -3,10 +3,10 @@
 // The page is served to a browser without a port and never fetched from the live site. Every picture is a numbered level, so it is
 // the same each run: the water is shown by solving a share of the level, tapping its pieces in the order the water would flow.
 // Output: docs/images/<subject>-<desk|phone>-<light|dark>.webp.
-import { takePictures } from "./readme-pictures-lib.mjs";
 
 import { flowOf, newGame, quartersBetween } from "../dist/index.js";
 import { declaredTwists, levelBoard, levelSolution, loadSuidoLevels } from "../dist/levels.js";
+import { takePictures } from "./readme-pictures-lib.mjs";
 
 const BOARD = '[data-testid="board"]';
 

@@ -1,6 +1,6 @@
 import { BIG_FAMILIES, BIG_SHAPES, bigMasksOf } from "./bigPieces.ts";
 import type { Layout } from "./code.ts";
-import { NORTH, SHAPE_MASKS, rotationsOf } from "./pieces.ts";
+import { NORTH, rotationsOf, SHAPE_MASKS } from "./pieces.ts";
 
 /**
  * A GUIDE TO EVERY PIECE. Each entry is a piece of Suido and a tiny board with just that piece on it, drawn by the package's own

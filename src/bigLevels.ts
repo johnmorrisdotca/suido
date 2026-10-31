@@ -1,8 +1,8 @@
+import { type TwistRole, twistRole } from "./ladder.ts";
 import { SUIDO_BLOCK } from "./levelBlocks.ts";
-import { firstUnsolvedLevel, nextLevel, openLevels, SUIDO_BIG_COUNT, sizeOf, type LevelRow } from "./levelCounts.ts";
-import { twistRole, type TwistRole } from "./ladder.ts";
-import { SUIDO_BIG_PIECES, SUIDO_BIG_SCORES, SUIDO_BIG_SIZES, SUIDO_BIG_TWISTS } from "./levels/bigInfo.data.ts";
 import type { SuidoBand } from "./levelCounts.ts";
+import { firstUnsolvedLevel, type LevelRow, nextLevel, openLevels, SUIDO_BIG_COUNT, sizeOf } from "./levelCounts.ts";
+import { SUIDO_BIG_PIECES, SUIDO_BIG_SCORES, SUIDO_BIG_SIZES, SUIDO_BIG_TWISTS } from "./levels/bigInfo.data.ts";
 import { SUIDO_TWISTS, type Twist } from "./twists.ts";
 
 export { SUIDO_BIG_PIECES, SUIDO_BIG_SCORES, SUIDO_BIG_SIZES, SUIDO_BIG_TWISTS };

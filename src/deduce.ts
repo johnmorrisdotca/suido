@@ -1,8 +1,8 @@
-import { neighboursOf, type Layout } from "./code.ts";
 import { hasBlocks } from "./blocks.ts";
+import { type Layout, neighboursOf } from "./code.ts";
 import { drainFacings, rotationsOfLayout } from "./facing.ts";
 import { flowOf } from "./flow.ts";
-import { refreshCells, unitsOf, wayHolds, type CellSets } from "./units.ts";
+import { type CellSets, refreshCells, unitsOf, wayHolds } from "./units.ts";
 
 /** What a player can work out without guessing, as a person would: look at every piece, fix what is forced, and look again.
  *

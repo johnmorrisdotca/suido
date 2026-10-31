@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-
+import { DIFFICULTY_REFERENCE, DIFFICULTY_SIDES } from "./difficulty.reference.ts";
 import {
   blendOf,
   DIFFICULTY_WEIGHTS,
@@ -12,7 +12,6 @@ import {
   referenceKey,
   scoreOf,
 } from "./difficulty.ts";
-import { DIFFICULTY_REFERENCE, DIFFICULTY_SIDES } from "./difficulty.reference.ts";
 import { makeUnscored } from "./generate.ts";
 
 describe("percentiles", () => {

@@ -2,13 +2,12 @@
 // shared header and footer, with the family's stylesheet, Suido's own, the board's style, the page's
 // script and the compiled library beside it.
 import { cpSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
-
-import { SUIDO_PLAY_STYLE } from "../dist/play-entry.js";
 import { SUIDO_LEVEL_COUNTS } from "../dist/levels.js";
+import { SUIDO_PLAY_STYLE } from "../dist/play-entry.js";
 import { API_CSS, apiPage } from "./api.mjs";
 import {
-  FAMILY_SCRIPT,
   FAMILY_EMBED_BUILDER_WORDS,
+  FAMILY_SCRIPT,
   familyEmbedBuilder,
   familyFooter,
   familyHead,
@@ -40,7 +39,7 @@ const uses = [
   `dailySuidoLevel("8x8", new Date())  // the level of the day at 8×8, the same for everybody`,
   `openSuidoLevels("8x8", solved)  // 16, 32, …`,
 ];
-const escape = (text) => text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+const escapeHtml = (text) => text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 const DROPLET = `<svg class="pump" viewBox="-14 -18 28 36" aria-hidden="true"><path d="M0 -17C-9 -4 -12 1 -12 6a12 12 0 0 0 24 0c0-5-3-10-12-23z" fill="currentColor"/></svg>`;
 const button = (attributes, text = "") => `<button type="button" ${attributes}>${text}</button>`;
 
@@ -175,7 +174,7 @@ const page = `<!doctype html>
         <h2 id="more-title" data-say="moreTitle"></h2>
         <p data-say="moreText"></p>
         <ul class="uses">
-          ${uses.map((line) => `<li><code>${escape(line)}</code></li>`).join("\n          ")}
+          ${uses.map((line) => `<li><code>${escapeHtml(line)}</code></li>`).join("\n          ")}
         </ul>
       </section>
       <section class="more tag" aria-labelledby="tag-title">

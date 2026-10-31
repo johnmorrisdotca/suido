@@ -1,4 +1,3 @@
-import { withLevelExamples } from "./suido-level-docs.ts";
 /**
  * THE BIG-PIECES LEVELS, MADE ON A DESK:
  *
@@ -24,21 +23,21 @@ import { withLevelExamples } from "./suido-level-docs.ts";
  * one again on every build.
  */
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
-
-import { decodeLayout } from "../src/code.ts";
+import { blendBigScore, sizeTermOf } from "../src/bigDifficulty.ts";
+import { type BigMix, bigShapesIn, inBigMix } from "../src/bigPieces.ts";
 
 import type { Layout } from "../src/code.ts";
-import { blendBigScore, sizeTermOf } from "../src/bigDifficulty.ts";
-import { bigShapesIn, inBigMix, type BigMix } from "../src/bigPieces.ts";
+import { decodeLayout } from "../src/code.ts";
 import { exactDifficultyOf } from "../src/difficulty.ts";
 import { flowOf } from "../src/flow.ts";
-import { makeUnscored, turnsFromAnswer, type MakeOptions } from "../src/generate.ts";
-import { sizeOf, SUIDO_BIG_COUNT, type LevelRow } from "../src/levelCounts.ts";
+import { type MakeOptions, makeUnscored, turnsFromAnswer } from "../src/generate.ts";
+import { type LevelRow, SUIDO_BIG_COUNT, sizeOf } from "../src/levelCounts.ts";
 import { turnsOf } from "../src/levelRow.ts";
-import { seededRandom, type Random } from "../src/random.ts";
+import { type Random, seededRandom } from "../src/random.ts";
 import { solve } from "../src/solve.ts";
 import { symmetryKey } from "../src/symmetry.ts";
-import { SUIDO_TWISTS, twistsOf, type Twist } from "../src/twists.ts";
+import { SUIDO_TWISTS, type Twist, twistsOf } from "../src/twists.ts";
+import { withLevelExamples } from "./suido-level-docs.ts";
 
 /** The sizes the set draws on, smallest first: the square sizes 5×5 to 14×14, three pipe shapes, and the huge 20×20. */
 const SIZES = [

@@ -1,8 +1,7 @@
 import { describe, expect, it } from "vitest";
-
+import type { Layout } from "./code.ts";
 import { deduce } from "./deduce.ts";
 import { makeUnscored } from "./generate.ts";
-import type { Layout } from "./code.ts";
 
 describe("what can be worked out without guessing", () => {
   it("fixes every piece of a line the edge and the ends force, in rounds that follow the line", () => {

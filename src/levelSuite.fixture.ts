@@ -1,12 +1,13 @@
 import { beforeAll, describe, expect, it } from "vitest";
 
 import { checkSuidoAnswer } from "./check.ts";
-import { decodeLayout, neighboursOf, type Layout } from "./code.ts";
+import { decodeLayout, type Layout, neighboursOf } from "./code.ts";
 import { difficultyOf, exactDifficultyOf } from "./difficulty.ts";
 import { flowOf } from "./flow.ts";
 import { twistRole } from "./ladder.ts";
 import { SUIDO_BLOCK } from "./levelBlocks.ts";
 import { declaredTwists, levelAnswer, levelSolution } from "./levelRow.ts";
+import { SUIDO_MARKS } from "./levels/marks.data.ts";
 import {
   loadSuidoLevels,
   SUIDO_LEVEL_COUNTS,
@@ -17,8 +18,7 @@ import {
   suidoMarks,
   suidoRole,
 } from "./levels.ts";
-import { SUIDO_MARKS } from "./levels/marks.data.ts";
-import { solve, type SolveResult } from "./solve.ts";
+import { type SolveResult, solve } from "./solve.ts";
 import { symmetryKey } from "./symmetry.ts";
 import { SUIDO_LEVEL_TWISTS, SUIDO_TWISTS, twistsOf } from "./twists.ts";
 

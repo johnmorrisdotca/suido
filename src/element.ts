@@ -1,11 +1,11 @@
-import { levelAnswer } from "./levelRow.ts";
-import { embedDay } from "./embed-day.ts";
 import { dailySuidoLevel } from "./daily.ts";
-import { SUIDO_PLAY_STYLE } from "./playStyle.ts";
-import { loadSuidoLevels } from "./levels.ts";
+import { embedDay } from "./embed-day.ts";
 import type { Flow } from "./flow.ts";
 import type { Game } from "./game.ts";
-import { mountSuido, type SuidoMount, type SuidoTurning, type SuidoMountOptions } from "./mount.ts";
+import { levelAnswer } from "./levelRow.ts";
+import { loadSuidoLevels } from "./levels.ts";
+import { mountSuido, type SuidoMount, type SuidoMountOptions, type SuidoTurning } from "./mount.ts";
+import { SUIDO_PLAY_STYLE } from "./playStyle.ts";
 
 /**
  * THE `<suido-board>` ELEMENT: a playable Suido board in a tag, with no
@@ -388,7 +388,8 @@ export class SuidoBoard extends ElementBase {
       this.#mount.set({ turning, hints, language });
       return;
     }
-    const ask = (this.#asked += 1);
+    this.#asked += 1;
+    const ask = this.#asked;
     if (code === undefined && size !== null && level !== undefined) {
       const rows = await loadSuidoLevels(size).catch(() => null);
       if (!this.isConnected || ask !== this.#asked) return;

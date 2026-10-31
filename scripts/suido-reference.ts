@@ -1,4 +1,3 @@
-import { withLevelExamples } from "./suido-level-docs.ts";
 // Makes src/difficulty.reference.ts: for every size, kind and wrap, a set of boards from the package's own
 // generator, each measured, and the measures kept as quantiles. Seeded, so the same run writes the same file.
 //
@@ -7,18 +6,19 @@ import { withLevelExamples } from "./suido-level-docs.ts";
 //   node scripts/suido-reference.ts --part 28 150 drains wrap   one set (side, boards, kind, and `wrap` for edges that join), written as JSON to the file named by --out
 //   node scripts/suido-reference.ts --merge a.json b.json …     adds the sets in those files to src/difficulty.reference.ts, and the sides they are for to DIFFICULTY_SIDES
 import { writeFileSync } from "node:fs";
+import type { Kind } from "../src/code.ts";
 
 import {
   blendOf,
   MEASURE_NAMES,
+  type Measure,
   measureSuido,
   quantilesOf,
-  referenceKey,
-  type Measure,
   type Reference,
+  referenceKey,
 } from "../src/difficulty.ts";
 import { makeUnscored } from "../src/generate.ts";
-import type { Kind } from "../src/code.ts";
+import { withLevelExamples } from "./suido-level-docs.ts";
 
 const SIDES = [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 16];
 const mode = process.argv[2]?.startsWith("--") ? process.argv[2] : null;

@@ -1,8 +1,8 @@
-import { neighboursOf, type Layout } from "./code.ts";
 import { hasBlocks } from "./blocks.ts";
-import { drainFacings, rotationsOfLayout, scanFacings, SCAN } from "./facing.ts";
+import { type Layout, neighboursOf } from "./code.ts";
+import { drainFacings, rotationsOfLayout, SCAN, scanFacings } from "./facing.ts";
 import { opposite } from "./pieces.ts";
-import { countBits, refreshCells, unitsOf, wayHolds, type CellSets } from "./units.ts";
+import { type CellSets, countBits, refreshCells, unitsOf, wayHolds } from "./units.ts";
 
 /** What the solver found.
  *
@@ -199,7 +199,9 @@ function solveNetwork(layout: Layout, limit: number, budget: number): SolveResul
       const masks = new Array<number>(count).fill(0);
       units.cells.forEach((cells, unit) => {
         const way = Math.log2(state.dom[unit]!);
-        cells.forEach((cell, at) => (masks[cell] = units.facings[unit]![way]![at]!));
+        cells.forEach((cell, at) => {
+          masks[cell] = units.facings[unit]![way]![at]!;
+        });
       });
       solutions.push(masks);
       return;

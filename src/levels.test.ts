@@ -8,9 +8,9 @@ import {
   isSuidoLevel,
   nextSuidoLevel,
   openSuidoLevels,
-  sizeOf,
   SUIDO_LEVEL_COUNTS,
   SUIDO_SIZES,
+  sizeOf,
   suidoBand,
 } from "./levels.ts";
 

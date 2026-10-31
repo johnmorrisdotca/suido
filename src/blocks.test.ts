@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { BIG_KINDS, bigKindOf, bigMasksOf, placeBlocks, type BigKind } from "./bigPieces.ts";
+import { BIG_KINDS, type BigKind, bigKindOf, bigMasksOf, placeBlocks } from "./bigPieces.ts";
 import {
   blockAt,
   blockCells,
@@ -14,7 +14,7 @@ import {
   sameBlock,
   turnBlock,
 } from "./blocks.ts";
-import { decodeLayout, encodeLayout, neighboursOf, type Layout } from "./code.ts";
+import { decodeLayout, encodeLayout, type Layout, neighboursOf } from "./code.ts";
 import { seededRandom } from "./random.ts";
 
 /** A big piece's four masks (clockwise from the top left) as the masks of a 2 by 2 board, by cell. */

@@ -2,10 +2,10 @@ import { describe, expect, it } from "vitest";
 
 import { bruteForce, facingsOf } from "./brute.fixture.ts";
 import { checkSuidoAnswer } from "./check.ts";
-import { decodeLayout, encodeLayout, isLocked, neighboursOf, type Layout } from "./code.ts";
+import { decodeLayout, encodeLayout, isLocked, type Layout, neighboursOf } from "./code.ts";
 import { flowOf } from "./flow.ts";
 import { canTurnAt, hintFor, newGame, turnAt } from "./game.ts";
-import { laySuido, makeSuido, makeUnscored, type MakeOptions } from "./generate.ts";
+import { laySuido, type MakeOptions, makeSuido, makeUnscored } from "./generate.ts";
 import { armsOf, SHAPE_MASKS, turn } from "./pieces.ts";
 import { seededRandom } from "./random.ts";
 import { solve } from "./solve.ts";

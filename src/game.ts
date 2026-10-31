@@ -1,6 +1,6 @@
 import { blockAt, blockInfo, blockQuartersBetween, canTurnBlock, turnBlock } from "./blocks.ts";
 import { decodeLayout, encodeLayout, isLocked, type Layout } from "./code.ts";
-import { flowOf, type Flow } from "./flow.ts";
+import { type Flow, flowOf } from "./flow.ts";
 import { quartersBetween, shapeOf, turn } from "./pieces.ts";
 
 /**

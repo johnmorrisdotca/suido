@@ -1,4 +1,4 @@
-import { neighboursOf, type Layout } from "./code.ts";
+import { type Layout, neighboursOf } from "./code.ts";
 import { armsOf, opposite } from "./pieces.ts";
 
 /** Where the water is on a board as it is turned: the whole picture, from the pump outwards.

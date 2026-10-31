@@ -244,11 +244,9 @@ export function decodeLayout(code: string): Layout | null {
       armsOf(cells[drains[0]!]!) !== 1)
   )
     return null;
-  if (locked !== null && locked.some((cell) => cells[cell] === 0)) return null;
-  if (walls !== null && walls.some((edge) => !wrap && (edge & 1) === 0 && (edge >> 1) % width === width - 1))
-    return null;
-  if (walls !== null && walls.some((edge) => !wrap && (edge & 1) === 1 && edge >> 1 >= width * (height - 1)))
-    return null;
+  if (locked?.some((cell) => cells[cell] === 0)) return null;
+  if (walls?.some((edge) => !wrap && (edge & 1) === 0 && (edge >> 1) % width === width - 1)) return null;
+  if (walls?.some((edge) => !wrap && (edge & 1) === 1 && edge >> 1 >= width * (height - 1))) return null;
   const layout: Layout = { width, height, kind, wrap, cells, sources, drains };
   if (locked !== null) layout.locked = locked;
   if (walls !== null) layout.walls = walls;
@@ -322,7 +320,7 @@ function sharesBlock(layout: Layout, a: number, b: number): boolean {
  * ```
  */
 export function isLocked(layout: Pick<Layout, "locked">, cell: number): boolean {
-  return layout.locked !== undefined && layout.locked.includes(cell);
+  return layout.locked?.includes(cell) ?? false;
 }
 
 /** The same board with its pieces facing as `masks` says, which is how a half-played board or an answer is kept.

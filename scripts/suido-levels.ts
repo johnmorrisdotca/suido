@@ -1,4 +1,3 @@
-import { withLevelExamples } from "./suido-level-docs.ts";
 /**
  * THE SUIDO LEVELS, MADE ON A DESK:
  *
@@ -27,19 +26,19 @@ import { withLevelExamples } from "./suido-level-docs.ts";
  * level's number is its place, and the tests prove every one again on every build.
  */
 import { existsSync, writeFileSync } from "node:fs";
-
 import type { Layout } from "../src/code.ts";
-import { exactDifficultyOf, difficultyOf } from "../src/difficulty.ts";
+import { difficultyOf, exactDifficultyOf } from "../src/difficulty.ts";
 import { flowOf } from "../src/flow.ts";
-import { makeUnscored, turnsFromAnswer, type MakeOptions } from "../src/generate.ts";
-import { twistRole, type TwistRole } from "../src/ladder.ts";
+import { type MakeOptions, makeUnscored, turnsFromAnswer } from "../src/generate.ts";
+import { type TwistRole, twistRole } from "../src/ladder.ts";
 import { SUIDO_BLOCK } from "../src/levelBlocks.ts";
-import { SUIDO_LEVEL_COUNTS, SUIDO_SIZES, sizeOf, type LevelRow } from "../src/levelCounts.ts";
+import { type LevelRow, SUIDO_LEVEL_COUNTS, SUIDO_SIZES, sizeOf } from "../src/levelCounts.ts";
 import { levelBoard, levelSolution, turnsOf } from "../src/levelRow.ts";
-import { seededRandom, type Random } from "../src/random.ts";
+import { type Random, seededRandom } from "../src/random.ts";
 import { solve } from "../src/solve.ts";
 import { symmetryKey } from "../src/symmetry.ts";
-import { SUIDO_TWISTS, twistsOf, type Twist } from "../src/twists.ts";
+import { SUIDO_TWISTS, type Twist, twistsOf } from "../src/twists.ts";
+import { withLevelExamples } from "./suido-level-docs.ts";
 
 /** A name for a size's constant and file: `5x7` is `5X7`. */
 const upper = (size: string): string => size.toUpperCase();

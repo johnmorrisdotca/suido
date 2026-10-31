@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { neighboursOf, type Layout } from "./code.ts";
+import { type Layout, neighboursOf } from "./code.ts";
 import { flowOf, isSolved } from "./flow.ts";
 import { opposite, SHAPE_MASKS, turn } from "./pieces.ts";
 import { seededRandom } from "./random.ts";
@@ -9,7 +9,12 @@ import { seededRandom } from "./random.ts";
 function wetBySets(layout: Layout, masks: readonly number[]): boolean[] {
   const near = neighboursOf(layout);
   const group = masks.map((_, cell) => cell);
-  const find = (cell: number): number => (group[cell] === cell ? cell : (group[cell] = find(group[cell]!)));
+  const find = (cell: number): number => {
+    if (group[cell] === cell) return cell;
+    const found = find(group[cell]!);
+    group[cell] = found;
+    return found;
+  };
   for (let cell = 0; cell < masks.length; cell += 1) {
     for (let side = 0; side < 4; side += 1) {
       const next = near[cell * 4 + side]!;

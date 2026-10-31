@@ -1,10 +1,9 @@
-import { FAMILY, familyRepo } from "../scripts/family-template.mjs";
 // The documents and the demo, held to the source. Plain JavaScript, so that reading files needs no Node types.
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import process from "node:process";
-
 import { describe, expect, it } from "vitest";
+import { FAMILY, familyRepo } from "../scripts/family-template.mjs";
 
 import { MAX_SIDE } from "./code.ts";
 import { SUIDO_DAILY_STRIDE } from "./daily.ts";

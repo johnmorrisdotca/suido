@@ -4,11 +4,11 @@ import {
   BIG_FAMILIES,
   BIG_KINDS,
   BIG_SHAPES,
+  type BigKind,
   bigMasksOf,
   bigShapeById,
   bigShapeOf,
   placeBlocks,
-  type BigKind,
 } from "./bigPieces.ts";
 import { blockCells, blockFacings, isJoinedInside } from "./blocks.ts";
 import { neighboursOf } from "./code.ts";

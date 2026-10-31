@@ -1,21 +1,21 @@
 /** Pipe masks, board codes, water flow, game state, bounded solvers and seeded puzzle generation. */
 
-export * from "./pieces.ts";
+export * from "./bigDifficulty.ts";
+export * from "./bigPieces.ts";
+export * from "./blocks.ts";
+export * from "./check.ts";
 export * from "./code.ts";
+export * from "./deduce.ts";
+export { DIFFICULTY_SIDES } from "./difficulty.reference.ts";
+export * from "./difficulty.ts";
 export * from "./flow.ts";
 export * from "./game.ts";
-export * from "./check.ts";
-export * from "./solve.ts";
-export * from "./deduce.ts";
-export * from "./difficulty.ts";
-export * from "./bigDifficulty.ts";
-export { DIFFICULTY_SIDES } from "./difficulty.reference.ts";
 export * from "./generate.ts";
-export * from "./blocks.ts";
-export * from "./bigPieces.ts";
 export * from "./pieceGuide.ts";
-export * from "./twists.ts";
-export * from "./symmetry.ts";
-export { seededRandom, shuffled } from "./random.ts";
+export * from "./pieces.ts";
 export type { Random } from "./random.ts";
+export { seededRandom, shuffled } from "./random.ts";
+export * from "./solve.ts";
+export * from "./symmetry.ts";
+export * from "./twists.ts";
 export { VERSION } from "./version.ts";
