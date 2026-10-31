@@ -1,6 +1,6 @@
 import type { Kind, Layout } from "./code.ts";
 import { deduce } from "./deduce.ts";
-import { DIFFICULTY_REFERENCE, DIFFICULTY_SIDES } from "./difficulty.reference.ts";
+import { DIFFICULTY_REFERENCE, DIFFICULTY_SIDES } from "./difficulty.reference.data.ts";
 import { flowOf } from "./flow.ts";
 import { solve } from "./solve.ts";
 

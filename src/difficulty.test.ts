@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DIFFICULTY_REFERENCE, DIFFICULTY_SIDES } from "./difficulty.reference.ts";
+import { DIFFICULTY_REFERENCE, DIFFICULTY_SIDES } from "./difficulty.reference.data.ts";
 import {
   blendOf,
   DIFFICULTY_WEIGHTS,

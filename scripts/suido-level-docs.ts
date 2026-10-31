@@ -67,7 +67,7 @@ if (
     if (file.startsWith("src/levels/")) files.set(file, pkg.name + entry.slice(1));
   }
   files.set("src/levels/bigInfo.data.ts", `${pkg.name}/levels-info`);
-  files.set("src/difficulty.reference.ts", pkg.name);
+  files.set("src/difficulty.reference.data.ts", pkg.name);
   for (const [file, entry] of files) {
     const before = readFileSync(file, "utf8");
     const after = withLevelExamples(before, entry);

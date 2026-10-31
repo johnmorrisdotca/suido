@@ -20,9 +20,10 @@ src/
 ├── pieceGuide.ts          a guide to every piece, each with a board to draw it on
 ├── solve.ts               the solver, which counts a board's answers up to a limit
 ├── deduce.ts              what can be worked out without guessing, in rounds
+├── plan.ts                a board being made: the forest of pipes, before it is scrambled and mended
 ├── generate.ts            new boards from a seed: pipes grown, scrambled, made to have one answer
 ├── difficulty.ts          how hard a board is, measured and ranked among its size
-├── difficulty.reference.ts  the boards a difficulty is ranked among, as quantiles
+├── difficulty.reference.data.ts  the boards a difficulty is ranked among, as quantiles
 ├── twists.ts              the twists a board can have, read from the board
 ├── symmetry.ts            a board turned and mirrored, and its identity under them
 ├── game.ts                a game in play: a tap, a hint, the code to keep

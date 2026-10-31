@@ -217,7 +217,7 @@ describe("the README's promises", () => {
     const solve = readFileSync("src/solve.ts", "utf8");
     expect(solve).toContain("limit = 2, budget = 200_000");
     expect(limits).toContain("200,000 positions");
-    const generate = readFileSync("src/generate.ts", "utf8");
+    const generate = readFileSync("src/generate.ts", "utf8") + readFileSync("src/plan.ts", "utf8");
     expect(generate).toContain("options.attempts ?? 60");
     expect(generate).toContain("options.tolerance ?? 4");
     expect(limits).toContain("up to 60 boards, until one is within 4 of it");

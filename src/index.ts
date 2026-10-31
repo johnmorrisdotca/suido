@@ -6,7 +6,7 @@ export * from "./blocks.ts";
 export * from "./check.ts";
 export * from "./code.ts";
 export * from "./deduce.ts";
-export { DIFFICULTY_SIDES } from "./difficulty.reference.ts";
+export { DIFFICULTY_SIDES } from "./difficulty.reference.data.ts";
 export * from "./difficulty.ts";
 export * from "./flow.ts";
 export * from "./game.ts";

@@ -1,10 +1,10 @@
-// Makes src/difficulty.reference.ts: for every size, kind and wrap, a set of boards from the package's own
+// Makes src/difficulty.reference.data.ts: for every size, kind and wrap, a set of boards from the package's own
 // generator, each measured, and the measures kept as quantiles. Seeded, so the same run writes the same file.
 //
 //   node scripts/suido-reference.ts            every set, 600 boards each
 //   node scripts/suido-reference.ts 12 40      one side only, as many boards as the second number says (prints, writes nothing)
 //   node scripts/suido-reference.ts --part 28 150 drains wrap   one set (side, boards, kind, and `wrap` for edges that join), written as JSON to the file named by --out
-//   node scripts/suido-reference.ts --merge a.json b.json …     adds the sets in those files to src/difficulty.reference.ts, and the sides they are for to DIFFICULTY_SIDES
+//   node scripts/suido-reference.ts --merge a.json b.json …     adds the sets in those files to src/difficulty.reference.data.ts, and the sides they are for to DIFFICULTY_SIDES
 import { writeFileSync } from "node:fs";
 import type { Kind } from "../src/code.ts";
 
@@ -58,7 +58,7 @@ if (mode === "--part") {
 }
 if (mode === "--merge") {
   const { readFileSync } = await import("node:fs");
-  const { DIFFICULTY_REFERENCE, DIFFICULTY_SIDES } = await import("../src/difficulty.reference.ts");
+  const { DIFFICULTY_REFERENCE, DIFFICULTY_SIDES } = await import("../src/difficulty.reference.data.ts");
   const merged: Record<string, Reference> = { ...DIFFICULTY_REFERENCE };
   const sides = new Set<number>(DIFFICULTY_SIDES);
   for (const file of process.argv.slice(3)) {
@@ -71,7 +71,7 @@ if (mode === "--merge") {
     .sort(([a], [b]) => order(a)[0] - order(b)[0] || (order(a)[1] < order(b)[1] ? -1 : 1))
     .map(([key, set]) => `  ${JSON.stringify(key)}: ${JSON.stringify(set)},`);
   writeFileSync(
-    new URL("../src/difficulty.reference.ts", import.meta.url),
+    new URL("../src/difficulty.reference.data.ts", import.meta.url),
     withLevelExamples(
       `import type { Reference } from "./difficulty.ts";
 
@@ -90,7 +90,7 @@ ${rows.join("\n")}
       "@johnmorrisdotca/suido",
     ),
   );
-  console.log("src/difficulty.reference.ts written with", Object.keys(merged).length, "sets");
+  console.log("src/difficulty.reference.data.ts written with", Object.keys(merged).length, "sets");
   process.exit(0);
 }
 
@@ -111,7 +111,7 @@ for (const side of only === null ? SIDES : [only]) {
 if (only === null) {
   const rows = Object.entries(sets).map(([key, set]) => `  ${JSON.stringify(key)}: ${JSON.stringify(set)},`);
   writeFileSync(
-    new URL("../src/difficulty.reference.ts", import.meta.url),
+    new URL("../src/difficulty.reference.data.ts", import.meta.url),
     withLevelExamples(
       `import type { Reference } from "./difficulty.ts";
 
@@ -129,5 +129,5 @@ ${rows.join("\n")}
       "@johnmorrisdotca/suido",
     ),
   );
-  console.log("src/difficulty.reference.ts written");
+  console.log("src/difficulty.reference.data.ts written");
 }
