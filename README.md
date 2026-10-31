@@ -883,7 +883,7 @@ Please follow the [code of conduct](./CODE_OF_CONDUCT.md). A way to make the che
 
 See [CHANGELOG.md](./CHANGELOG.md).
 
-The latest release is 1.6.0: the board's standard embed attributes, the shared embed builder, and the documentation site with a checked example for every export.
+The latest release, 1.6.1, changes nothing a player sees.
 
 ## Licence
 

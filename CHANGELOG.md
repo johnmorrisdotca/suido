@@ -7,6 +7,8 @@ board and its answer, and a seed makes the board it always made.
 
 ## [Unreleased]
 
+## [1.6.1] - 2026-10-31
+
 ### Changed
 
 - Biome replaces ESLint as the formatter and linter, with the family's shared settings in `scripts/biome-family.json`; `pnpm lint` checks formatting too, and `pnpm format` applies it. The code is formatted once to 120 columns. Nothing a user of the package sees has changed.
