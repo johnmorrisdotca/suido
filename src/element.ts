@@ -136,17 +136,23 @@ export class SuidoBoard extends ElementBase {
     if (target.querySelector("style[data-suido-embed-style]") === null) {
       const style = this.ownerDocument.createElement("style");
       style.setAttribute("data-suido-embed-style", "");
+      const taken = (match: RegExpMatchArray, index: number): string => {
+        const value = match[index];
+        if (value === undefined) throw new Error("A style rule is missing a part.");
+        return value;
+      };
       const rules = (theme: string) =>
         [...SUIDO_PLAY_STYLE.matchAll(new RegExp(`:root\\[data-theme="${theme}"\\] ([^{]+)\\{([^}]+)\\}`, "g"))]
-          .map(
-            (match) =>
-              `[data-suido-embed][theme="${theme}"]${match[1].trim() === ".suido-play" ? ".suido-play" : ` ${match[1].trim()}`} {${match[2]}}`,
-          )
+          .map((match) => {
+            const selector = taken(match, 1).trim();
+            return `[data-suido-embed][theme="${theme}"]${selector === ".suido-play" ? ".suido-play" : ` ${selector}`} {${taken(match, 2)}}`;
+          })
           .join("\n");
-      const light = [...SUIDO_PLAY_STYLE.matchAll(/\.(suido|suido-play) \{([^}]+)\}/g)].filter(
-        (match) => !match[2].includes("#ece8dc") && !match[2].includes("#171a18"),
-      );
-      style.textContent = `@media(prefers-color-scheme:dark){${rules("dark").replaceAll('[theme="dark"]', ':not([theme="light"]):not([theme="dark"])')}}\n${rules("dark")}\n${light.map((match) => `[data-suido-embed][theme="light"]${match[1] === "suido-play" ? ".suido-play" : " .suido"} {${match[2]}}`).join("\n")}\n[data-suido-embed][label]{outline-offset:2px}`;
+      const light = [...SUIDO_PLAY_STYLE.matchAll(/\.(suido|suido-play) \{([^}]+)\}/g)].filter((match) => {
+        const body = taken(match, 2);
+        return !body.includes("#ece8dc") && !body.includes("#171a18");
+      });
+      style.textContent = `@media(prefers-color-scheme:dark){${rules("dark").replaceAll('[theme="dark"]', ':not([theme="light"]):not([theme="dark"])')}}\n${rules("dark")}\n${light.map((match) => `[data-suido-embed][theme="light"]${taken(match, 1) === "suido-play" ? ".suido-play" : " .suido"} {${taken(match, 2)}}`).join("\n")}\n[data-suido-embed][label]{outline-offset:2px}`;
       target.append(style);
     }
     if (this.hasAttribute("label")) {
@@ -154,12 +160,13 @@ export class SuidoBoard extends ElementBase {
       this.setAttribute("role", "group");
       this.setAttribute("aria-label", this.getAttribute("label")!);
     } else if (this.#labelBefore !== null) {
-      for (const [name, value] of [
+      const restore: [string, string | null][] = [
         ["role", this.#labelBefore.role],
         ["aria-label", this.#labelBefore.label],
-      ]) {
-        if (value === null) this.removeAttribute(name!);
-        else this.setAttribute(name!, value);
+      ];
+      for (const [name, value] of restore) {
+        if (value === null) this.removeAttribute(name);
+        else this.setAttribute(name, value);
       }
       this.#labelBefore = null;
     }

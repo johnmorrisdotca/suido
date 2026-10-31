@@ -128,7 +128,10 @@ describe("a board's difficulty", () => {
       expect(Math.min(...scores)).toBeLessThan(15);
       expect(Math.max(...scores)).toBeGreaterThan(85);
       const bands = [0, 0, 0, 0];
-      for (const score of scores) bands[Math.min(3, Math.floor((score - 1) / 25))] += 1;
+      for (const score of scores) {
+        const band = Math.min(3, Math.floor((score - 1) / 25));
+        bands[band] = (bands[band] ?? 0) + 1;
+      }
       for (const count of bands) expect(count).toBeGreaterThan(15);
     }
   });
