@@ -18,18 +18,29 @@ const solved = (size, level, share) => async (page) => {
   const solution = levelSolution(row);
   const game = newGame(row[0]);
   const flow = flowOf(layout, solution);
-  const cells = share === 1 ? [...Array(game.masks.length).keys()] : flow.order.slice(0, Math.floor(flow.order.length * share));
+  const cells =
+    share === 1 ? [...Array(game.masks.length).keys()] : flow.order.slice(0, Math.floor(flow.order.length * share));
   for (const cell of cells) {
-    for (let n = quartersBetween(game.masks[cell], solution[cell]) ?? 0; n > 0; n -= 1) await page.locator(`${BOARD} .sd-cell[data-cell="${cell}"]`).click({ force: true });
+    for (let n = quartersBetween(game.masks[cell], solution[cell]) ?? 0; n > 0; n -= 1)
+      await page.locator(`${BOARD} .sd-cell[data-cell="${cell}"]`).click({ force: true });
   }
   await page.waitForFunction(() => document.querySelector('[data-testid="board"]').dataset.painted === "true");
 };
 
-const url = (size, level, lang = "en") => `/?${new URLSearchParams({ mode: "levels", size, level: String(level), lang })}`;
+const url = (size, level, lang = "en") =>
+  `/?${new URLSearchParams({ mode: "levels", size, level: String(level), lang })}`;
 const ready = `${BOARD}[data-painted="true"] svg`;
 
 /** One level, its board cropped. */
-const level = (subject, size, number, share) => ({ subject, views: ["desk"], scale: 1, url: url(size, number), ready, target: `${BOARD} svg`, prepare: solved(size, number, share) });
+const level = (subject, size, number, share) => ({
+  subject,
+  views: ["desk"],
+  scale: 1,
+  url: url(size, number),
+  ready,
+  target: `${BOARD} svg`,
+  prepare: solved(size, number, share),
+});
 
 const twist = async (name, size) => {
   const rows = await loadSuidoLevels(size);

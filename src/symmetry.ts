@@ -52,7 +52,14 @@ export function transformLayout(layout: Layout, op: number): Layout {
     cells[to(cell)] = turn(flip ? mirrored(mask) : mask, quarters);
   });
   const sort = (list: number[]): number[] => list.sort((a, b) => a - b);
-  const out: Layout = { ...layout, width, height, cells, sources: sort(layout.sources.map(to)), drains: sort(layout.drains.map(to)) };
+  const out: Layout = {
+    ...layout,
+    width,
+    height,
+    cells,
+    sources: sort(layout.sources.map(to)),
+    drains: sort(layout.drains.map(to)),
+  };
   delete out.locked;
   delete out.walls;
   delete out.bigs;
@@ -110,7 +117,10 @@ export function symmetryKey(layout: Layout, solution: readonly number[]): string
     const turned = transformLayout(answer, op);
     // The spare pieces are set to one facing after the turn, since a turn changes the facing a piece was set to.
     const flow = flowOf(turned, turned.cells);
-    const code = encodeLayout({ ...turned, cells: turned.cells.map((mask, cell) => (flow.wet[cell] === true ? mask : Math.min(...rotationsOf(mask)))) });
+    const code = encodeLayout({
+      ...turned,
+      cells: turned.cells.map((mask, cell) => (flow.wet[cell] === true ? mask : Math.min(...rotationsOf(mask)))),
+    });
     if (best === "" || code < best) best = code;
   }
   return best;

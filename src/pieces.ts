@@ -105,7 +105,14 @@ export type Shape = "blank" | "end" | "straight" | "elbow" | "tee" | "cross";
  * console.log(SHAPE_MASKS);
  * ```
  */
-export const SHAPE_MASKS: Record<Shape, number> = { blank: 0, end: NORTH, straight: NORTH | SOUTH, elbow: NORTH | EAST, tee: NORTH | EAST | SOUTH, cross: 15 };
+export const SHAPE_MASKS: Record<Shape, number> = {
+  blank: 0,
+  end: NORTH,
+  straight: NORTH | SOUTH,
+  elbow: NORTH | EAST,
+  tee: NORTH | EAST | SOUTH,
+  cross: 15,
+};
 
 /** The shape of a piece, from the sides it opens on.
  *

@@ -3,7 +3,18 @@ import { checkSuidoAnswer } from "./check.ts";
 import { decodeLayout } from "./code.ts";
 import { drawSuido } from "./draw.ts";
 import type { Flow } from "./flow.ts";
-import { canTurnAt, flowOfGame, gameCode, gameFromProgress, gameProgress, hintFor, newGame, tapsToAnswer, turnAt, type Game } from "./game.ts";
+import {
+  canTurnAt,
+  flowOfGame,
+  gameCode,
+  gameFromProgress,
+  gameProgress,
+  hintFor,
+  newGame,
+  tapsToAnswer,
+  turnAt,
+  type Game,
+} from "./game.ts";
 import { paintSuido } from "./paint.ts";
 import { quartersBetween, shapeOf } from "./pieces.ts";
 import { SUIDO_PLAY_STYLE } from "./playStyle.ts";
@@ -183,7 +194,8 @@ export type SuidoMount = {
  */
 export function ensureSuidoPlayStyle(host: Element): void {
   const root = host.getRootNode();
-  const target: ParentNode = typeof ShadowRoot !== "undefined" && root instanceof ShadowRoot ? root : host.ownerDocument.head;
+  const target: ParentNode =
+    typeof ShadowRoot !== "undefined" && root instanceof ShadowRoot ? root : host.ownerDocument.head;
   if (target.querySelector("style[data-suido-play]") !== null) return;
   const style = host.ownerDocument.createElement("style");
   style.setAttribute("data-suido-play", "");
@@ -191,7 +203,12 @@ export function ensureSuidoPlayStyle(host: Element): void {
   target.append(style);
 }
 
-function create<K extends keyof HTMLElementTagNameMap>(document: Document, tag: K, className: string, text?: string): HTMLElementTagNameMap[K] {
+function create<K extends keyof HTMLElementTagNameMap>(
+  document: Document,
+  tag: K,
+  className: string,
+  text?: string,
+): HTMLElementTagNameMap[K] {
   const element = document.createElement(tag);
   element.className = className;
   if (text !== undefined) element.textContent = text;
@@ -233,7 +250,8 @@ export function mountSuido(host: HTMLElement, options: SuidoMountOptions): Suido
   let turning: SuidoTurning = options.turning ?? "clockwise";
   let offerHints = options.hints === true;
   let explicitLanguage = options.language;
-  let language: SuidoLanguage = explicitLanguage ?? suidoLanguageOf(host.closest("[lang]")?.getAttribute("lang") ?? document.documentElement.lang);
+  let language: SuidoLanguage =
+    explicitLanguage ?? suidoLanguageOf(host.closest("[lang]")?.getAttribute("lang") ?? document.documentElement.lang);
   const withControls = options.controls !== false;
   const withChips = options.chips === true;
   const callbacks = options;
@@ -280,10 +298,19 @@ export function mountSuido(host: HTMLElement, options: SuidoMountOptions): Suido
   });
   const restartButton = button("restart", () => api.restart());
   const hintButton = button("hint", () => api.hint());
-  const turningButton = button("turning", () => api.set({ turning: turning === "clockwise" ? "anticlockwise" : "clockwise" }));
+  const turningButton = button("turning", () =>
+    api.set({ turning: turning === "clockwise" ? "anticlockwise" : "clockwise" }),
+  );
 
   const say = (key: string, values: Record<string, string | number> = {}): string => suidoSay(language, key, values);
-  const detail = (extra: Partial<SuidoEventDetail> = {}): SuidoEventDetail => ({ code: gameCode(game), progress: gameProgress(game), turns: game.turns, hints, solved: flow.solved, ...extra });
+  const detail = (extra: Partial<SuidoEventDetail> = {}): SuidoEventDetail => ({
+    code: gameCode(game),
+    progress: gameProgress(game),
+    turns: game.turns,
+    hints,
+    solved: flow.solved,
+    ...extra,
+  });
   const tell = (name: string, info: SuidoEventDetail, callback?: (detail: SuidoEventDetail) => void): void => {
     callback?.(info);
     host.dispatchEvent(new CustomEvent(name, { detail: info, bubbles: true, composed: true }));
@@ -300,7 +327,10 @@ export function mountSuido(host: HTMLElement, options: SuidoMountOptions): Suido
     })();
     chips.replaceChildren(
       ...twists.map((twist) => {
-        const key = twist === "plain" ? "plain" : `twist${twist.replace(/(^|-)(\w)/g, (_, __, letter: string) => letter.toUpperCase())}`;
+        const key =
+          twist === "plain"
+            ? "plain"
+            : `twist${twist.replace(/(^|-)(\w)/g, (_, __, letter: string) => letter.toUpperCase())}`;
         const one = create(document, "li", "sdp-chip", say(key));
         one.dataset.twist = twist;
         one.title = say(`${key}Says`);
@@ -321,8 +351,17 @@ export function mountSuido(host: HTMLElement, options: SuidoMountOptions): Suido
       const at = info.of[index] ?? -1;
       const place = at >= 0 ? placeAfter(info.blocks[at]!, index, game.quarters[index]!) : index;
       const block = at < 0 ? "" : say(info.blocks[at]!.big ? "cellBig" : "cellBlock");
-      const what = [role === "source" ? say("cellPump") : role === "drain" ? say("cellDrain") : "", say(`shape${shapeOf(game.start.cells[index]!).replace(/^./, (letter) => letter.toUpperCase())}`), block, locked ? say("cellLocked") : "", flow.wet[place] === true ? say("cellWet") : ""].filter((word) => word !== "");
-      cell.setAttribute("aria-label", say("cell", { row: Math.floor(place / width) + 1, col: (place % width) + 1, what: what.join(join) }));
+      const what = [
+        role === "source" ? say("cellPump") : role === "drain" ? say("cellDrain") : "",
+        say(`shape${shapeOf(game.start.cells[index]!).replace(/^./, (letter) => letter.toUpperCase())}`),
+        block,
+        locked ? say("cellLocked") : "",
+        flow.wet[place] === true ? say("cellWet") : "",
+      ].filter((word) => word !== "");
+      cell.setAttribute(
+        "aria-label",
+        say("cell", { row: Math.floor(place / width) + 1, col: (place % width) + 1, what: what.join(join) }),
+      );
       if (locked) cell.setAttribute("aria-disabled", "true");
     });
   }
@@ -345,10 +384,19 @@ export function mountSuido(host: HTMLElement, options: SuidoMountOptions): Suido
     turningButton.textContent = say(turning === "clockwise" ? "turningClockwise" : "turningAnticlockwise");
     turningButton.setAttribute("aria-pressed", String(turning === "anticlockwise"));
     const kind = game.start.kind;
-    const progress = kind === "drains" ? say("progressDrains", { wet: flow.wetDrains, of: flow.drains }) : kind === "inlet-outlet" ? say(flow.wetPieces <= 1 ? "progressPathNone" : "progressPath", { wet: flow.wetPieces }) : say("progressNetwork", { wet: flow.wetPieces, of: flow.pieces });
+    const progress =
+      kind === "drains"
+        ? say("progressDrains", { wet: flow.wetDrains, of: flow.drains })
+        : kind === "inlet-outlet"
+          ? say(flow.wetPieces <= 1 ? "progressPathNone" : "progressPath", { wet: flow.wetPieces })
+          : say("progressNetwork", { wet: flow.wetPieces, of: flow.pieces });
     const solvedKey = kind === "drains" ? "solvedDrains" : kind === "inlet-outlet" ? "solvedPath" : "solved";
     const leaks = flow.spills.length;
-    status.textContent = flow.solved ? (shown ? say("solvedBefore") : say(solvedKey, { n: game.turns })) : `${progress} · ${leaks === 0 ? say("leaksNone") : say("leaks", { n: leaks })}`;
+    status.textContent = flow.solved
+      ? shown
+        ? say("solvedBefore")
+        : say(solvedKey, { n: game.turns })
+      : `${progress} · ${leaks === 0 ? say("leaksNone") : say("leaks", { n: leaks })}`;
     status.dataset.solved = String(flow.solved);
     const bits = [say("turns", { n: game.turns })];
     if (solution !== null) bits.push(say("par", { n: par }));
@@ -362,7 +410,12 @@ export function mountSuido(host: HTMLElement, options: SuidoMountOptions): Suido
     const mine = (generation += 1);
     window.cancelAnimationFrame(frame);
     host.style.setProperty("--sdp-ratio", String(game.start.width / game.start.height));
-    boardBox.innerHTML = drawSuido(game.start, { masks: game.masks, quarters: game.quarters, water: false, label: say("board", { width: game.start.width, height: game.start.height }) });
+    boardBox.innerHTML = drawSuido(game.start, {
+      masks: game.masks,
+      quarters: game.quarters,
+      water: false,
+      label: say("board", { width: game.start.width, height: game.start.height }),
+    });
     svg = boardBox.firstElementChild as SVGSVGElement;
     viewer?.destroy();
     viewer = zooming ? attachSuidoView(boardBox, svg, game.start, { onChange: () => words() }) : null;
@@ -394,7 +447,12 @@ export function mountSuido(host: HTMLElement, options: SuidoMountOptions): Suido
     game = fresh;
     shown = false;
     if (solution !== null && next.shown === true) {
-      game = { ...fresh, masks: [...solution], quarters: fresh.start.cells.map((mask, cell) => quartersBetween(mask, solution![cell]!) ?? 0), turns: 0 };
+      game = {
+        ...fresh,
+        masks: [...solution],
+        quarters: fresh.start.cells.map((mask, cell) => quartersBetween(mask, solution![cell]!) ?? 0),
+        turns: 0,
+      };
       shown = true;
     } else if (next.progress !== undefined) game = gameFromProgress(code, next.progress) ?? fresh;
     par = solution === null ? 0 : tapsToAnswer(newGame(code)!, solution);
@@ -442,7 +500,12 @@ export function mountSuido(host: HTMLElement, options: SuidoMountOptions): Suido
     if (cell === null || cell === undefined) return;
     const index = Number(cell.dataset.cell);
     const { width, height } = game.start;
-    const move = ({ ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] } as Record<string, [number, number]>)[event.key];
+    const move = (
+      { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] } as Record<
+        string,
+        [number, number]
+      >
+    )[event.key];
     if (move !== undefined) {
       event.preventDefault();
       const col = (index % width) + move[0];
@@ -459,25 +522,31 @@ export function mountSuido(host: HTMLElement, options: SuidoMountOptions): Suido
       turnCell(index, event.shiftKey !== reverse());
     }
   };
-  const sizing = !zooming || typeof ResizeObserver === "undefined" ? null : new ResizeObserver(() => {
-    const big = needsZoom(game.start, boardBox.clientWidth);
-    if (zoomBar.hidden === big) zoomBar.hidden = !big;
-    host.dataset.zoomable = String(big);
-  });
+  const sizing =
+    !zooming || typeof ResizeObserver === "undefined"
+      ? null
+      : new ResizeObserver(() => {
+          const big = needsZoom(game.start, boardBox.clientWidth);
+          if (zoomBar.hidden === big) zoomBar.hidden = !big;
+          host.dataset.zoomable = String(big);
+        });
   sizing?.observe(boardBox);
   boardBox.addEventListener("click", onClick);
   boardBox.addEventListener("contextmenu", onContext);
   boardBox.addEventListener("keydown", onKey);
 
-  const watching = typeof MutationObserver === "undefined" ? null : new MutationObserver(() => {
-    if (explicitLanguage !== undefined) return;
-    const next = suidoLanguageOf(host.closest("[lang]")?.getAttribute("lang") ?? document.documentElement.lang);
-    if (next === language) return;
-    language = next;
-    svg?.setAttribute("aria-label", say("board", { width: game.start.width, height: game.start.height }));
-    renderChips();
-    words();
-  });
+  const watching =
+    typeof MutationObserver === "undefined"
+      ? null
+      : new MutationObserver(() => {
+          if (explicitLanguage !== undefined) return;
+          const next = suidoLanguageOf(host.closest("[lang]")?.getAttribute("lang") ?? document.documentElement.lang);
+          if (next === language) return;
+          language = next;
+          svg?.setAttribute("aria-label", say("board", { width: game.start.width, height: game.start.height }));
+          renderChips();
+          words();
+        });
   watching?.observe(document.documentElement, { attributes: true, attributeFilter: ["lang"] });
 
   const api: SuidoMount = {
@@ -521,7 +590,8 @@ export function mountSuido(host: HTMLElement, options: SuidoMountOptions): Suido
         // A hint in a block lights the whole block, which is what turns.
         const block = blockAt(game.start, cell);
         for (const lit of block?.cells ?? [cell]) cells()[lit]?.setAttribute("data-hint", "true");
-        if (block !== null) svg.querySelector(`.sd-plate[data-block="${block.index}"]`)?.setAttribute("data-hint", "true");
+        if (block !== null)
+          svg.querySelector(`.sd-plate[data-block="${block.index}"]`)?.setAttribute("data-hint", "true");
         viewer?.show(cell);
       }
       words();

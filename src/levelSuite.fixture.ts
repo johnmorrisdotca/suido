@@ -7,7 +7,16 @@ import { flowOf } from "./flow.ts";
 import { twistRole } from "./ladder.ts";
 import { SUIDO_BLOCK } from "./levelBlocks.ts";
 import { declaredTwists, levelAnswer, levelSolution } from "./levelRow.ts";
-import { loadSuidoLevels, SUIDO_LEVEL_COUNTS, sizeOf, suidoBand, suidoLevelOf, suidoLevelsOf, suidoMarks, suidoRole } from "./levels.ts";
+import {
+  loadSuidoLevels,
+  SUIDO_LEVEL_COUNTS,
+  sizeOf,
+  suidoBand,
+  suidoLevelOf,
+  suidoLevelsOf,
+  suidoMarks,
+  suidoRole,
+} from "./levels.ts";
 import { SUIDO_MARKS } from "./levels/marks.data.ts";
 import { solve, type SolveResult } from "./solve.ts";
 import { symmetryKey } from "./symmetry.ts";
@@ -57,7 +66,8 @@ export function levelSuite(size: string): void {
         const flow = flowOf(layouts[index]!, stored!);
         expect(flow.solved, `level ${index + 1}'s stored answer is not solved`).toBe(true);
         const mine = found.solutions[0]!;
-        for (let cell = 0; cell < mine.length; cell += 1) if (flow.wet[cell] === true) expect(stored![cell], `level ${index + 1}, cell ${cell}`).toBe(mine[cell]);
+        for (let cell = 0; cell < mine.length; cell += 1)
+          if (flow.wet[cell] === true) expect(stored![cell], `level ${index + 1}, cell ${cell}`).toBe(mine[cell]);
         expect(checkSuidoAnswer(row[0], levelAnswer(row)!), `level ${index + 1}`).toEqual({ ok: true });
       }
     });
@@ -65,7 +75,8 @@ export function levelSuite(size: string): void {
     it("declares the twists its board has, and only those", () => {
       for (const [index, row] of suidoLevelsOf(size).entries()) {
         expect(row[2], `level ${index + 1}`).toBe(twistsOf(layouts[index]!).join(" "));
-        for (const word of row[2].split(" ").filter(Boolean)) expect(SUIDO_TWISTS as readonly string[], `level ${index + 1}`).toContain(word);
+        for (const word of row[2].split(" ").filter(Boolean))
+          expect(SUIDO_TWISTS as readonly string[], `level ${index + 1}`).toContain(word);
         expect(declaredTwists(row)).toEqual(twistsOf(layouts[index]!));
       }
     });
@@ -79,7 +90,8 @@ export function levelSuite(size: string): void {
       for (const [index, row] of suidoLevelsOf(size).entries()) {
         const layout = layouts[index]!;
         const answer = levelSolution(row)!;
-        for (const cell of layout.locked ?? []) expect(answer[cell], `level ${index + 1}, locked ${cell}`).toBe(layout.cells[cell]);
+        for (const cell of layout.locked ?? [])
+          expect(answer[cell], `level ${index + 1}, locked ${cell}`).toBe(layout.cells[cell]);
         // The water of the answer, run on the board with no walls, goes along no wall.
         const bare = neighboursOf({ width: layout.width, height: layout.height, wrap: layout.wrap });
         const flow = flowOf(layout, answer);
@@ -87,7 +99,11 @@ export function levelSuite(size: string): void {
           const cell = edge >> 1;
           const side = (edge & 1) === 0 ? 1 : 2;
           const next = bare[cell * 4 + side]!;
-          const through = flow.wet[cell] === true && flow.wet[next] === true && ((answer[cell]! >> side) & 1) === 1 && ((answer[next]! >> ((side + 2) & 3)) & 1) === 1;
+          const through =
+            flow.wet[cell] === true &&
+            flow.wet[next] === true &&
+            ((answer[cell]! >> side) & 1) === 1 &&
+            ((answer[next]! >> ((side + 2) & 3)) & 1) === 1;
           expect(through, `level ${index + 1}: a wall across the answer's pipe`).toBe(false);
         }
       }
@@ -113,13 +129,20 @@ export function levelSuite(size: string): void {
     it("rises over the whole of its range: the first level is among the easiest of its size and the last among the hardest", () => {
       const rows = suidoLevelsOf(size);
       expect(difficultyOf(layouts[0]!, levelSolution(rows[0]!)!)).toBeLessThanOrEqual(8);
-      expect(difficultyOf(layouts[rows.length - 1]!, levelSolution(rows[rows.length - 1]!)!)).toBeGreaterThanOrEqual(92);
+      expect(difficultyOf(layouts[rows.length - 1]!, levelSolution(rows[rows.length - 1]!)!)).toBeGreaterThanOrEqual(
+        92,
+      );
     }, 180_000);
 
     it("marks every level 1 to 5 by its measured score, in steps of twenty", () => {
-      const digits = suidoLevelsOf(size).map((row, index) => String(Math.min(5, 1 + Math.floor(difficultyOf(layouts[index]!, levelSolution(row)!) / 20)))).join("");
+      const digits = suidoLevelsOf(size)
+        .map((row, index) =>
+          String(Math.min(5, 1 + Math.floor(difficultyOf(layouts[index]!, levelSolution(row)!) / 20))),
+        )
+        .join("");
       expect(SUIDO_MARKS[size]).toBe(digits);
-      for (let level = 1; level <= digits.length; level += 1) expect(suidoMarks(size, level)).toBe(Number(digits[level - 1]));
+      for (let level = 1; level <= digits.length; level += 1)
+        expect(suidoMarks(size, level)).toBe(Number(digits[level - 1]));
     }, 180_000);
 
     it("is plain through the first block, then teaches a twist at each block's 15th level and tests it at its 16th", () => {
@@ -142,14 +165,18 @@ export function levelSuite(size: string): void {
       const rows = suidoLevelsOf(size);
       // A size of 256 levels has the six twists of the fixed levels, one new in each of its blocks 2 to 7; a huge size of four blocks teaches drains, pumps and wrap.
       const taught = rows.length <= SUIDO_BLOCK * 4 ? (["drains", "pumps", "wrap"] as const) : SUIDO_LEVEL_TWISTS;
-      const firsts = taught.map((twist) => ({ twist, at: rows.findIndex((row) => declaredTwists(row).includes(twist)) }));
+      const firsts = taught.map((twist) => ({
+        twist,
+        at: rows.findIndex((row) => declaredTwists(row).includes(twist)),
+      }));
       for (const { twist, at } of firsts) {
         expect(at, `a ${twist} level`).toBeGreaterThanOrEqual(0);
         const role = twistRole(rows, at + 1);
         expect(role?.role, twist).toBe("teaches");
         expect(role?.newOnes, twist).toContain(twist);
       }
-      for (let each = 1; each < firsts.length; each += 1) expect(firsts[each]!.at, firsts[each]!.twist).toBeGreaterThan(firsts[each - 1]!.at);
+      for (let each = 1; each < firsts.length; each += 1)
+        expect(firsts[each]!.at, firsts[each]!.twist).toBeGreaterThan(firsts[each - 1]!.at);
       // None of the twists a level cannot have (made boards only) is on a level.
       for (const row of rows) for (const twist of declaredTwists(row)) expect(SUIDO_LEVEL_TWISTS).toContain(twist);
     });
@@ -162,7 +189,9 @@ export function levelSuite(size: string): void {
       });
       // The sizes of four blocks have no eighth block to mix them in.
       if (rows.length <= SUIDO_BLOCK * 7) return;
-      const later = rows.slice(SUIDO_BLOCK * 7).filter((row, at) => (at % SUIDO_BLOCK) + 1 < SUIDO_BLOCK - 1 && row[2] !== "");
+      const later = rows
+        .slice(SUIDO_BLOCK * 7)
+        .filter((row, at) => (at % SUIDO_BLOCK) + 1 < SUIDO_BLOCK - 1 && row[2] !== "");
       expect(later.length).toBeGreaterThan(10);
     });
   });

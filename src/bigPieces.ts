@@ -114,7 +114,10 @@ function drawShape(random: Random, mix: BigMix): string {
   let families = POOLS.get(mix);
   if (families === undefined) {
     const kept = BIG_SHAPES.filter((shape) => inBigMix(shape, mix));
-    families = BIG_FAMILIES.map((family) => ({ family: family.family, shapes: kept.filter((shape) => shape.family === family.family) })).filter((family) => family.shapes.length > 0);
+    families = BIG_FAMILIES.map((family) => ({
+      family: family.family,
+      shapes: kept.filter((shape) => shape.family === family.family),
+    })).filter((family) => family.shapes.length > 0);
     POOLS.set(mix, families);
   }
   const family = families[Math.floor(random() * families.length)]!;
@@ -202,10 +205,20 @@ export type BigShape = {
 };
 
 /** The sides of each cell of a 2 by 2 square that face the outside, clockwise from the top left cell: north and west, north and east, east and south, south and west. */
-const OUTSIDE_SIDES = [[0, 3], [0, 1], [1, 2], [2, 3]] as const;
+const OUTSIDE_SIDES = [
+  [0, 3],
+  [0, 1],
+  [1, 2],
+  [2, 3],
+] as const;
 
 /** The four edges inside a square: between the top two cells, the right two, the bottom two and the left two, as the two cells and the side of each that faces the other. */
-const INSIDE_EDGES = [[0, 1, 1, 3], [1, 2, 2, 0], [3, 2, 1, 3], [0, 3, 2, 0]] as const;
+const INSIDE_EDGES = [
+  [0, 1, 1, 3],
+  [1, 2, 2, 0],
+  [3, 2, 1, 3],
+  [0, 3, 2, 0],
+] as const;
 
 const SQUARE = { index: 0, anchor: 0, big: true, cells: [0, 1, 2, 3] } as const;
 
@@ -224,7 +237,8 @@ function turnedKey(masks: readonly number[]): { key: string; masks: number[] } {
 function pipesOf(masks: readonly number[]): number[] {
   const root = [0, 1, 2, 3];
   const find = (cell: number): number => (root[cell] === cell ? cell : (root[cell] = find(root[cell]!)));
-  for (const [a, b, sideA, sideB] of INSIDE_EDGES) if (((masks[a]! >> sideA) & 1) === 1 && ((masks[b]! >> sideB) & 1) === 1) root[find(a)] = find(b);
+  for (const [a, b, sideA, sideB] of INSIDE_EDGES)
+    if (((masks[a]! >> sideA) & 1) === 1 && ((masks[b]! >> sideB) & 1) === 1) root[find(a)] = find(b);
   const openings = new Map<number, number>();
   for (let cell = 0; cell < 4; cell += 1) {
     const out = OUTSIDE_SIDES[cell]!.filter((side) => ((masks[cell]! >> side) & 1) === 1).length;
@@ -235,7 +249,9 @@ function pipesOf(masks: readonly number[]): number[] {
 
 function shapesOf(): BigShape[] {
   const found = new Map<string, BigShape>();
-  const named = new Map<string, BigKind>(Object.keys(BIG_KINDS).map((kind) => [turnedKey([...BIG_KINDS[kind as BigKind]]).key, kind as BigKind]));
+  const named = new Map<string, BigKind>(
+    Object.keys(BIG_KINDS).map((kind) => [turnedKey([...BIG_KINDS[kind as BigKind]]).key, kind as BigKind]),
+  );
   for (let joins = 1; joins < 16; joins += 1) {
     const edges = INSIDE_EDGES.filter((_, at) => ((joins >> at) & 1) === 1);
     // Four joins would close the pipe in a ring the water goes round, which the generator's forests have no way to make.
@@ -246,17 +262,32 @@ function shapesOf(): BigShape[] {
         masks[a] = masks[a]! | (1 << sideA);
         masks[b] = masks[b]! | (1 << sideB);
       }
-      for (let cell = 0; cell < 4; cell += 1) for (let at = 0; at < 2; at += 1) if (((outside >> (cell * 2 + at)) & 1) === 1) masks[cell] = masks[cell]! | (1 << OUTSIDE_SIDES[cell]![at]!);
+      for (let cell = 0; cell < 4; cell += 1)
+        for (let at = 0; at < 2; at += 1)
+          if (((outside >> (cell * 2 + at)) & 1) === 1) masks[cell] = masks[cell]! | (1 << OUTSIDE_SIDES[cell]![at]!);
       // Every cell is a piece, and every pipe has a way in.
       if (masks.some((mask) => mask === 0)) continue;
       const pipes = pipesOf(masks);
       if (pipes.some((openings) => openings === 0)) continue;
       const { key, masks: turned } = turnedKey(masks);
       if (found.has(key)) continue;
-      found.set(key, { id: key, masks: turned as unknown as BigShape["masks"], pipes: pipes.length, openings: pipes.reduce((sum, openings) => sum + openings, 0), family: pipes.join("+"), named: named.get(key) ?? null });
+      found.set(key, {
+        id: key,
+        masks: turned as unknown as BigShape["masks"],
+        pipes: pipes.length,
+        openings: pipes.reduce((sum, openings) => sum + openings, 0),
+        family: pipes.join("+"),
+        named: named.get(key) ?? null,
+      });
     }
   }
-  return [...found.values()].sort((a, b) => a.pipes - b.pipes || a.openings - b.openings || (a.family < b.family ? 1 : a.family > b.family ? -1 : 0) || (a.id < b.id ? -1 : 1));
+  return [...found.values()].sort(
+    (a, b) =>
+      a.pipes - b.pipes ||
+      a.openings - b.openings ||
+      (a.family < b.family ? 1 : a.family > b.family ? -1 : 0) ||
+      (a.id < b.id ? -1 : 1),
+  );
 }
 
 /** Every big piece there is, up to turning (`BigShape`): 699, ordered by how many pipes they hold, then how many openings they have, then family.
@@ -280,7 +311,12 @@ export const BIG_SHAPES: readonly BigShape[] = shapesOf();
 export const BIG_FAMILIES: readonly { family: string; pipes: number; openings: number; shapes: number }[] = (() => {
   const out = new Map<string, { family: string; pipes: number; openings: number; shapes: number }>();
   for (const shape of BIG_SHAPES) {
-    const kept = out.get(shape.family) ?? { family: shape.family, pipes: shape.pipes, openings: shape.openings, shapes: 0 };
+    const kept = out.get(shape.family) ?? {
+      family: shape.family,
+      pipes: shape.pipes,
+      openings: shape.openings,
+      shapes: 0,
+    };
     kept.shapes += 1;
     out.set(shape.family, kept);
   }
@@ -321,7 +357,8 @@ export function bigShapeOf(masks: readonly number[]): { shape: BigShape; quarter
   if (masks.length !== 4) return null;
   const shape = SHAPE_BY_ID.get(turnedKey(masks).key);
   if (shape === undefined) return null;
-  for (let quarters = 0; quarters < 4; quarters += 1) if (turnBlock(shape.masks, SQUARE, quarters).every((mask, at) => mask === masks[at])) return { shape, quarters };
+  for (let quarters = 0; quarters < 4; quarters += 1)
+    if (turnBlock(shape.masks, SQUARE, quarters).every((mask, at) => mask === masks[at])) return { shape, quarters };
   return null;
 }
 
@@ -363,19 +400,35 @@ export type Placed = { anchor: number; kind: string | null; quarters: number };
  * console.log(placeBlocks(neighboursOf(layout),layout.width,layout.height,1,0,seededRandom(42)));
  * ```
  */
-export function placeBlocks(near: Int32Array, width: number, height: number, bigs: number, turning: number, random: Random, mix: BigMix = "five"): Placed[] {
+export function placeBlocks(
+  near: Int32Array,
+  width: number,
+  height: number,
+  bigs: number,
+  turning: number,
+  random: Random,
+  mix: BigMix = "five",
+): Placed[] {
   const anchors: number[] = [];
-  for (let row = 0; row < height - 1; row += 1) for (let col = 0; col < width - 1; col += 1) anchors.push(row * width + col);
+  for (let row = 0; row < height - 1; row += 1)
+    for (let col = 0; col < width - 1; col += 1) anchors.push(row * width + col);
   const taken = new Uint8Array(width * height);
   const placed: Placed[] = [];
   const touches = (cells: readonly number[]): boolean => cells.some((cell) => taken[cell] === 1);
   const beside = (cells: readonly number[]): boolean =>
-    cells.some((cell) => [0, 1, 2, 3].some((side) => {
-      const next = near[cell * 4 + side]!;
-      return next !== -1 && !cells.includes(next) && taken[next] === 1;
-    }));
+    cells.some((cell) =>
+      [0, 1, 2, 3].some((side) => {
+        const next = near[cell * 4 + side]!;
+        return next !== -1 && !cells.includes(next) && taken[next] === 1;
+      }),
+    );
   const queue = shuffled(anchors, random);
-  const want: (string | null)[] = [...Array.from({ length: bigs }, () => (mix !== "five" ? drawShape(random, mix) : BIG_KIND_LIST[Math.floor(random() * BIG_KIND_LIST.length)]!)), ...Array.from({ length: turning }, () => null)];
+  const want: (string | null)[] = [
+    ...Array.from({ length: bigs }, () =>
+      mix !== "five" ? drawShape(random, mix) : BIG_KIND_LIST[Math.floor(random() * BIG_KIND_LIST.length)]!,
+    ),
+    ...Array.from({ length: turning }, () => null),
+  ];
   for (const wanted of want) {
     // A shape drawn from all of them that fits nowhere is drawn again, a few times: the many-opening ones need room the board may not have.
     const draws = mix !== "five" && wanted !== null ? REDRAWS : 1;
@@ -391,7 +444,9 @@ export function placeBlocks(near: Int32Array, width: number, height: number, big
         const big = kind;
         if (big !== null) {
           // A way to face with no opening off the edge of the board, and none towards a block already placed.
-          const ways = shuffled([0, 1, 2, 3], random).filter((way) => openingsFit(near, cells, bigMasksOf(big, way), taken));
+          const ways = shuffled([0, 1, 2, 3], random).filter((way) =>
+            openingsFit(near, cells, bigMasksOf(big, way), taken),
+          );
           if (ways.length === 0) continue;
           quarters = ways[0]!;
         }
@@ -453,10 +508,15 @@ export type BigOnBoard = { anchor: number; shape: BigShape; quarters: number };
  * console.log(bigShapesIn(blockLayout,blockLayout.cells).length);
  * ```
  */
-export function bigShapesIn(layout: { width: number; bigs?: readonly number[] }, masks: readonly number[]): BigOnBoard[] {
+export function bigShapesIn(
+  layout: { width: number; bigs?: readonly number[] },
+  masks: readonly number[],
+): BigOnBoard[] {
   const out: BigOnBoard[] = [];
   for (const anchor of layout.bigs ?? []) {
-    const found = bigShapeOf([anchor, anchor + 1, anchor + layout.width + 1, anchor + layout.width].map((cell) => masks[cell]!));
+    const found = bigShapeOf(
+      [anchor, anchor + 1, anchor + layout.width + 1, anchor + layout.width].map((cell) => masks[cell]!),
+    );
     if (found !== null) out.push({ anchor, shape: found.shape, quarters: found.quarters });
   }
   return out;

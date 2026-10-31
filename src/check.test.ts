@@ -46,15 +46,30 @@ describe("checking an answer", () => {
     const layout = decodeLayout(made.answer)!;
     expect(checkSuidoAnswer("nonsense", made.answer)).toEqual({ ok: false, reason: "the board is not a Suido code" });
     expect(checkSuidoAnswer(made.code, "nonsense")).toEqual({ ok: false, reason: "the answer is not a Suido code" });
-    expect(checkSuidoAnswer(made.code, made.answer.replace("6x6", "5x6"))).toEqual({ ok: false, reason: "the answer is not a Suido code" });
-    expect(checkSuidoAnswer(made.code, encodeLayout({ ...layout, wrap: true }))).toEqual({ ok: false, reason: "the answer is for a different board" });
-    expect(checkSuidoAnswer(made.code, encodeLayout({ ...layout, kind: "drains" }))).toEqual({ ok: false, reason: "the answer is for a different board" });
-    expect(checkSuidoAnswer(made.code, encodeLayout({ ...layout, sources: [] }))).toEqual({ ok: false, reason: "the answer is not a Suido code" });
+    expect(checkSuidoAnswer(made.code, made.answer.replace("6x6", "5x6"))).toEqual({
+      ok: false,
+      reason: "the answer is not a Suido code",
+    });
+    expect(checkSuidoAnswer(made.code, encodeLayout({ ...layout, wrap: true }))).toEqual({
+      ok: false,
+      reason: "the answer is for a different board",
+    });
+    expect(checkSuidoAnswer(made.code, encodeLayout({ ...layout, kind: "drains" }))).toEqual({
+      ok: false,
+      reason: "the answer is for a different board",
+    });
+    expect(checkSuidoAnswer(made.code, encodeLayout({ ...layout, sources: [] }))).toEqual({
+      ok: false,
+      reason: "the answer is not a Suido code",
+    });
     const moved = layout.sources[0] === 0 ? 1 : 0;
     expect(checkSuidoAnswer(made.code, encodeLayout({ ...layout, sources: [moved] })).ok).toBe(false);
     const pieceChanged = [...layout.cells];
     pieceChanged[0] = pieceChanged[0] === 15 ? 7 : 15;
-    expect(checkSuidoAnswer(made.code, encodeLayout({ ...layout, cells: pieceChanged }))).toEqual({ ok: false, reason: "a piece is not the piece the board has there" });
+    expect(checkSuidoAnswer(made.code, encodeLayout({ ...layout, cells: pieceChanged }))).toEqual({
+      ok: false,
+      reason: "a piece is not the piece the board has there",
+    });
     expect(checkSuidoAnswer(made.code, made.code)).toMatchObject({ ok: false });
   });
 
@@ -66,7 +81,10 @@ describe("checking an answer", () => {
     expect(at).toBeGreaterThan(-1);
     const cells = [...layout.cells];
     cells[at] = 3;
-    expect(checkSuidoAnswer(made.code, encodeLayout({ ...layout, cells }))).toEqual({ ok: false, reason: "a piece is not the piece the board has there" });
+    expect(checkSuidoAnswer(made.code, encodeLayout({ ...layout, cells }))).toEqual({
+      ok: false,
+      reason: "a piece is not the piece the board has there",
+    });
   });
 
   it("does not need the answer to be the answer: a drains board takes a spare piece facing any way that leaves the water where it was", () => {

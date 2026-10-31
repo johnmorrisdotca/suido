@@ -1,8 +1,33 @@
 import { beforeAll, describe, expect, it } from "vitest";
 
 import { bigShapesIn, inBigMix } from "./bigPieces.ts";
-import { blendBigScore, BIG_PIECES_LARGEST, BIG_PIECES_SMALLEST, coverageOf, exactBigScoreOf, sizeTermOf, usedPiecesOf } from "./bigDifficulty.ts";
-import { firstUnsolvedSuidoBigLevel, isSuidoBigLevel, nextSuidoBigLevel, openSuidoBigLevels, SUIDO_BIG_BLOCKS, SUIDO_BIG_PIECES, SUIDO_BIG_SCORES, SUIDO_BIG_SIZES, SUIDO_BIG_TWISTS, suidoBigBand, suidoBigMarks, suidoBigPieces, suidoBigRole, suidoBigScore, suidoBigSize, suidoBigTwists } from "./bigLevels.ts";
+import {
+  blendBigScore,
+  BIG_PIECES_LARGEST,
+  BIG_PIECES_SMALLEST,
+  coverageOf,
+  exactBigScoreOf,
+  sizeTermOf,
+  usedPiecesOf,
+} from "./bigDifficulty.ts";
+import {
+  firstUnsolvedSuidoBigLevel,
+  isSuidoBigLevel,
+  nextSuidoBigLevel,
+  openSuidoBigLevels,
+  SUIDO_BIG_BLOCKS,
+  SUIDO_BIG_PIECES,
+  SUIDO_BIG_SCORES,
+  SUIDO_BIG_SIZES,
+  SUIDO_BIG_TWISTS,
+  suidoBigBand,
+  suidoBigMarks,
+  suidoBigPieces,
+  suidoBigRole,
+  suidoBigScore,
+  suidoBigSize,
+  suidoBigTwists,
+} from "./bigLevels.ts";
 import { checkSuidoAnswer } from "./check.ts";
 import { decodeLayout, type Layout } from "./code.ts";
 import { flowOf } from "./flow.ts";
@@ -48,13 +73,15 @@ describe("the big-pieces levels", () => {
       const flow = flowOf(layouts[index]!, stored!);
       expect(flow.solved, `level ${index + 1}'s stored answer is not solved`).toBe(true);
       const mine = found.solutions[0]!;
-      for (let cell = 0; cell < mine.length; cell += 1) if (flow.wet[cell] === true) expect(stored![cell], `level ${index + 1}, cell ${cell}`).toBe(mine[cell]);
+      for (let cell = 0; cell < mine.length; cell += 1)
+        if (flow.wet[cell] === true) expect(stored![cell], `level ${index + 1}, cell ${cell}`).toBe(mine[cell]);
       expect(checkSuidoAnswer(row[0], levelAnswer(row)!), `level ${index + 1}`).toEqual({ ok: true });
     }
   });
 
   it("has big pieces in every level, and holds no two that are the same board turned or mirrored", () => {
-    for (const [index, layout] of layouts.entries()) expect(layout.bigs?.length ?? 0, `level ${index + 1}`).toBeGreaterThan(0);
+    for (const [index, layout] of layouts.entries())
+      expect(layout.bigs?.length ?? 0, `level ${index + 1}`).toBeGreaterThan(0);
     const keys = rows.map((row, index) => symmetryKey(layouts[index]!, levelSolution(row)!));
     expect(new Set(keys).size).toBe(keys.length);
   }, 180_000);
@@ -72,7 +99,9 @@ describe("the big-pieces levels", () => {
   });
 
   it("has a good mix of what is inside its big pieces: pipes side by side, a cross or a tee inside a plate, three pipes in one, few openings and many", () => {
-    const shapes = layouts.flatMap((layout, index) => bigShapesIn(layout, levelSolution(rows[index]!)!).map((one) => one.shape));
+    const shapes = layouts.flatMap((layout, index) =>
+      bigShapesIn(layout, levelSolution(rows[index]!)!).map((one) => one.shape),
+    );
     // Every big piece of every level is one of the shapes, and a level's own count agrees.
     expect(shapes.length).toBe(layouts.reduce((sum, layout) => sum + (layout.bigs?.length ?? 0), 0));
     const families = new Set(shapes.map((shape) => shape.family));
@@ -84,10 +113,14 @@ describe("the big-pieces levels", () => {
     expect(shapes.some((shape) => shape.openings <= 2)).toBe(true);
     expect(shapes.some((shape) => shape.openings >= 6)).toBe(true);
     // The levels of the first block already have plates with two pipes side by side, and no level is only the five old kinds.
-    const early = layouts.slice(0, 16).flatMap((layout, index) => bigShapesIn(layout, levelSolution(rows[index]!)!).map((one) => one.shape));
+    const early = layouts
+      .slice(0, 16)
+      .flatMap((layout, index) => bigShapesIn(layout, levelSolution(rows[index]!)!).map((one) => one.shape));
     expect(early.some((shape) => shape.pipes >= 2)).toBe(true);
     // Water in one pipe of a plate never reaches another: a plate's pipes are separate wherever the answer puts the water.
-    for (const [index, layout] of layouts.entries()) for (const one of bigShapesIn(layout, levelSolution(rows[index]!)!)) expect(one.shape.pipes, `level ${index + 1}`).toBeGreaterThanOrEqual(1);
+    for (const [index, layout] of layouts.entries())
+      for (const one of bigShapesIn(layout, levelSolution(rows[index]!)!))
+        expect(one.shape.pipes, `level ${index + 1}`).toBeGreaterThanOrEqual(1);
   });
 
   it("mixes ordinary 1×1 pieces with 2×2 big pieces in every level, and has more of them, and trickier ones, as the levels climb", () => {
@@ -111,9 +144,13 @@ describe("the big-pieces levels", () => {
     expect(mean(tricky.slice(32))).toBeGreaterThan(mean(tricky.slice(0, 32)));
     expect(mean(tricky.slice(48))).toBeGreaterThan(mean(tricky.slice(0, 16)) + 0.4);
     // The first levels hold only plain ones (one or two pipes, four openings at most), and the last hold three pipes in one.
-    const early = layouts.slice(0, 12).flatMap((layout, index) => bigShapesIn(layout, levelSolution(rows[index]!)!).map((one) => one.shape));
+    const early = layouts
+      .slice(0, 12)
+      .flatMap((layout, index) => bigShapesIn(layout, levelSolution(rows[index]!)!).map((one) => one.shape));
     for (const shape of early) expect(inBigMix(shape, "more"), shape.id).toBe(true);
-    const late = layouts.slice(40).flatMap((layout, index) => bigShapesIn(layout, levelSolution(rows[index + 40]!)!).map((one) => one.shape));
+    const late = layouts
+      .slice(40)
+      .flatMap((layout, index) => bigShapesIn(layout, levelSolution(rows[index + 40]!)!).map((one) => one.shape));
     expect(late.some((shape) => shape.pipes === 3)).toBe(true);
     expect(suidoBigPieces(0)).toBeNull();
     expect(suidoBigPieces(65)).toBeNull();
@@ -129,9 +166,13 @@ describe("the big-pieces levels", () => {
       used.push(usedPiecesOf(layout, levelSolution(rows[index]!)!));
     }
     // The order is the score's, and a size follows it loosely: no level is on a board much smaller than the one before, and every quarter of the set is bigger than the one before it.
-    for (let at = 1; at < used.length; at += 1) expect(used[at]!, `level ${at + 1}`).toBeGreaterThanOrEqual(used[at - 1]! * 0.8);
+    for (let at = 1; at < used.length; at += 1)
+      expect(used[at]!, `level ${at + 1}`).toBeGreaterThanOrEqual(used[at - 1]! * 0.8);
     const mean = (values: number[]) => values.reduce((sum, value) => sum + value, 0) / values.length;
-    for (const quarter of [1, 2, 3]) expect(mean(used.slice(quarter * 16, quarter * 16 + 16))).toBeGreaterThan(mean(used.slice((quarter - 1) * 16, quarter * 16)));
+    for (const quarter of [1, 2, 3])
+      expect(mean(used.slice(quarter * 16, quarter * 16 + 16))).toBeGreaterThan(
+        mean(used.slice((quarter - 1) * 16, quarter * 16)),
+      );
     expect(SUIDO_BIG_SIZES[0]).toBe("5x5");
     expect(SUIDO_BIG_SIZES[63]).toBe("20x20");
     expect(suidoBigSize(0)).toBeNull();
@@ -141,7 +182,8 @@ describe("the big-pieces levels", () => {
   it("scores every level 1 to 100 by what the answer uses and how tangled it is, in order, first near 1 and last near 100, in fairly even steps", () => {
     const exact = layouts.map((layout, index) => exactBigScoreOf(layout, levelSolution(rows[index]!)!));
     expect(SUIDO_BIG_SCORES).toEqual(exact.map((score) => Math.min(100, Math.max(1, Math.round(score)))));
-    for (let at = 1; at < exact.length; at += 1) expect(exact[at]!, `level ${at + 1} is easier than level ${at}`).toBeGreaterThanOrEqual(exact[at - 1]!);
+    for (let at = 1; at < exact.length; at += 1)
+      expect(exact[at]!, `level ${at + 1} is easier than level ${at}`).toBeGreaterThanOrEqual(exact[at - 1]!);
     expect(SUIDO_BIG_SCORES[0]!).toBeLessThanOrEqual(3);
     expect(SUIDO_BIG_SCORES[63]!).toBeGreaterThanOrEqual(97);
     const steps = exact.slice(1).map((score, at) => score - exact[at]!);

@@ -159,7 +159,9 @@ export function encodeLayout(layout: Layout): string {
   const sources = new Set(layout.sources);
   const drains = new Set(layout.drains);
   const flags = `${KIND_FLAG[layout.kind]}${layout.wrap ? "w" : ""}`;
-  const cells = layout.cells.map((mask, cell) => cellChar(mask, sources.has(cell) ? "source" : drains.has(cell) ? "drain" : "plain")).join("");
+  const cells = layout.cells
+    .map((mask, cell) => cellChar(mask, sources.has(cell) ? "source" : drains.has(cell) ? "drain" : "plain"))
+    .join("");
   const locked = layout.locked !== undefined && layout.locked.length > 0 ? `;l${layout.locked.join(",")}` : "";
   const walls = layout.walls !== undefined && layout.walls.length > 0 ? `;w${layout.walls.join(",")}` : "";
   const bigs = layout.bigs !== undefined && layout.bigs.length > 0 ? `;b${layout.bigs.join(",")}` : "";
@@ -171,7 +173,8 @@ export function encodeLayout(layout: Layout): string {
 function numbersOf(text: string, below: number): number[] | null {
   if (!/^\d+(,\d+)*$/.test(text)) return null;
   const list = text.split(",").map(Number);
-  for (let at = 0; at < list.length; at += 1) if (list[at]! >= below || (at > 0 && list[at]! <= list[at - 1]!)) return null;
+  for (let at = 0; at < list.length; at += 1)
+    if (list[at]! >= below || (at > 0 && list[at]! <= list[at - 1]!)) return null;
   return list;
 }
 
@@ -191,7 +194,8 @@ function numbersOf(text: string, below: number): number[] | null {
  */
 export function decodeLayout(code: string): Layout | null {
   if (typeof code !== "string") return null;
-  const match = /^(\d{1,2})x(\d{1,2})([diw]{0,3}):([^;]+)(?:;l([\d,]+))?(?:;w([\d,]+))?(?:;b([\d,]+))?(?:;k([\d,]+))?$/.exec(code);
+  const match =
+    /^(\d{1,2})x(\d{1,2})([diw]{0,3}):([^;]+)(?:;l([\d,]+))?(?:;w([\d,]+))?(?:;b([\d,]+))?(?:;k([\d,]+))?$/.exec(code);
   if (match === null) return null;
   const width = Number(match[1]);
   const height = Number(match[2]);
@@ -232,10 +236,19 @@ export function decodeLayout(code: string): Layout | null {
   if (sources.length === 0) return null;
   const kind: Kind = flags.includes("d") ? "drains" : flags.includes("i") ? "inlet-outlet" : "network";
   // An inlet and an outlet: one pump and one drain, each an end piece; the water runs from one to the other.
-  if (kind === "inlet-outlet" && (sources.length !== 1 || drains.length !== 1 || armsOf(cells[sources[0]!]!) !== 1 || armsOf(cells[drains[0]!]!) !== 1)) return null;
+  if (
+    kind === "inlet-outlet" &&
+    (sources.length !== 1 ||
+      drains.length !== 1 ||
+      armsOf(cells[sources[0]!]!) !== 1 ||
+      armsOf(cells[drains[0]!]!) !== 1)
+  )
+    return null;
   if (locked !== null && locked.some((cell) => cells[cell] === 0)) return null;
-  if (walls !== null && walls.some((edge) => !wrap && (edge & 1) === 0 && (edge >> 1) % width === width - 1)) return null;
-  if (walls !== null && walls.some((edge) => !wrap && (edge & 1) === 1 && (edge >> 1) >= width * (height - 1))) return null;
+  if (walls !== null && walls.some((edge) => !wrap && (edge & 1) === 0 && (edge >> 1) % width === width - 1))
+    return null;
+  if (walls !== null && walls.some((edge) => !wrap && (edge & 1) === 1 && edge >> 1 >= width * (height - 1)))
+    return null;
   const layout: Layout = { width, height, kind, wrap, cells, sources, drains };
   if (locked !== null) layout.locked = locked;
   if (walls !== null) layout.walls = walls;
@@ -249,18 +262,28 @@ function blocksFit(layout: Layout): boolean {
   const { width, height } = layout;
   if (layout.kind !== "network") return false;
   const taken = new Set<number>();
-  for (const [anchors, big] of [[layout.bigs ?? [], true], [layout.blocks ?? [], false]] as const) {
+  for (const [anchors, big] of [
+    [layout.bigs ?? [], true],
+    [layout.blocks ?? [], false],
+  ] as const) {
     for (const anchor of anchors) {
       if (anchor % width > width - 2 || Math.floor(anchor / width) > height - 2) return false;
       const cells = blockCells(anchor, width);
       for (const cell of cells) {
-        if (taken.has(cell) || layout.sources.includes(cell) || layout.drains.includes(cell) || isLocked(layout, cell)) return false;
+        if (taken.has(cell) || layout.sources.includes(cell) || layout.drains.includes(cell) || isLocked(layout, cell))
+          return false;
         taken.add(cell);
       }
       if (big) {
         const bit = (cell: number, side: number): number => (layout.cells[cell]! >> side) & 1;
         const [tl, tr, br, bl] = cells;
-        if (bit(tl, 1) !== bit(tr, 3) || bit(tr, 2) !== bit(br, 0) || bit(bl, 1) !== bit(br, 3) || bit(tl, 2) !== bit(bl, 0)) return false;
+        if (
+          bit(tl, 1) !== bit(tr, 3) ||
+          bit(tr, 2) !== bit(br, 0) ||
+          bit(bl, 1) !== bit(br, 3) ||
+          bit(tl, 2) !== bit(bl, 0)
+        )
+          return false;
       }
     }
   }
@@ -341,7 +364,9 @@ export function withMasks(layout: Layout, masks: readonly number[]): Layout {
  * console.log(neighboursOf(layout).slice(0,8));
  * ```
  */
-export function neighboursOf(layout: Pick<Layout, "width" | "height" | "wrap"> & { walls?: readonly number[] }): Int32Array {
+export function neighboursOf(
+  layout: Pick<Layout, "width" | "height" | "wrap"> & { walls?: readonly number[] },
+): Int32Array {
   const { width, height, wrap } = layout;
   const table = new Int32Array(width * height * 4).fill(-1);
   for (let row = 0; row < height; row += 1) {

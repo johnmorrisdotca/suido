@@ -56,7 +56,8 @@ describe("the drawing of a board", () => {
     expect(leaking).toHaveLength(flow.spills.length);
     for (const state of states) {
       if (!state.wet) expect(state.arms).toEqual(["", "", "", ""]);
-      else if (made.layout.sources.includes(state.cell)) expect(state.arms.filter((arm) => arm === "in")).toHaveLength(0);
+      else if (made.layout.sources.includes(state.cell))
+        expect(state.arms.filter((arm) => arm === "in")).toHaveLength(0);
       else expect(state.arms.filter((arm) => arm === "in")).toHaveLength(1);
     }
     expect(states.map((state) => state.depth)).toEqual(flow.depth);
@@ -65,7 +66,11 @@ describe("the drawing of a board", () => {
   it("turns a piece by the turns it was given, as far as it was tapped, and reads them from the facing when it is not told", () => {
     const solved = cellStates(made.layout, made.solution);
     for (const state of solved) expect([0, 1, 2, 3]).toContain(state.quarters);
-    const tapped = cellStates(made.layout, made.solution, made.solution.map(() => 5));
+    const tapped = cellStates(
+      made.layout,
+      made.solution,
+      made.solution.map(() => 5),
+    );
     expect(tapped.every((state) => state.quarters === 5)).toBe(true);
     expect(drawSuido(made.layout, { masks: made.solution, quarters: made.solution.map(() => -3) })).toContain("--q:-3");
   });
@@ -75,7 +80,7 @@ describe("the drawing of a board", () => {
     const first = made.layout.cells.findIndex((mask) => mask !== 0 && mask !== 15 && mask !== 5 && mask !== 10);
     expect(first).toBeGreaterThan(-1);
     expect(svg).toContain(`data-cell="${first}"`);
-    expect(svg).toContain("transform=\"translate(");
+    expect(svg).toContain('transform="translate(');
   });
 
   it("fills in the style only when asked, and leaves nothing in it that runs", () => {

@@ -3,16 +3,18 @@ import { describe, expect, it } from "vitest";
 import { dailySuidoLevel, isSuidoDay, SUIDO_DAILY_STRIDE, suidoDay } from "./daily.ts";
 import { SUIDO_LEVEL_COUNTS, SUIDO_SIZES } from "./levelCounts.ts";
 
-const dayAfter = (day: string, by: number): string => new Date(Date.parse(`${day}T00:00:00Z`) + by * 86_400_000).toISOString().slice(0, 10);
+const dayAfter = (day: string, by: number): string =>
+  new Date(Date.parse(`${day}T00:00:00Z`) + by * 86_400_000).toISOString().slice(0, 10);
 
 describe("the level of the day", () => {
   it("is a level the size has, for every size, on any day", () => {
-    for (const size of SUIDO_SIZES) for (let by = 0; by < 400; by += 1) {
-      const level = dailySuidoLevel(size, dayAfter("2026-10-01", by));
-      expect(Number.isInteger(level), `${size} ${by}`).toBe(true);
-      expect(level!).toBeGreaterThanOrEqual(1);
-      expect(level!).toBeLessThanOrEqual(SUIDO_LEVEL_COUNTS[size]!);
-    }
+    for (const size of SUIDO_SIZES)
+      for (let by = 0; by < 400; by += 1) {
+        const level = dailySuidoLevel(size, dayAfter("2026-10-01", by));
+        expect(Number.isInteger(level), `${size} ${by}`).toBe(true);
+        expect(level!).toBeGreaterThanOrEqual(1);
+        expect(level!).toBeLessThanOrEqual(SUIDO_LEVEL_COUNTS[size]!);
+      }
   });
 
   it("is the same on every call, whether it is given a date's text or a moment of that day", () => {
@@ -22,7 +24,9 @@ describe("the level of the day", () => {
   });
 
   it("is pinned: these are the levels of 1 October 2026 at every size, so a change to the rule is a change that is seen", () => {
-    expect(SUIDO_SIZES.map((size) => dailySuidoLevel(size, "2026-10-01"))).toEqual([207, 103, 31, 167, 63, 21, 39, 205, 243, 77, 245, 106, 248, 23, 23, 56]);
+    expect(SUIDO_SIZES.map((size) => dailySuidoLevel(size, "2026-10-01"))).toEqual([
+      207, 103, 31, 167, 63, 21, 39, 205, 243, 77, 245, 106, 248, 23, 23, 56,
+    ]);
   });
 
   it("visits every level of a size once before any comes round again", () => {

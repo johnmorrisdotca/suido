@@ -17,7 +17,9 @@ async function solve(page, made, name = "t") {
   }
 }
 
-test("a tag with a size and a level draws that level's board with its twists as chips, and plays it", async ({ page }) => {
+test("a tag with a size and a level draws that level's board with its twists as chips, and plays it", async ({
+  page,
+}) => {
   const errors = await bare(page, `<suido-board id="t" size="6x6" level="3" chips></suido-board>`);
   await expect(cells(page)).toHaveCount(36);
   const rows = await loadSuidoLevels("6x6");
@@ -27,12 +29,15 @@ test("a tag with a size and a level draws that level's board with its twists as 
   expect(errors).toEqual([]);
 });
 
-test("a tag with a board of its own plays it, and fires change, turn and solve with an answer the server accepts", async ({ page }) => {
+test("a tag with a board of its own plays it, and fires change, turn and solve with an answer the server accepts", async ({
+  page,
+}) => {
   const made = makeSuido({ size: 5, seed: 11 });
   await bare(page, `<suido-board id="t" code="${made.code}" answer="${made.answer}" hints></suido-board>`);
   await page.evaluate(() => {
     window.told = [];
-    for (const name of ["suido-change", "suido-turn", "suido-solve"]) document.getElementById("t").addEventListener(name, (event) => window.told.push([name, event.detail]));
+    for (const name of ["suido-change", "suido-turn", "suido-solve"])
+      document.getElementById("t").addEventListener(name, (event) => window.told.push([name, event.detail]));
   });
   await expect(cells(page)).toHaveCount(25);
   await solve(page, made);

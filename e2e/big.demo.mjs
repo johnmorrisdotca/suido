@@ -2,8 +2,24 @@
 // its ordinary ones, find it solved and kept, and read the guide in both languages. What the page shows is held to what the package says.
 import { expect, test } from "@playwright/test";
 
-import { BIG_FAMILIES, blockInfo, blockQuartersBetween, newGame, quartersBetween, SUIDO_BIG_FAMILIES_GUIDE, SUIDO_PIECE_GUIDE } from "../dist/index.js";
-import { declaredTwists, levelBoard, levelSolution, loadSuidoBigLevels, suidoBigPieces, suidoBigScore, suidoBigSize } from "../dist/levels.js";
+import {
+  BIG_FAMILIES,
+  blockInfo,
+  blockQuartersBetween,
+  newGame,
+  quartersBetween,
+  SUIDO_BIG_FAMILIES_GUIDE,
+  SUIDO_PIECE_GUIDE,
+} from "../dist/index.js";
+import {
+  declaredTwists,
+  levelBoard,
+  levelSolution,
+  loadSuidoBigLevels,
+  suidoBigPieces,
+  suidoBigScore,
+  suidoBigSize,
+} from "../dist/levels.js";
 import { at, cell as cellOf, noSidewaysScroll, open, ready, sdp, tap as tapSelector } from "./demo.mjs";
 
 test.setTimeout(90_000);
@@ -31,7 +47,8 @@ async function solveBig(page, row) {
       if (done.has(inside)) continue;
       done.add(inside);
       const block = info.blocks[inside];
-      for (let n = blockQuartersBetween(game.masks, solution, block) ?? 0; n > 0; n -= 1) await press(page, block.anchor);
+      for (let n = blockQuartersBetween(game.masks, solution, block) ?? 0; n > 0; n -= 1)
+        await press(page, block.anchor);
     } else {
       for (let n = quartersBetween(game.masks[index], solution[index]) ?? 0; n > 0; n -= 1) await press(page, index);
     }
@@ -39,7 +56,9 @@ async function solveBig(page, row) {
   await expect(page.locator(`${at("board")} svg`)).toHaveAttribute("data-solved", "true");
 }
 
-test("the big-pieces set opens at level 1 of its own: big pieces among ordinary ones, sixty-four levels, the sizes row put away", async ({ page }) => {
+test("the big-pieces set opens at level 1 of its own: big pieces among ordinary ones, sixty-four levels, the sizes row put away", async ({
+  page,
+}) => {
   const errors = await open(page, "?set=big");
   const rows = await loadSuidoBigLevels();
   const layout = levelBoard(rows[0]);
@@ -50,9 +69,13 @@ test("the big-pieces set opens at level 1 of its own: big pieces among ordinary 
   await expect(page.locator(at("open"))).toContainText("16 of 64 big-pieces levels open");
   await expect(page.locator(`${at("board")} .sd-plate[data-kind="big"]`)).toHaveCount(layout.bigs.length);
   expect(layout.cells.length).toBeGreaterThan(layout.bigs.length * 4);
-  const chips = await page.locator(`${sdp("chips")} li`).evaluateAll((items) => items.map((item) => item.dataset.twist));
+  const chips = await page
+    .locator(`${sdp("chips")} li`)
+    .evaluateAll((items) => items.map((item) => item.dataset.twist));
   expect(chips).toEqual(declaredTwists(rows[0]));
-  await expect(page.locator(at("meter"))).toContainText(`Big pieces · level 1 · ${suidoBigSize(1).replace("x", "×")} · score ${suidoBigScore(1)} of 100`);
+  await expect(page.locator(at("meter"))).toContainText(
+    `Big pieces · level 1 · ${suidoBigSize(1).replace("x", "×")} · score ${suidoBigScore(1)} of 100`,
+  );
   await expect(page.locator(at("meter"))).toContainText(`${suidoBigPieces(1).count} big`);
   await expect(page.locator(`${at("block")} .lv`)).toHaveCount(16);
   await expect(page.locator(`${at("block")} .lv[data-state="locked"]`)).toHaveCount(0);
@@ -60,7 +83,9 @@ test("the big-pieces set opens at level 1 of its own: big pieces among ordinary 
   expect(errors).toEqual([]);
 });
 
-test("a big-pieces level is solved by tapping its pieces and its squares, kept, and opens the next", async ({ page }) => {
+test("a big-pieces level is solved by tapping its pieces and its squares, kept, and opens the next", async ({
+  page,
+}) => {
   await open(page, "?set=big&mode=levels&level=1");
   const rows = await loadSuidoBigLevels();
   await solveBig(page, rows[0]);
@@ -78,7 +103,9 @@ test("a big-pieces level is solved by tapping its pieces and its squares, kept, 
   await expect(page.locator(`${at("block")} .lv[data-level="1"]`)).toHaveAttribute("data-solved", "true");
 });
 
-test("the set is chosen with a button and left the same way, and the levels by size are as they were", async ({ page }) => {
+test("the set is chosen with a button and left the same way, and the levels by size are as they were", async ({
+  page,
+}) => {
   await open(page, "?mode=levels&size=7x7&level=1");
   await expect(page.locator(at("level"))).toHaveText("1 / 256");
   await expect(page.locator("#classic-sizes")).toBeVisible();
@@ -93,7 +120,9 @@ test("the set is chosen with a button and left the same way, and the levels by s
   expect(new URL(page.url()).searchParams.get("set")).toBeNull();
 });
 
-test("the hard end of the set is a 20×20 with big pieces among its ordinary ones, drawn at the page's width", async ({ page }) => {
+test("the hard end of the set is a 20×20 with big pieces among its ordinary ones, drawn at the page's width", async ({
+  page,
+}) => {
   await open(page, "?set=big&mode=levels&level=64");
   const rows = await loadSuidoBigLevels();
   const layout = levelBoard(rows[63]);
@@ -105,21 +134,36 @@ test("the hard end of the set is a 20×20 with big pieces among its ordinary one
   await noSidewaysScroll(page);
 });
 
-test("a level of the set that teaches a twist says so: blocks that turn at the 15th, a second pump at the 31st", async ({ page }) => {
+test("a level of the set that teaches a twist says so: blocks that turn at the 15th, a second pump at the 31st", async ({
+  page,
+}) => {
   const rows = await loadSuidoBigLevels();
-  for (const [level, twist] of [[15, "block-turns"], [31, "pumps"], [47, "walls"], [63, "wrap"]]) {
+  for (const [level, twist] of [
+    [15, "block-turns"],
+    [31, "pumps"],
+    [47, "walls"],
+    [63, "wrap"],
+  ]) {
     expect(declaredTwists(rows[level - 1]), `level ${level}`).toContain(twist);
     await open(page, `?set=big&mode=levels&level=${level}`);
     await expect(page.locator(at("role"))).toHaveAttribute("data-role", "teaches");
-    const chips = await page.locator(`${sdp("chips")} li`).evaluateAll((items) => items.map((item) => item.dataset.twist));
+    const chips = await page
+      .locator(`${sdp("chips")} li`)
+      .evaluateAll((items) => items.map((item) => item.dataset.twist));
     expect(chips).toContain(twist);
   }
 });
 
-test("the guide draws every piece the package has, each with its name and what it does, and the big ones by family", async ({ page }) => {
+test("the guide draws every piece the package has, each with its name and what it does, and the big ones by family", async ({
+  page,
+}) => {
   const errors = await open(page, "?mode=levels&size=5x5&level=1");
-  await expect(page.locator(`${at("pieces-small")} figure`)).toHaveCount(SUIDO_PIECE_GUIDE.filter((piece) => piece.group !== "big").length);
-  await expect(page.locator(`${at("pieces-big")} figure`)).toHaveCount(SUIDO_PIECE_GUIDE.filter((piece) => piece.group === "big").length);
+  await expect(page.locator(`${at("pieces-small")} figure`)).toHaveCount(
+    SUIDO_PIECE_GUIDE.filter((piece) => piece.group !== "big").length,
+  );
+  await expect(page.locator(`${at("pieces-big")} figure`)).toHaveCount(
+    SUIDO_PIECE_GUIDE.filter((piece) => piece.group === "big").length,
+  );
   await expect(page.locator(`${at("pieces-families")} figure`)).toHaveCount(SUIDO_BIG_FAMILIES_GUIDE.length);
   for (const piece of SUIDO_PIECE_GUIDE) {
     const one = page.locator(`[data-piece="${piece.id}"]`);
@@ -127,7 +171,9 @@ test("the guide draws every piece the package has, each with its name and what i
     await expect(one.locator(".what")).toHaveText(piece.text);
     await expect(one.locator("svg.suido")).toHaveCount(1);
   }
-  await expect(page.locator(`[data-piece="family-2-2"] strong`)).toHaveText(`2+2 · ${BIG_FAMILIES.find((family) => family.family === "2+2").shapes}`);
+  await expect(page.locator(`[data-piece="family-2-2"] strong`)).toHaveText(
+    `2+2 · ${BIG_FAMILIES.find((family) => family.family === "2+2").shapes}`,
+  );
   // A big piece is drawn as wide as two small ones.
   const small = await page.locator('[data-piece="elbow"] svg').boundingBox();
   const plate = await page.locator('[data-piece="big-two-straights"] svg').boundingBox();

@@ -41,7 +41,22 @@ import { symmetryKey } from "../src/symmetry.ts";
 import { SUIDO_TWISTS, twistsOf, type Twist } from "../src/twists.ts";
 
 /** The sizes the set draws on, smallest first: the square sizes 5×5 to 14×14, three pipe shapes, and the huge 20×20. */
-const SIZES = ["5x5", "6x6", "5x7", "7x7", "8x8", "6x10", "9x9", "10x10", "11x11", "12x12", "8x14", "13x13", "14x14", "20x20"];
+const SIZES = [
+  "5x5",
+  "6x6",
+  "5x7",
+  "7x7",
+  "8x8",
+  "6x10",
+  "9x9",
+  "10x10",
+  "11x11",
+  "12x12",
+  "8x14",
+  "13x13",
+  "14x14",
+  "20x20",
+];
 
 function hash(text: string): number {
   let h = 2166136261;
@@ -53,7 +68,13 @@ function hash(text: string): number {
 }
 
 /** What a kind of level adds to big pieces, written as parts joined with `+`: `plain` for big pieces alone. */
-const PART_TWIST: Record<string, Twist> = { blocks: "block-turns", pumps: "pumps", walls: "walls", locked: "locked", wrap: "wrap" };
+const PART_TWIST: Record<string, Twist> = {
+  blocks: "block-turns",
+  pumps: "pumps",
+  walls: "walls",
+  locked: "locked",
+  wrap: "wrap",
+};
 
 function twistsOfProfile(profile: string): Twist[] {
   const parts = profile === "plain" ? [] : profile.split("+");
@@ -87,7 +108,12 @@ function optionsFor(profile: string, width: number, height: number, random: Rand
   const parts = profile === "plain" ? [] : profile.split("+");
   const mixes = MIXES[`${width}x${height}`]!;
   const cover = COVER[0] + (COVER[1] - COVER[0]) * random() ** 1.3;
-  const options: MakeOptions = { width, height, bigKinds: mixes[Math.floor(random() * mixes.length)]!, bigs: Math.max(1, Math.round((cells * cover) / 4)) };
+  const options: MakeOptions = {
+    width,
+    height,
+    bigKinds: mixes[Math.floor(random() * mixes.length)]!,
+    bigs: Math.max(1, Math.round((cells * cover) / 4)),
+  };
   if (parts.includes("blocks")) options.blocks = Math.max(1, Math.round(cells * (0.01 + 0.03 * random())));
   if (parts.includes("pumps")) options.sources = cells >= 100 && random() < 0.4 ? 3 : 2;
   if (parts.includes("locked")) options.locked = Math.max(1, Math.round(cells * (0.01 + 0.12 * random() ** 2)));
@@ -129,16 +155,34 @@ export const PROFILES: readonly string[] = (() => {
   return out;
 })();
 
-type Candidate = { layout: Layout; code: string; turns: string; score: number; used: number; tangle: number; key: string; profile: string; size: string; plates: number; share: number; variety: number };
+type Candidate = {
+  layout: Layout;
+  code: string;
+  turns: string;
+  score: number;
+  used: number;
+  tangle: number;
+  key: string;
+  profile: string;
+  size: string;
+  plates: number;
+  share: number;
+  variety: number;
+};
 
 /** How tricky a big piece is, 1 to 3: 1 for a plain one (one or two pipes, four openings at most), 2 for one or two pipes with more, 3 for three pipes in one. */
-const plateLevel = (shape: { pipes: number; openings: number }): number => (inBigMix(shape, "simple") ? 1 : inBigMix(shape, "more") ? 2 : 3);
+const plateLevel = (shape: { pipes: number; openings: number }): number =>
+  inBigMix(shape, "simple") ? 1 : inBigMix(shape, "more") ? 2 : 3;
 
 /** What a board has of big pieces: how many, the share of its cells they cover, and how tricky they are on average, 1 to 3. */
 function platesOf(layout: Layout): { plates: number; share: number; variety: number } {
   const found = bigShapesIn(layout, layout.cells);
   const levels = found.map((one) => plateLevel(one.shape));
-  return { plates: found.length, share: (4 * found.length) / layout.cells.length, variety: levels.length === 0 ? 0 : levels.reduce((sum, level) => sum + level, 0) / levels.length };
+  return {
+    plates: found.length,
+    share: (4 * found.length) / layout.cells.length,
+    variety: levels.length === 0 ? 0 : levels.reduce((sum, level) => sum + level, 0) / levels.length,
+  };
 }
 
 /** A candidate as the desk's cache keeps it: everything but the layout, which its code makes again. */
@@ -173,7 +217,8 @@ function poolOf(size: string, profile: string, seen: Set<string>, from = 0): Can
     const options = optionsFor(profile, width, height, seededRandom(seed ^ 0x9e3779b9));
     const made = makeUnscored({ ...options, seed });
     const { layout } = made;
-    if (twistsOf(layout).join() !== want || flowOf(layout).solved || turnsFromAnswer(layout.cells, made.solution) <= 2) continue;
+    if (twistsOf(layout).join() !== want || flowOf(layout).solved || turnsFromAnswer(layout.cells, made.solution) <= 2)
+      continue;
     const found = solve(layout, 2, 200_000);
     if (found.count !== 1 || !found.complete) continue;
     const key = symmetryKey(layout, made.solution);
@@ -181,7 +226,18 @@ function poolOf(size: string, profile: string, seen: Set<string>, from = 0): Can
     seen.add(key);
     const used = flowOf(layout, made.solution).wetPieces;
     const tangle = exactDifficultyOf(layout, made.solution);
-    out.push({ layout, code: made.code, turns: "", score: blendBigScore(used, tangle), used, tangle, key, profile, size, ...platesOf(layout) });
+    out.push({
+      layout,
+      code: made.code,
+      turns: "",
+      score: blendBigScore(used, tangle),
+      used,
+      tangle,
+      key,
+      profile,
+      size,
+      ...platesOf(layout),
+    });
   }
   return out;
 }
@@ -195,7 +251,10 @@ const varietyCallFor = (aim: number): number => 1 + 1.1 * (aim / 100);
 
 /** How far a candidate is from what a place wants: its score from the aim, and, much less, its size from the size the aim calls for, how much of the board its big pieces cover and how tricky they are. */
 const costOf = (one: Candidate, aim: number): number =>
-  Math.abs(one.score - aim) + 18 * Math.abs(sizeTermOf(one.used) - sizeCallFor(aim)) + 30 * Math.abs(one.share - shareCallFor(aim)) + 5 * Math.abs(one.variety - varietyCallFor(aim));
+  Math.abs(one.score - aim) +
+  18 * Math.abs(sizeTermOf(one.used) - sizeCallFor(aim)) +
+  30 * Math.abs(one.share - shareCallFor(aim)) +
+  5 * Math.abs(one.variety - varietyCallFor(aim));
 
 function build(): { rows: LevelRow[]; picked: Candidate[] } {
   const started = performance.now();
@@ -207,19 +266,36 @@ function build(): { rows: LevelRow[]; picked: Candidate[] } {
   const cache = process.env.BIG_POOLS;
   if (cache !== undefined && existsSync(cache)) {
     const kept = JSON.parse(readFileSync(cache, "utf8")) as Record<string, Omit<Candidate, "layout">[]>;
-    for (const kind of kinds) pools.set(kind, kept[kind]!.map((one) => ({ ...one, layout: decodeLayout(one.code)!, ...platesOf(decodeLayout(one.code)!) })));
+    for (const kind of kinds)
+      pools.set(
+        kind,
+        kept[kind]!.map((one) => ({ ...one, layout: decodeLayout(one.code)!, ...platesOf(decodeLayout(one.code)!) })),
+      );
   } else {
-    for (const kind of kinds) pools.set(kind, SIZES.flatMap((size) => poolOf(size, kind, seen)));
-    if (cache !== undefined) writeFileSync(cache, JSON.stringify(Object.fromEntries([...pools].map(([kind, pool]) => [kind, pool.map(withoutLayout)]))));
+    for (const kind of kinds)
+      pools.set(
+        kind,
+        SIZES.flatMap((size) => poolOf(size, kind, seen)),
+      );
+    if (cache !== undefined)
+      writeFileSync(
+        cache,
+        JSON.stringify(Object.fromEntries([...pools].map(([kind, pool]) => [kind, pool.map(withoutLayout)]))),
+      );
   }
-  console.error(`pools made in ${Math.round((performance.now() - started) / 1000)} s: ${[...pools].map(([kind, pool]) => `${kind} ${pool.length}`).join(", ")}`);
+  console.error(
+    `pools made in ${Math.round((performance.now() - started) / 1000)} s: ${[...pools].map(([kind, pool]) => `${kind} ${pool.length}`).join(", ")}`,
+  );
   // BIG_EXTEND=kind:size:from makes a kind's boards at a size from that seed number on, onto the pools kept in BIG_POOLS, when a place has too few to choose from.
   const extend = process.env.BIG_EXTEND?.split(":");
   if (cache !== undefined && extend !== undefined) {
     const [kind, size, from] = extend as [string, string, string];
     const more = poolOf(size, kind, new Set(), Number(from));
     pools.get(kind)!.push(...more);
-    writeFileSync(cache, JSON.stringify(Object.fromEntries([...pools].map(([name, pool]) => [name, pool.map(withoutLayout)]))));
+    writeFileSync(
+      cache,
+      JSON.stringify(Object.fromEntries([...pools].map(([name, pool]) => [name, pool.map(withoutLayout)]))),
+    );
     console.error(`${more.length} more ${kind} boards at ${size}`);
   }
   const used = new Set<Candidate>();
@@ -315,6 +391,9 @@ for (const [at, one] of picked.entries()) {
 }
 if (!probe) {
   writeFileSync("src/levels/big.data.ts", withLevelExamples(dataFile(rows), "@johnmorrisdotca/suido/levels-big"));
-  writeFileSync("src/levels/bigInfo.data.ts", withLevelExamples(infoFile(picked), "@johnmorrisdotca/suido/levels-info"));
+  writeFileSync(
+    "src/levels/bigInfo.data.ts",
+    withLevelExamples(infoFile(picked), "@johnmorrisdotca/suido/levels-info"),
+  );
   console.error("src/levels/big.data.ts and src/levels/bigInfo.data.ts written");
 }

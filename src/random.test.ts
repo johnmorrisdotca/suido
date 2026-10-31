@@ -5,7 +5,9 @@ import { seededRandom, shuffled } from "./random.ts";
 describe("seeded random numbers", () => {
   it("are the same stream for the same seed, pinned so that a seed always makes the same board", () => {
     const random = seededRandom(1);
-    expect([random(), random(), random()].map((n) => Math.round(n * 1e9))).toEqual([627_073_941, 2_735_721, 527_447_040]);
+    expect([random(), random(), random()].map((n) => Math.round(n * 1e9))).toEqual([
+      627_073_941, 2_735_721, 527_447_040,
+    ]);
   });
 
   it("differ for different seeds and stay in [0, 1)", () => {

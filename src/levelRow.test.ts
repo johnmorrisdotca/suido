@@ -24,13 +24,16 @@ describe("a level row's answer", () => {
       expect(turns).toMatch(/^[0-3]+$/);
       const squares = [...(layout.bigs ?? []), ...(layout.blocks ?? [])];
       expect(squares.length).toBeGreaterThan(0);
-      for (const anchor of squares) for (const cell of [anchor + 1, anchor + layout.width, anchor + layout.width + 1]) expect(turns[cell], `seed ${seed}, cell ${cell}`).toBe("0");
+      for (const anchor of squares)
+        for (const cell of [anchor + 1, anchor + layout.width, anchor + layout.width + 1])
+          expect(turns[cell], `seed ${seed}, cell ${cell}`).toBe("0");
       const row = [made.code, turns, ""] as const;
       const back = levelSolution(row)!;
       expect(flowOf(layout, back).solved, `seed ${seed}`).toBe(true);
       // The same answer as the maker's on every piece the water goes through.
       const flow = flowOf(layout, made.solution);
-      for (let cell = 0; cell < back.length; cell += 1) if (flow.wet[cell] === true) expect(back[cell], `seed ${seed}, cell ${cell}`).toBe(made.solution[cell]);
+      for (let cell = 0; cell < back.length; cell += 1)
+        if (flow.wet[cell] === true) expect(back[cell], `seed ${seed}, cell ${cell}`).toBe(made.solution[cell]);
       expect(checkSuidoAnswer(made.code, levelAnswer(row)!)).toEqual({ ok: true });
       expect(decodeLayout(levelAnswer(row)!)).not.toBeNull();
     }
@@ -40,6 +43,11 @@ describe("a level row's answer", () => {
     const made = makeUnscored({ size: 6, seed: 5 });
     expect(levelSolution([made.code, "01", ""])).toBeNull();
     expect(levelSolution([made.code, "x".repeat(36), ""])).toBeNull();
-    expect(turnsOf(made.layout, made.layout.cells.map((mask) => (mask === 0 ? 5 : 0)))).toBeNull();
+    expect(
+      turnsOf(
+        made.layout,
+        made.layout.cells.map((mask) => (mask === 0 ? 5 : 0)),
+      ),
+    ).toBeNull();
   });
 });

@@ -4,7 +4,13 @@ import { BIG_FAMILIES, BIG_KINDS, bigShapeOf } from "./bigPieces.ts";
 import { blockInfo, isJoinedInside } from "./blocks.ts";
 import { drawGuidePiece } from "./drawGuide.ts";
 import { flowOf } from "./flow.ts";
-import { guidePieceById, guidePiecesOf, PIECE_GROUPS, SUIDO_BIG_FAMILIES_GUIDE, SUIDO_PIECE_GUIDE } from "./pieceGuide.ts";
+import {
+  guidePieceById,
+  guidePiecesOf,
+  PIECE_GROUPS,
+  SUIDO_BIG_FAMILIES_GUIDE,
+  SUIDO_PIECE_GUIDE,
+} from "./pieceGuide.ts";
 import { shapeOf } from "./pieces.ts";
 
 describe("the guide to every piece", () => {
@@ -24,7 +30,14 @@ describe("the guide to every piece", () => {
 
   it("shows every shape of piece that is turned: ground, an end, a straight, an elbow, a tee and a cross, with the ways each faces", () => {
     const turned = guidePiecesOf("turn");
-    expect(turned.map((piece) => shapeOf(piece.layout.cells[0]!))).toEqual(["blank", "end", "straight", "elbow", "tee", "cross"]);
+    expect(turned.map((piece) => shapeOf(piece.layout.cells[0]!))).toEqual([
+      "blank",
+      "end",
+      "straight",
+      "elbow",
+      "tee",
+      "cross",
+    ]);
     expect(turned.map((piece) => piece.facings)).toEqual([null, 4, 2, 4, 4, 1]);
   });
 
@@ -75,7 +88,9 @@ describe("the guide to every piece", () => {
     expect(SUIDO_BIG_FAMILIES_GUIDE).toHaveLength(32);
     for (const [at, piece] of SUIDO_BIG_FAMILIES_GUIDE.entries()) {
       const info = blockInfo(piece.layout);
-      expect(bigShapeOf(info.blocks[0]!.cells.map((cell) => piece.layout.cells[cell]!))!.shape.family, piece.id).toBe(BIG_FAMILIES[at]!.family);
+      expect(bigShapeOf(info.blocks[0]!.cells.map((cell) => piece.layout.cells[cell]!))!.shape.family, piece.id).toBe(
+        BIG_FAMILIES[at]!.family,
+      );
       expect(piece.text, piece.id).toContain(BIG_FAMILIES[at]!.family.split("+").join(", "));
     }
     expect(new Set(SUIDO_BIG_FAMILIES_GUIDE.map((piece) => piece.id)).size).toBe(32);

@@ -8,7 +8,9 @@ export function rotationsOfLayout(layout: Layout): number[][] {
 }
 
 /** The sixteen pieces as one 16-bit set: those that open on a side, and those that do not. */
-export const HAS = [0, 1, 2, 3].map((side) => [...Array(16).keys()].reduce((set, mask) => (((mask >> side) & 1) === 1 ? set | (1 << mask) : set), 0));
+export const HAS = [0, 1, 2, 3].map((side) =>
+  [...Array(16).keys()].reduce((set, mask) => (((mask >> side) & 1) === 1 ? set | (1 << mask) : set), 0),
+);
 export const LACKS = HAS.map((has) => ~has & 0xffff);
 
 /** The pieces in a 16-bit set. */
@@ -39,7 +41,13 @@ export const sidesOf = (set: number): number => {
  * inlet-outlet board a piece the water goes through opens on two sides at most,
  * so a T or a cross has no way to face there and a wet one ends that branch.
  */
-export function drainFacings(layout: Layout, near: Int32Array, rotations: readonly (readonly number[])[], val: Int8Array, cell: number): { masks: number[]; need: number } {
+export function drainFacings(
+  layout: Layout,
+  near: Int32Array,
+  rotations: readonly (readonly number[])[],
+  val: Int8Array,
+  cell: number,
+): { masks: number[]; need: number } {
   let need = 0;
   let bar = 0;
   for (let side = 0; side < 4; side += 1) {
@@ -51,7 +59,12 @@ export function drainFacings(layout: Layout, near: Int32Array, rotations: readon
     }
   }
   const path = layout.kind === "inlet-outlet";
-  return { masks: rotations[cell]!.filter((mask) => (mask & need) === need && (mask & bar) === 0 && (!path || armsOf(mask) <= 2)), need };
+  return {
+    masks: rotations[cell]!.filter(
+      (mask) => (mask & need) === need && (mask & bar) === 0 && (!path || armsOf(mask) <= 2),
+    ),
+    need,
+  };
 }
 
 /** What `scanFacings` found: how many ways the piece may face, the sides every way must open on, and the sides some way opens on. Overwritten by each call. */
@@ -61,7 +74,13 @@ export const SCAN = { count: 0, need: 0, any: 0 };
  * The same question as `drainFacings`, answered without making a list: how many ways a piece may face, written into `SCAN` along
  * with the sides it must open on and the sides some way opens on. For the solver's inner loop, which asks it of every piece at every position.
  */
-export function scanFacings(layout: Layout, near: Int32Array, rotations: readonly (readonly number[])[], val: Int8Array, cell: number): void {
+export function scanFacings(
+  layout: Layout,
+  near: Int32Array,
+  rotations: readonly (readonly number[])[],
+  val: Int8Array,
+  cell: number,
+): void {
   let need = 0;
   let bar = 0;
   for (let side = 0; side < 4; side += 1) {

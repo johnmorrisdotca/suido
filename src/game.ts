@@ -254,7 +254,9 @@ export function tapsToAnswer(game: Game, answer: readonly number[], both = true)
  */
 export function hintFor(game: Game, answer: readonly number[]): number | null {
   const flow = flowOf(game.start, answer);
-  const order = [...Array(game.masks.length).keys()].sort((a, b) => (flow.depth[a]! === -1 ? Infinity : flow.depth[a]!) - (flow.depth[b]! === -1 ? Infinity : flow.depth[b]!));
+  const order = [...Array(game.masks.length).keys()].sort(
+    (a, b) => (flow.depth[a]! === -1 ? Infinity : flow.depth[a]!) - (flow.depth[b]! === -1 ? Infinity : flow.depth[b]!),
+  );
   for (const cell of order) {
     if (flow.wet[cell] !== true && game.start.kind === "drains") continue;
     if (game.masks[cell] !== answer[cell]) return blockAt(game.start, cell)?.anchor ?? cell;
@@ -285,7 +287,10 @@ export function hintFor(game: Game, answer: readonly number[]): number | null {
  */
 export function turnedToFaceAt(game: Game, cell: number, answer: readonly number[]): Game {
   const block = blockAt(game.start, cell);
-  const quarters = block === null ? quartersBetween(game.masks[cell]!, answer[cell]!) : blockQuartersBetween(game.masks, answer, block);
+  const quarters =
+    block === null
+      ? quartersBetween(game.masks[cell]!, answer[cell]!)
+      : blockQuartersBetween(game.masks, answer, block);
   let next = game;
   for (let each = 0; each < (quarters ?? 0); each += 1) next = turnAt(next, cell, 1);
   return next;
@@ -368,9 +373,19 @@ export function gameFromCode(code: string, kept: string): Game | null {
   const game = newGame(code);
   const left = decodeLayout(kept);
   const dealt = game?.start;
-  if (game === null || dealt === undefined || left === null || left.width !== dealt.width || left.height !== dealt.height || left.kind !== dealt.kind || left.wrap !== dealt.wrap) return null;
+  if (
+    game === null ||
+    dealt === undefined ||
+    left === null ||
+    left.width !== dealt.width ||
+    left.height !== dealt.height ||
+    left.kind !== dealt.kind ||
+    left.wrap !== dealt.wrap
+  )
+    return null;
   if (left.sources.join() !== dealt.sources.join() || left.drains.join() !== dealt.drains.join()) return null;
-  for (const list of ["locked", "walls", "bigs", "blocks"] as const) if ((left[list] ?? []).join() !== (dealt[list] ?? []).join()) return null;
+  for (const list of ["locked", "walls", "bigs", "blocks"] as const)
+    if ((left[list] ?? []).join() !== (dealt[list] ?? []).join()) return null;
   const info = blockInfo(dealt);
   const quarters = dealt.cells.map(() => 0);
   for (const block of info.blocks) {

@@ -6,11 +6,22 @@ import { cpSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { SUIDO_PLAY_STYLE } from "../dist/play-entry.js";
 import { SUIDO_LEVEL_COUNTS } from "../dist/levels.js";
 import { API_CSS, apiPage } from "./api.mjs";
-import { FAMILY_SCRIPT, FAMILY_EMBED_BUILDER_WORDS, familyEmbedBuilder, familyFooter, familyHead, familyHeader, familyUnreviewed } from "./family-template.mjs";
+import {
+  FAMILY_SCRIPT,
+  FAMILY_EMBED_BUILDER_WORDS,
+  familyEmbedBuilder,
+  familyFooter,
+  familyHead,
+  familyHeader,
+  familyUnreviewed,
+} from "./family-template.mjs";
 
 const id = "suido";
-const total = Object.values(SUIDO_LEVEL_COUNTS).reduce((sum, count) => sum + count, 0).toLocaleString("en-US");
-const ICON = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%232f5d4a'/%3E%3Cpath d='M18 50H50V82M50 50H82' fill='none' stroke='%23f3efe4' stroke-width='16'/%3E%3Cpath d='M18 50H50V82M50 50H82' fill='none' stroke='%231b8fe3' stroke-width='6'/%3E%3C/svg%3E";
+const total = Object.values(SUIDO_LEVEL_COUNTS)
+  .reduce((sum, count) => sum + count, 0)
+  .toLocaleString("en-US");
+const ICON =
+  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%232f5d4a'/%3E%3Cpath d='M18 50H50V82M50 50H82' fill='none' stroke='%23f3efe4' stroke-width='16'/%3E%3Cpath d='M18 50H50V82M50 50H82' fill='none' stroke='%231b8fe3' stroke-width='6'/%3E%3C/svg%3E";
 
 const uses = [
   `const rows = await loadSuidoLevels("8x8")  // 256 levels, easiest first, each with exactly one answer`,
@@ -50,7 +61,13 @@ const page = `<!doctype html>
   </head>
   <body>
     <main>
-      ${familyHeader({ id, links: [{ href: "docs/index.html", say: "pageDocs" }, { href: "api.html", say: "pageApi" }] })}
+      ${familyHeader({
+        id,
+        links: [
+          { href: "docs/index.html", say: "pageDocs" },
+          { href: "api.html", say: "pageApi" },
+        ],
+      })}
       <div class="setup fam-row" data-help-en="Levels are fixed boards from easy to hard: solve a block of sixteen to open the next. Make a board makes a new one from a seed, with the twists you choose." data-help-ja="「レベル」は、やさしい順に並んだ決まった盤面です。16レベルのまとまりを解くと次が開きます。「盤面を作る」は、選んだ仕掛けで新しい盤面を作ります。">
         <span class="fam-label" data-say="mode"></span>
         <div class="fam-seg" role="group" data-say-label="mode" id="modes" data-testid="modes">
@@ -187,10 +204,29 @@ console.log("site/ is ready: serve it, or let the Pages workflow publish it.");
 
 for (const file of ["builder.js", "builder.css"]) cpSync(`demo/${file}`, `site/${file}`);
 cpSync("demo/embed", "site/embed", { recursive: true });
-writeFileSync("site/family-embed-builder.js", `export const FAMILY_EMBED_BUILDER_WORDS = ${JSON.stringify(FAMILY_EMBED_BUILDER_WORDS)};\nexport ${familyEmbedBuilder.toString()};\n`);
+writeFileSync(
+  "site/family-embed-builder.js",
+  `export const FAMILY_EMBED_BUILDER_WORDS = ${JSON.stringify(FAMILY_EMBED_BUILDER_WORDS)};\nexport ${familyEmbedBuilder.toString()};\n`,
+);
 const builderParts = {
-  builderHead: familyHead({ id, title: "Suido · build a pipe-puzzle embed", description: "Choose a fixed or daily pipe puzzle, preview it and copy the embed code." }),
-  builderHeader: familyHeader({ id, links: [{ href: "./", say: "toGallery" }, { href: "docs/index.html", say: "pageDocs" }, { href: "api.html", say: "pageApi" }] }),
-  unreviewed: familyUnreviewed({ id }), footer: familyFooter({ id }), script: `<script>${FAMILY_SCRIPT}</script>`,
+  builderHead: familyHead({
+    id,
+    title: "Suido · build a pipe-puzzle embed",
+    description: "Choose a fixed or daily pipe puzzle, preview it and copy the embed code.",
+  }),
+  builderHeader: familyHeader({
+    id,
+    links: [
+      { href: "./", say: "toGallery" },
+      { href: "docs/index.html", say: "pageDocs" },
+      { href: "api.html", say: "pageApi" },
+    ],
+  }),
+  unreviewed: familyUnreviewed({ id }),
+  footer: familyFooter({ id }),
+  script: `<script>${FAMILY_SCRIPT}</script>`,
 };
-writeFileSync("site/builder.html", readFileSync("demo/builder.html", "utf8").replace(/<!-- family:([A-Za-z]+) -->/g, (_match, key) => builderParts[key]));
+writeFileSync(
+  "site/builder.html",
+  readFileSync("demo/builder.html", "utf8").replace(/<!-- family:([A-Za-z]+) -->/g, (_match, key) => builderParts[key]),
+);

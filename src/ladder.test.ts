@@ -10,7 +10,11 @@ import type { LevelRow } from "./levelCounts.ts";
  */
 describe("a level's part in its block's lesson", () => {
   const plain: LevelRow = ["2x2:h000", "0000", ""];
-  const rows: LevelRow[] = [...Array.from({ length: 14 }, () => plain), ["2x2:h000", "0000", "locked"], ["2x2:h000", "0000", "locked walls"]];
+  const rows: LevelRow[] = [
+    ...Array.from({ length: 14 }, () => plain),
+    ["2x2:h000", "0000", "locked"],
+    ["2x2:h000", "0000", "locked walls"],
+  ];
 
   it("is none for levels 1 to 14 of a block", () => {
     for (let level = 1; level <= 14; level += 1) expect(twistRole(rows, level)).toBeNull();
@@ -29,7 +33,12 @@ describe("a level's part in its block's lesson", () => {
   });
 
   it("counts what an earlier block taught as no longer new", () => {
-    const second = [...rows, ...Array.from({ length: 14 }, () => plain), ["2x2:h000", "0000", "locked wrap"] as LevelRow, ["2x2:h000", "0000", "walls"] as LevelRow];
+    const second = [
+      ...rows,
+      ...Array.from({ length: 14 }, () => plain),
+      ["2x2:h000", "0000", "locked wrap"] as LevelRow,
+      ["2x2:h000", "0000", "walls"] as LevelRow,
+    ];
     expect(twistRole(second, 31)).toEqual({ role: "teaches", twists: ["locked", "wrap"], newOnes: ["wrap"] });
     expect(twistRole(second, 32)).toEqual({ role: "tests", twists: ["walls"], newOnes: [] });
   });

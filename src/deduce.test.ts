@@ -7,7 +7,15 @@ import type { Layout } from "./code.ts";
 describe("what can be worked out without guessing", () => {
   it("fixes every piece of a line the edge and the ends force, in rounds that follow the line", () => {
     // A pump, three straights and an end along the top row of a board with nothing else: the edge forces the rest.
-    const layout: Layout = { width: 5, height: 1 + 1, kind: "network", wrap: false, cells: [2, 10, 10, 10, 8, 0, 0, 0, 0, 0], sources: [0], drains: [] };
+    const layout: Layout = {
+      width: 5,
+      height: 1 + 1,
+      kind: "network",
+      wrap: false,
+      cells: [2, 10, 10, 10, 8, 0, 0, 0, 0, 0],
+      sources: [0],
+      drains: [],
+    };
     const found = deduce(layout, [2, 10, 10, 10, 8, 0, 0, 0, 0, 0]);
     expect(found.pieces).toBe(5);
     expect(found.settled).toBe(5);

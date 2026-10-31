@@ -101,7 +101,19 @@ export function flowOf(layout: Layout, masks: readonly number[] = layout.cells):
   const reached = layout.kind === "network" ? wetPieces === pieces : wetDrains === layout.drains.length;
   // One path, not a tree: on an inlet-outlet board no wet piece opens on more than two sides.
   const branched = layout.kind === "inlet-outlet" && order.some((cell) => armsOf(masks[cell]!) > 2);
-  return { wet, from, entry, depth, spills, order, pieces, wetPieces, drains: layout.drains.length, wetDrains, solved: reached && spills.length === 0 && !branched };
+  return {
+    wet,
+    from,
+    entry,
+    depth,
+    spills,
+    order,
+    pieces,
+    wetPieces,
+    drains: layout.drains.length,
+    wetDrains,
+    solved: reached && spills.length === 0 && !branched,
+  };
 }
 
 /** Whether a board facing as `masks` say is solved.

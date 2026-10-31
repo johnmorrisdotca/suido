@@ -42,7 +42,16 @@ export type Twist = "drains" | "pumps" | "locked" | "walls" | "wrap" | "inlet-ou
  * console.log(SUIDO_TWISTS);
  * ```
  */
-export const SUIDO_TWISTS: readonly Twist[] = ["drains", "pumps", "locked", "walls", "wrap", "inlet-outlet", "big-pieces", "block-turns"];
+export const SUIDO_TWISTS: readonly Twist[] = [
+  "drains",
+  "pumps",
+  "locked",
+  "walls",
+  "wrap",
+  "inlet-outlet",
+  "big-pieces",
+  "block-turns",
+];
 
 /** The six twists the fixed levels have, in the order they teach them.
  *
@@ -69,7 +78,9 @@ export const SUIDO_LEVEL_TWISTS: readonly Twist[] = ["drains", "pumps", "locked"
  * console.log(twistsOf(layout));
  * ```
  */
-export function twistsOf(layout: Pick<Layout, "kind" | "wrap" | "sources" | "locked" | "walls" | "bigs" | "blocks">): Twist[] {
+export function twistsOf(
+  layout: Pick<Layout, "kind" | "wrap" | "sources" | "locked" | "walls" | "bigs" | "blocks">,
+): Twist[] {
   const has: Record<Twist, boolean> = {
     drains: layout.kind === "drains",
     pumps: layout.sources.length > 1,
@@ -98,6 +109,8 @@ export function twistsOf(layout: Pick<Layout, "kind" | "wrap" | "sources" | "loc
  * console.log(isTwisted(layout));
  * ```
  */
-export function isTwisted(layout: Pick<Layout, "kind" | "wrap" | "sources" | "locked" | "walls" | "bigs" | "blocks">): boolean {
+export function isTwisted(
+  layout: Pick<Layout, "kind" | "wrap" | "sources" | "locked" | "walls" | "bigs" | "blocks">,
+): boolean {
   return twistsOf(layout).length > 0;
 }

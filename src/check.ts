@@ -60,23 +60,47 @@ export function checkSuidoAnswer(board: string, answer: string): SuidoCheck {
   if (layout === null) return { ok: false, reason: "the board is not a Suido code" };
   const solved = decodeLayout(answer);
   if (solved === null) return { ok: false, reason: "the answer is not a Suido code" };
-  if (solved.width !== layout.width || solved.height !== layout.height || solved.wrap !== layout.wrap || solved.kind !== layout.kind) return { ok: false, reason: "the answer is for a different board" };
-  if (solved.sources.join() !== layout.sources.join() || solved.drains.join() !== layout.drains.join()) return { ok: false, reason: "a source or a drain is not where the board has it" };
-  if ((layout.walls ?? []).join() !== (solved.walls ?? []).join() || (layout.locked ?? []).join() !== (solved.locked ?? []).join()) return { ok: false, reason: "the walls or the locked pieces are not the board's" };
-  if ((layout.bigs ?? []).join() !== (solved.bigs ?? []).join() || (layout.blocks ?? []).join() !== (solved.blocks ?? []).join()) return { ok: false, reason: "the big pieces or the blocks are not the board's" };
+  if (
+    solved.width !== layout.width ||
+    solved.height !== layout.height ||
+    solved.wrap !== layout.wrap ||
+    solved.kind !== layout.kind
+  )
+    return { ok: false, reason: "the answer is for a different board" };
+  if (solved.sources.join() !== layout.sources.join() || solved.drains.join() !== layout.drains.join())
+    return { ok: false, reason: "a source or a drain is not where the board has it" };
+  if (
+    (layout.walls ?? []).join() !== (solved.walls ?? []).join() ||
+    (layout.locked ?? []).join() !== (solved.locked ?? []).join()
+  )
+    return { ok: false, reason: "the walls or the locked pieces are not the board's" };
+  if (
+    (layout.bigs ?? []).join() !== (solved.bigs ?? []).join() ||
+    (layout.blocks ?? []).join() !== (solved.blocks ?? []).join()
+  )
+    return { ok: false, reason: "the big pieces or the blocks are not the board's" };
   const locked = new Set(layout.locked ?? []);
   const info = blockInfo(layout);
-  for (const block of info.blocks) if (blockQuartersBetween(layout.cells, solved.cells, block) === null) return { ok: false, reason: "a block is not the block the board has there, turned" };
+  for (const block of info.blocks)
+    if (blockQuartersBetween(layout.cells, solved.cells, block) === null)
+      return { ok: false, reason: "a block is not the block the board has there, turned" };
   for (let cell = 0; cell < layout.cells.length; cell += 1) {
     if (info.of[cell]! >= 0) continue;
-    if (quartersBetween(layout.cells[cell]!, solved.cells[cell]!) === null) return { ok: false, reason: "a piece is not the piece the board has there" };
-    if (locked.has(cell) && solved.cells[cell] !== layout.cells[cell]) return { ok: false, reason: "a locked piece was turned" };
+    if (quartersBetween(layout.cells[cell]!, solved.cells[cell]!) === null)
+      return { ok: false, reason: "a piece is not the piece the board has there" };
+    if (locked.has(cell) && solved.cells[cell] !== layout.cells[cell])
+      return { ok: false, reason: "a locked piece was turned" };
   }
   const flow = flowOf(layout, solved.cells);
   if (flow.spills.length > 0) return { ok: false, reason: "the water runs out of an open end" };
   if (layout.kind !== "network" ? flow.wetDrains !== flow.drains : flow.wetPieces !== flow.pieces) {
-    return { ok: false, reason: layout.kind !== "network" ? "the water does not reach every drain" : "the water does not reach every piece" };
+    return {
+      ok: false,
+      reason:
+        layout.kind !== "network" ? "the water does not reach every drain" : "the water does not reach every piece",
+    };
   }
-  if (!flow.solved) return { ok: false, reason: "the water branches: it must run in one path from the inlet to the outlet" };
+  if (!flow.solved)
+    return { ok: false, reason: "the water branches: it must run in one path from the inlet to the outlet" };
   return { ok: true };
 }

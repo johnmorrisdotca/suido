@@ -43,7 +43,11 @@ export function twistRole(rows: readonly LevelRow[], level: number): TwistRole |
   const twists = declaredTwists(row);
   if (twists.length === 0) return null;
   const before = new Set(rows.slice(0, level - 1).flatMap(declaredTwists));
-  return { role: slot === SUIDO_BLOCK - 1 ? "teaches" : "tests", twists, newOnes: twists.filter((each) => !before.has(each)) };
+  return {
+    role: slot === SUIDO_BLOCK - 1 ? "teaches" : "tests",
+    twists,
+    newOnes: twists.filter((each) => !before.has(each)),
+  };
 }
 
 /** A level's measured difficulty, 1 (easiest) to 5, or null for a level the marks do not have: read without loading the size's boards.

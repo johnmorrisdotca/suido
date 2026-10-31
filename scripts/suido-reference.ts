@@ -8,7 +8,15 @@ import { withLevelExamples } from "./suido-level-docs.ts";
 //   node scripts/suido-reference.ts --merge a.json b.json …     adds the sets in those files to src/difficulty.reference.ts, and the sides they are for to DIFFICULTY_SIDES
 import { writeFileSync } from "node:fs";
 
-import { blendOf, MEASURE_NAMES, measureSuido, quantilesOf, referenceKey, type Measure, type Reference } from "../src/difficulty.ts";
+import {
+  blendOf,
+  MEASURE_NAMES,
+  measureSuido,
+  quantilesOf,
+  referenceKey,
+  type Measure,
+  type Reference,
+} from "../src/difficulty.ts";
 import { makeUnscored } from "../src/generate.ts";
 import type { Kind } from "../src/code.ts";
 
@@ -23,7 +31,15 @@ function referenceOf(side: number, kind: Kind, wrap: boolean): Reference {
     const made = makeUnscored({ size: side, kind, wrap, seed });
     measures.push(measureSuido(made.layout, made.solution));
   }
-  const parts = Object.fromEntries(MEASURE_NAMES.map((name) => [name, quantilesOf(measures.map((measure) => measure[name]), 21)])) as Record<(typeof MEASURE_NAMES)[number], number[]>;
+  const parts = Object.fromEntries(
+    MEASURE_NAMES.map((name) => [
+      name,
+      quantilesOf(
+        measures.map((measure) => measure[name]),
+        21,
+      ),
+    ]),
+  ) as Record<(typeof MEASURE_NAMES)[number], number[]>;
   const draft = { ...parts, blend: [] } as Reference;
   const blends = measures.map((measure) => blendOf(measure, draft));
   return { ...parts, blend: quantilesOf(blends, 101) };
@@ -56,7 +72,8 @@ if (mode === "--merge") {
     .map(([key, set]) => `  ${JSON.stringify(key)}: ${JSON.stringify(set)},`);
   writeFileSync(
     new URL("../src/difficulty.reference.ts", import.meta.url),
-    withLevelExamples(`import type { Reference } from "./difficulty.ts";
+    withLevelExamples(
+      `import type { Reference } from "./difficulty.ts";
 
 /** The sizes (side of the board) there is a reference set for. */
 export const DIFFICULTY_SIDES: readonly number[] = ${JSON.stringify([...sides].sort((a, b) => a - b))};
@@ -69,7 +86,9 @@ export const DIFFICULTY_SIDES: readonly number[] = ${JSON.stringify([...sides].s
 export const DIFFICULTY_REFERENCE: Record<string, Reference> = {
 ${rows.join("\n")}
 };
-`, "@johnmorrisdotca/suido"),
+`,
+      "@johnmorrisdotca/suido",
+    ),
   );
   console.log("src/difficulty.reference.ts written with", Object.keys(merged).length, "sets");
   process.exit(0);
@@ -83,7 +102,9 @@ for (const side of only === null ? SIDES : [only]) {
       if (kind === "inlet-outlet" && wrap) continue;
       const started = Date.now();
       sets[referenceKey(side, kind, wrap)] = referenceOf(side, kind, wrap);
-      console.log(`${referenceKey(side, kind, wrap).padEnd(5)} ${side}×${side} ${kind}${wrap ? " wrap" : ""}: ${boards} boards in ${Math.round((Date.now() - started) / 1000)} s`);
+      console.log(
+        `${referenceKey(side, kind, wrap).padEnd(5)} ${side}×${side} ${kind}${wrap ? " wrap" : ""}: ${boards} boards in ${Math.round((Date.now() - started) / 1000)} s`,
+      );
     }
   }
 }
@@ -91,7 +112,8 @@ if (only === null) {
   const rows = Object.entries(sets).map(([key, set]) => `  ${JSON.stringify(key)}: ${JSON.stringify(set)},`);
   writeFileSync(
     new URL("../src/difficulty.reference.ts", import.meta.url),
-    withLevelExamples(`import type { Reference } from "./difficulty.ts";
+    withLevelExamples(
+      `import type { Reference } from "./difficulty.ts";
 
 /** The sizes (side of the board) there is a reference set for. */
 export const DIFFICULTY_SIDES: readonly number[] = ${JSON.stringify(SIDES)};
@@ -103,7 +125,9 @@ export const DIFFICULTY_SIDES: readonly number[] = ${JSON.stringify(SIDES)};
 export const DIFFICULTY_REFERENCE: Record<string, Reference> = {
 ${rows.join("\n")}
 };
-`, "@johnmorrisdotca/suido"),
+`,
+      "@johnmorrisdotca/suido",
+    ),
   );
   console.log("src/difficulty.reference.ts written");
 }

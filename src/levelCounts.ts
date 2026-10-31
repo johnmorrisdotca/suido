@@ -32,7 +32,24 @@ export type SuidoSize = `${number}x${number}`;
  * console.log(SUIDO_SIZES);
  * ```
  */
-export const SUIDO_SIZES: readonly SuidoSize[] = ["5x5", "6x6", "7x7", "8x8", "9x9", "10x10", "11x11", "12x12", "13x13", "14x14", "5x7", "6x10", "8x14", "20x20", "28x28", "20x50"];
+export const SUIDO_SIZES: readonly SuidoSize[] = [
+  "5x5",
+  "6x6",
+  "7x7",
+  "8x8",
+  "9x9",
+  "10x10",
+  "11x11",
+  "12x12",
+  "13x13",
+  "14x14",
+  "5x7",
+  "6x10",
+  "8x14",
+  "20x20",
+  "28x28",
+  "20x50",
+];
 
 /** How many levels each size has, read without loading the size: whole blocks of sixteen (`levelBlocks.ts`). The huge sizes have four blocks.
  *

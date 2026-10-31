@@ -12,7 +12,15 @@ import { solve } from "./solve.ts";
 import { isTwisted, SUIDO_TWISTS, twistsOf } from "./twists.ts";
 
 describe("the twists a board has", () => {
-  const plain: Layout = { width: 3, height: 3, kind: "network", wrap: false, cells: [3, 5, 1, 7, 15, 12, 1, 1, 1], sources: [4], drains: [] };
+  const plain: Layout = {
+    width: 3,
+    height: 3,
+    kind: "network",
+    wrap: false,
+    cells: [3, 5, 1, 7, 15, 12, 1, 1, 1],
+    sources: [4],
+    drains: [],
+  };
 
   it("are none for a plain board, and each is read from what the board says", () => {
     expect(twistsOf(plain)).toEqual([]);
@@ -27,13 +35,29 @@ describe("the twists a board has", () => {
   });
 
   it("come in the order the levels teach them, and are kebab case", () => {
-    expect(twistsOf({ ...plain, wrap: true, locked: [1], walls: [0], kind: "drains", sources: [0, 4] })).toEqual(["drains", "pumps", "locked", "walls", "wrap"]);
+    expect(twistsOf({ ...plain, wrap: true, locked: [1], walls: [0], kind: "drains", sources: [0, 4] })).toEqual([
+      "drains",
+      "pumps",
+      "locked",
+      "walls",
+      "wrap",
+    ]);
     for (const twist of SUIDO_TWISTS) expect(twist).toMatch(/^[a-z]+(-[a-z]+)*$/);
   });
 });
 
 describe("a board's code with twists", () => {
-  const board: Layout = { width: 4, height: 3, kind: "drains", wrap: false, cells: [2, 10, 10, 8, 5, 0, 1, 3, 1, 4, 0, 1], sources: [0], drains: [3], locked: [1, 4], walls: [3, 12] };
+  const board: Layout = {
+    width: 4,
+    height: 3,
+    kind: "drains",
+    wrap: false,
+    cells: [2, 10, 10, 8, 5, 0, 1, 3, 1, 4, 0, 1],
+    sources: [0],
+    drains: [3],
+    locked: [1, 4],
+    walls: [3, 12],
+  };
 
   it("writes the locked pieces after the cells and the walls after them, and reads them back", () => {
     const code = encodeLayout(board);
@@ -44,7 +68,16 @@ describe("a board's code with twists", () => {
   });
 
   it("writes an inlet-outlet board with the flag i, before the wrap's w", () => {
-    const path: Layout = { width: 3, height: 3, kind: "inlet-outlet", wrap: false, cells: [4, 10, 3, 0, 0, 5, 0, 0, 1], sources: [0], drains: [8], locked: [1] };
+    const path: Layout = {
+      width: 3,
+      height: 3,
+      kind: "inlet-outlet",
+      wrap: false,
+      cells: [4, 10, 3, 0, 0, 5, 0, 0, 1],
+      sources: [0],
+      drains: [8],
+      locked: [1],
+    };
     expect(decodeLayout(encodeLayout(path))?.kind).toBe("inlet-outlet");
     const ok: Layout = { ...path, cells: [2, 10, 12, 0, 0, 5, 0, 0, 1] };
     const code = encodeLayout(ok);
@@ -110,7 +143,15 @@ describe("walls", () => {
 
   it("make the water run out where a pipe meets one, and stop it going on", () => {
     // A pump facing east into a straight, with a wall between: the pump leaks, the straight stays dry.
-    const open: Layout = { width: 3, height: 1 + 1, kind: "network", wrap: false, cells: [2, 10, 8, 0, 0, 0], sources: [0], drains: [2] };
+    const open: Layout = {
+      width: 3,
+      height: 1 + 1,
+      kind: "network",
+      wrap: false,
+      cells: [2, 10, 8, 0, 0, 0],
+      sources: [0],
+      drains: [2],
+    };
     expect(flowOf(open).solved).toBe(true);
     const walled: Layout = { ...open, walls: [0] };
     const flow = flowOf(walled, [2, 10, 8, 0, 0, 0]);
@@ -121,7 +162,16 @@ describe("walls", () => {
 });
 
 describe("a locked piece", () => {
-  const board: Layout = { width: 3, height: 2, kind: "network", wrap: false, cells: [2, 10, 8, 0, 0, 0], sources: [0], drains: [2], locked: [1] };
+  const board: Layout = {
+    width: 3,
+    height: 2,
+    kind: "network",
+    wrap: false,
+    cells: [2, 10, 8, 0, 0, 0],
+    sources: [0],
+    drains: [2],
+    locked: [1],
+  };
 
   it("is one whose cell is in the board's list", () => {
     expect(isLocked(board, 1)).toBe(true);
@@ -147,28 +197,56 @@ describe("a locked piece", () => {
   it("makes an answer wrong that turns it, and an answer that moves a wall or a lock wrong too", () => {
     const code = encodeLayout({ ...board, cells: [4, 5, 8, 0, 0, 0] });
     // The straight is locked facing north-south, where the water cannot go: no answer exists, and turning it is refused by name.
-    expect(checkSuidoAnswer(code, encodeLayout({ ...board, cells: [2, 10, 8, 0, 0, 0] }))).toEqual({ ok: false, reason: "a locked piece was turned" });
+    expect(checkSuidoAnswer(code, encodeLayout({ ...board, cells: [2, 10, 8, 0, 0, 0] }))).toEqual({
+      ok: false,
+      reason: "a locked piece was turned",
+    });
     const free = encodeLayout({ ...board, cells: [4, 10, 8, 0, 0, 0] });
     expect(checkSuidoAnswer(free, encodeLayout({ ...board, cells: [2, 10, 8, 0, 0, 0] }))).toEqual({ ok: true });
-    expect(checkSuidoAnswer(free, encodeLayout({ ...board, cells: [2, 10, 8, 0, 0, 0], locked: [] }))).toMatchObject({ ok: false });
-    expect(checkSuidoAnswer(free, encodeLayout({ ...board, cells: [2, 10, 8, 0, 0, 0], walls: [5] }))).toMatchObject({ ok: false });
+    expect(checkSuidoAnswer(free, encodeLayout({ ...board, cells: [2, 10, 8, 0, 0, 0], locked: [] }))).toMatchObject({
+      ok: false,
+    });
+    expect(checkSuidoAnswer(free, encodeLayout({ ...board, cells: [2, 10, 8, 0, 0, 0], walls: [5] }))).toMatchObject({
+      ok: false,
+    });
   });
 });
 
 describe("an inlet-outlet board", () => {
   it("is solved by one path from the pump to the drain with nothing open", () => {
     // The pump at the top left faces east, a straight and an elbow carry the water down the right side to the drain.
-    const path: Layout = { width: 3, height: 3, kind: "inlet-outlet", wrap: false, cells: [2, 10, 6, 0, 7, 5, 0, 0, 1], sources: [0], drains: [8] };
+    const path: Layout = {
+      width: 3,
+      height: 3,
+      kind: "inlet-outlet",
+      wrap: false,
+      cells: [2, 10, 6, 0, 7, 5, 0, 0, 1],
+      sources: [0],
+      drains: [8],
+    };
     expect(flowOf(path).solved).toBe(false);
     const down = [2, 10, 12, 0, 0, 5, 0, 0, 1];
     expect(flowOf(path, down).solved).toBe(true);
     expect(flowOf(path, down).wet.filter(Boolean)).toHaveLength(5);
-    expect(checkSuidoAnswer(encodeLayout({ ...path, cells: [4, 5, 6, 0, 7, 5, 0, 0, 1] }), encodeLayout({ ...path, cells: down }))).toMatchObject({ ok: false });
+    expect(
+      checkSuidoAnswer(
+        encodeLayout({ ...path, cells: [4, 5, 6, 0, 7, 5, 0, 0, 1] }),
+        encodeLayout({ ...path, cells: down }),
+      ),
+    ).toMatchObject({ ok: false });
   });
 
   it("is not solved by a path that branches, however it ends", () => {
     // 4 cells in a row with a T in the middle whose third arm meets an end: the water reaches the drain and nothing leaks, but it branches.
-    const row: Layout = { width: 3, height: 2, kind: "inlet-outlet", wrap: false, cells: [2, 14, 8, 0, 1, 0], sources: [0], drains: [2] };
+    const row: Layout = {
+      width: 3,
+      height: 2,
+      kind: "inlet-outlet",
+      wrap: false,
+      cells: [2, 14, 8, 0, 1, 0],
+      sources: [0],
+      drains: [2],
+    };
     // The middle piece opens east, west and south, and the end below faces up.
     const tee = [2, 14, 8, 0, 1, 0];
     expect(flowOf(row, tee).wetDrains).toBe(1);
@@ -178,8 +256,18 @@ describe("an inlet-outlet board", () => {
     expect(flowOf({ ...row, kind: "drains" }, tee).solved).toBe(true);
     // Without the branch it is solved.
     expect(flowOf(row, [2, 10, 8, 0, 1, 0]).solved).toBe(true);
-    expect(checkSuidoAnswer(encodeLayout({ ...row, cells: [2, 7, 8, 0, 1, 0] }), encodeLayout({ ...row, cells: [2, 14, 8, 0, 1, 0] }))).toEqual({ ok: false, reason: "the water branches: it must run in one path from the inlet to the outlet" });
-    expect(checkSuidoAnswer(encodeLayout({ ...row, cells: [2, 7, 8, 0, 1, 0] }), encodeLayout({ ...row, cells: [2, 10, 8, 0, 1, 0] }))).toEqual({ ok: false, reason: "a piece is not the piece the board has there" });
+    expect(
+      checkSuidoAnswer(
+        encodeLayout({ ...row, cells: [2, 7, 8, 0, 1, 0] }),
+        encodeLayout({ ...row, cells: [2, 14, 8, 0, 1, 0] }),
+      ),
+    ).toEqual({ ok: false, reason: "the water branches: it must run in one path from the inlet to the outlet" });
+    expect(
+      checkSuidoAnswer(
+        encodeLayout({ ...row, cells: [2, 7, 8, 0, 1, 0] }),
+        encodeLayout({ ...row, cells: [2, 10, 8, 0, 1, 0] }),
+      ),
+    ).toEqual({ ok: false, reason: "a piece is not the piece the board has there" });
     expect(armsOf(14)).toBe(3);
   });
 });
@@ -190,7 +278,9 @@ function randomBoard(random: () => number, kind: Layout["kind"]): Layout {
   const height = 2 + Math.floor(random() * 2);
   const count = width * height;
   const shapes = [SHAPE_MASKS.end, SHAPE_MASKS.straight, SHAPE_MASKS.elbow, SHAPE_MASKS.tee, SHAPE_MASKS.cross];
-  const cells = Array.from({ length: count }, () => turn(shapes[Math.floor(random() * shapes.length)]!, Math.floor(random() * 4)));
+  const cells = Array.from({ length: count }, () =>
+    turn(shapes[Math.floor(random() * shapes.length)]!, Math.floor(random() * 4)),
+  );
   if (random() < 0.3) cells[Math.floor(random() * count)] = 0;
   const source = Math.floor(random() * count);
   let drain = Math.floor(random() * count);
@@ -199,7 +289,15 @@ function randomBoard(random: () => number, kind: Layout["kind"]): Layout {
     cells[source] = turn(SHAPE_MASKS.end, Math.floor(random() * 4));
     cells[drain] = turn(SHAPE_MASKS.end, Math.floor(random() * 4));
   } else if (cells[source] === 0) cells[source] = 5;
-  const layout: Layout = { width, height, kind, wrap: false, cells, sources: [source], drains: kind === "network" ? [] : cells[drain] === 0 ? [] : [drain] };
+  const layout: Layout = {
+    width,
+    height,
+    kind,
+    wrap: false,
+    cells,
+    sources: [source],
+    drains: kind === "network" ? [] : cells[drain] === 0 ? [] : [drain],
+  };
   if (kind === "inlet-outlet" && layout.drains.length === 0) return randomBoard(random, kind);
   // Half the boards have locked pieces and walls, so the others can still have many answers.
   const furnished = random() < 0.5;
@@ -253,7 +351,16 @@ describe("the solver counts as trying every way does, on boards laid out the way
     const seen: Record<number, number> = {};
     for (let seed = 1; seed <= 600 && compared < 90; seed += 1) {
       const kind = (["network", "drains", "inlet-outlet"] as const)[seed % 3]!;
-      const layout = laySuido({ width: 3 + (seed % 2), height: 3, seed, kind, locked: seed % 5 === 0 ? 1 : 0, walls: seed % 4 === 0 ? 2 : 0, ...(kind === "drains" ? { drains: 2 } : {}), bias: (seed % 7) / 7 }).layout;
+      const layout = laySuido({
+        width: 3 + (seed % 2),
+        height: 3,
+        seed,
+        kind,
+        locked: seed % 5 === 0 ? 1 : 0,
+        walls: seed % 4 === 0 ? 2 : 0,
+        ...(kind === "drains" ? { drains: 2 } : {}),
+        bias: (seed % 7) / 7,
+      }).layout;
       if (facingsOf(layout) > 70_000) continue;
       const expected = bruteForce(layout);
       expect(solve(layout, 1000).count, encodeLayout(layout)).toBe(expected);
@@ -277,7 +384,8 @@ describe("makeSuido with twists", () => {
     expect(found.complete, made.code).toBe(true);
     expect(found.count, made.code).toBe(1);
     expect(flowOf(layout).solved, `${made.code} starts solved`).toBe(false);
-    for (const cell of layout.locked ?? []) expect(layout.cells[cell], `locked ${cell} faces its answer`).toBe(made.solution[cell]);
+    for (const cell of layout.locked ?? [])
+      expect(layout.cells[cell], `locked ${cell} faces its answer`).toBe(made.solution[cell]);
     return layout;
   }
 
@@ -333,14 +441,21 @@ describe("makeSuido with twists", () => {
     holds({ size: 9, kind: "inlet-outlet", locked: 2, walls: 3, seed: 4 });
     holds({ width: 8, height: 14, walls: 5, locked: 3, seed: 5 });
     holds({ width: 5, height: 7, kind: "inlet-outlet", seed: 6 });
-    expect(twistsOf(holds({ size: 8, kind: "drains", locked: 2, walls: 4, sources: 2, seed: 3 }))).toEqual(["drains", "pumps", "locked", "walls"]);
+    expect(twistsOf(holds({ size: 8, kind: "drains", locked: 2, walls: 4, sources: 2, seed: 3 }))).toEqual([
+      "drains",
+      "pumps",
+      "locked",
+      "walls",
+    ]);
   });
 
   it("makes the same board for the same seed and options, and a different one for a different seed", () => {
     const options: MakeOptions = { size: 8, kind: "drains", locked: 3, walls: 3 };
     expect(makeSuido({ ...options, seed: 5 }).code).toBe(makeSuido({ ...options, seed: 5 }).code);
     expect(makeSuido({ ...options, seed: 5 }).code).not.toBe(makeSuido({ ...options, seed: 6 }).code);
-    expect(makeSuido({ size: 8, kind: "inlet-outlet", seed: 5 }).code).toBe(makeSuido({ size: 8, kind: "inlet-outlet", seed: 5 }).code);
+    expect(makeSuido({ size: 8, kind: "inlet-outlet", seed: 5 }).code).toBe(
+      makeSuido({ size: 8, kind: "inlet-outlet", seed: 5 }).code,
+    );
   });
 
   it("scores a board of a twist against the boards of its size, and walls and locks make it easier", () => {

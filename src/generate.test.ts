@@ -21,7 +21,9 @@ function holds(options: MakeOptions): void {
   expect(flowOf(layout).solved, `${made.code} starts solved`).toBe(false);
   if (layout.kind === "network") expect(found.solutions[0]).toEqual(made.solution);
   // A board has at most a pump to every six cells.
-  expect(layout.sources.length).toBe(Math.min(options.sources ?? 1, Math.max(1, Math.floor((layout.width * layout.height) / 6))));
+  expect(layout.sources.length).toBe(
+    Math.min(options.sources ?? 1, Math.max(1, Math.floor((layout.width * layout.height) / 6))),
+  );
   for (const source of layout.sources) expect(layout.cells[source]).not.toBe(0);
   expect(layout.width).toBe(options.width ?? options.size ?? 7);
   expect(layout.height).toBe(options.height ?? options.size ?? options.width ?? 7);
@@ -80,7 +82,9 @@ describe("a board", () => {
   it("is the same for the same seed and the same options, and different for a different seed", () => {
     expect(makeUnscored({ size: 8, seed: 5 }).code).toBe(makeUnscored({ size: 8, seed: 5 }).code);
     expect(makeUnscored({ size: 8, seed: 5 }).code).not.toBe(makeUnscored({ size: 8, seed: 6 }).code);
-    expect(makeSuido({ size: 8, seed: 5, difficulty: 70 }).code).toBe(makeSuido({ size: 8, seed: 5, difficulty: 70 }).code);
+    expect(makeSuido({ size: 8, seed: 5, difficulty: 70 }).code).toBe(
+      makeSuido({ size: 8, seed: 5, difficulty: 70 }).code,
+    );
   });
 
   it("is pinned: seed 1 at 5×5 makes the board it always has", () => {
@@ -112,7 +116,9 @@ describe("a board", () => {
   it("in a network is every cell a piece, the drains its ends that are not pumps", () => {
     const made = makeUnscored({ size: 9, seed: 2 });
     expect(made.layout.cells.every((mask) => mask !== 0)).toBe(true);
-    const ends = made.solution.flatMap((mask, cell) => (armsOf(mask) === 1 && !made.layout.sources.includes(cell) ? [cell] : []));
+    const ends = made.solution.flatMap((mask, cell) =>
+      armsOf(mask) === 1 && !made.layout.sources.includes(cell) ? [cell] : [],
+    );
     expect(made.layout.drains).toEqual(ends);
   });
 

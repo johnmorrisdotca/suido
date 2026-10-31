@@ -12,7 +12,7 @@ describe("drawing a board with twists", () => {
     expect(svg.match(/class="sd-lock"/g)).toHaveLength(2);
     expect(svg.match(/class="sd-lockframe"/g)).toHaveLength(2);
     const plain = drawSuido({ ...layout, locked: undefined });
-    expect(plain).not.toContain("sd-lock\"");
+    expect(plain).not.toContain('sd-lock"');
     expect(plain).toContain('data-locked="false"');
   });
 

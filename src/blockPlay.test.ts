@@ -7,7 +7,19 @@ import { decodeLayout, encodeLayout, type Layout } from "./code.ts";
 import { deduce } from "./deduce.ts";
 import { cellStates, drawSuido, drawSuidoThumb } from "./draw.ts";
 import { flowOf } from "./flow.ts";
-import { canTurnAt, turnedToFaceAt, gameCode, gameFromCode, gameFromProgress, gameProgress, hintFor, isGameSolved, newGame, tapsToAnswer, turnAt } from "./game.ts";
+import {
+  canTurnAt,
+  turnedToFaceAt,
+  gameCode,
+  gameFromCode,
+  gameFromProgress,
+  gameProgress,
+  hintFor,
+  isGameSolved,
+  newGame,
+  tapsToAnswer,
+  turnAt,
+} from "./game.ts";
 import { laySuido, makeSuido, makeUnscored } from "./generate.ts";
 import { SHAPE_MASKS, turn } from "./pieces.ts";
 import { seededRandom } from "./random.ts";
@@ -17,7 +29,16 @@ import { twistsOf } from "./twists.ts";
 
 /** Boards with squares that turn as one, as the generator lays them (so most have more than one answer). */
 const laid = (seed: number): Layout =>
-  laySuido({ width: 3 + (seed % 3), height: 3 + (seed % 2), seed, bigs: seed % 3 === 0 ? 1 : 0, blocks: seed % 3 === 1 ? 1 + (seed % 2) : seed % 3 === 2 ? 1 : 0, wrap: seed % 5 === 0, bias: (seed % 7) / 7, sources: seed % 11 === 0 ? 2 : 1 }).layout;
+  laySuido({
+    width: 3 + (seed % 3),
+    height: 3 + (seed % 2),
+    seed,
+    bigs: seed % 3 === 0 ? 1 : 0,
+    blocks: seed % 3 === 1 ? 1 + (seed % 2) : seed % 3 === 2 ? 1 : 0,
+    wrap: seed % 5 === 0,
+    bias: (seed % 7) / 7,
+    sources: seed % 11 === 0 ? 2 : 1,
+  }).layout;
 
 describe("the solver, with blocks", () => {
   it("counts answers as trying every way of facing every piece and turning every block does, on boards laid out as the generator lays them", () => {
@@ -47,13 +68,24 @@ describe("the solver, with blocks", () => {
       const width = 2 + Math.floor(random() * 4);
       const height = 2 + Math.floor(random() * 3);
       const count = width * height;
-      const cells = Array.from({ length: count }, () => turn(shapes[1 + Math.floor(random() * 5)]!, Math.floor(random() * 4)));
+      const cells = Array.from({ length: count }, () =>
+        turn(shapes[1 + Math.floor(random() * 5)]!, Math.floor(random() * 4)),
+      );
       const source = Math.floor(random() * count);
       const col = Math.floor(random() * (width - 1));
       const row = Math.floor(random() * (height - 1));
       const anchor = row * width + col;
       if ([anchor, anchor + 1, anchor + width, anchor + width + 1].includes(source)) continue;
-      const layout: Layout = { width, height, kind: "network", wrap: width >= 3 && height >= 3 && random() < 0.3, cells, sources: [source], drains: [], blocks: [anchor] };
+      const layout: Layout = {
+        width,
+        height,
+        kind: "network",
+        wrap: width >= 3 && height >= 3 && random() < 0.3,
+        cells,
+        sources: [source],
+        drains: [],
+        blocks: [anchor],
+      };
       if (facingsOf(layout) > 30_000) continue;
       expect(solve(layout, 1000).count, encodeLayout(layout)).toBe(bruteForce(layout));
       compared += 1;
@@ -77,7 +109,13 @@ describe("the solver, with blocks", () => {
 
 describe("a board made with blocks has exactly one answer", () => {
   it("with big pieces, in several sizes, with wrap and with two pumps", () => {
-    for (const [size, bigs, wrap, sources] of [[5, 1, false, 1], [6, 2, false, 2], [8, 4, true, 1], [10, 8, false, 1], [12, 12, false, 3]] as const) {
+    for (const [size, bigs, wrap, sources] of [
+      [5, 1, false, 1],
+      [6, 2, false, 2],
+      [8, 4, true, 1],
+      [10, 8, false, 1],
+      [12, 12, false, 3],
+    ] as const) {
       for (let seed = 1; seed <= 4; seed += 1) {
         const made = makeUnscored({ size, bigs, wrap, sources, seed });
         const layout = decodeLayout(made.code)!;
@@ -93,7 +131,13 @@ describe("a board made with blocks has exactly one answer", () => {
   });
 
   it("with blocks that turn as one, and with both together, and with locked pieces and walls", () => {
-    for (const options of [{ size: 6, blocks: 2 }, { size: 8, blocks: 5 }, { size: 9, blocks: 3, bigs: 3 }, { size: 9, blocks: 3, locked: 3, walls: 3 }, { width: 8, height: 12, blocks: 4, bigs: 2, wrap: true }]) {
+    for (const options of [
+      { size: 6, blocks: 2 },
+      { size: 8, blocks: 5 },
+      { size: 9, blocks: 3, bigs: 3 },
+      { size: 9, blocks: 3, locked: 3, walls: 3 },
+      { width: 8, height: 12, blocks: 4, bigs: 2, wrap: true },
+    ]) {
       for (let seed = 1; seed <= 4; seed += 1) {
         const made = makeUnscored({ ...options, seed });
         const layout = decodeLayout(made.code)!;
@@ -104,17 +148,24 @@ describe("a board made with blocks has exactly one answer", () => {
         expect(found.solutions[0]).toEqual(made.solution);
         expect(flowOf(layout).solved, made.code).toBe(false);
         // A block turns as one: what it holds is the answer's block, turned.
-        for (const block of blockInfo(layout).blocks) expect(turnBlock(layout.cells, block, 0).length).toBe(layout.cells.length);
+        for (const block of blockInfo(layout).blocks)
+          expect(turnBlock(layout.cells, block, 0).length).toBe(layout.cells.length);
       }
     }
   });
 
   it("the same seed makes the same board, and a seed with no blocks makes the board it always made", () => {
-    expect(makeUnscored({ size: 7, bigs: 3, blocks: 2, seed: 9 }).code).toBe(makeUnscored({ size: 7, bigs: 3, blocks: 2, seed: 9 }).code);
+    expect(makeUnscored({ size: 7, bigs: 3, blocks: 2, seed: 9 }).code).toBe(
+      makeUnscored({ size: 7, bigs: 3, blocks: 2, seed: 9 }).code,
+    );
     // Pinned from before blocks: the generator draws the same numbers for a board that has none.
     expect(makeUnscored({ size: 6, seed: 7 }).code).toBe("6x6:EbnCIB3b95f3aEIafI66Ead969B353IBb75I");
-    expect(makeUnscored({ size: 7, kind: "drains", seed: 3 }).code).toBe("7x7d:akeaa60a0E03f9a566aa595C63a50c557950aB9c6ea36IIcC");
-    expect(makeUnscored({ size: 6, wrap: true, locked: 2, walls: 2, seed: 5 }).code).toBe("6x6w:6I953fca75Cab9B5679a6bB6c6Bm3E3556BI;l12,34;w52,59");
+    expect(makeUnscored({ size: 7, kind: "drains", seed: 3 }).code).toBe(
+      "7x7d:akeaa60a0E03f9a566aa595C63a50c557950aB9c6ea36IIcC",
+    );
+    expect(makeUnscored({ size: 6, wrap: true, locked: 2, walls: 2, seed: 5 }).code).toBe(
+      "6x6w:6I953fca75Cab9B5679a6bB6c6Bm3E3556BI;l12,34;w52,59",
+    );
   });
 
   it("asks for a difficulty as any board does, and refuses blocks on a board that is not a network", () => {
@@ -231,7 +282,14 @@ describe("a game, with blocks", () => {
     expect(from.masks).toEqual(game.masks);
     expect(from.quarters).toEqual(game.quarters);
     // A block turned unevenly, or one piece of it alone, is not a game of this board.
-    expect(gameFromProgress(made.code, progress.replace(/^./, (digit) => String((Number(digit) + 1) % 4)))).toSatisfy((one) => one === null || block.cells.every((cell) => one.quarters[cell] === one.quarters[block.cells[0]!]));
+    expect(
+      gameFromProgress(
+        made.code,
+        progress.replace(/^./, (digit) => String((Number(digit) + 1) % 4)),
+      ),
+    ).toSatisfy(
+      (one) => one === null || block.cells.every((cell) => one.quarters[cell] === one.quarters[block.cells[0]!]),
+    );
     const bad = [...game.masks];
     bad[block.cells[0]!] = turn(bad[block.cells[0]!]!, 1);
     expect(gameFromCode(made.code, encodeLayout({ ...layout, cells: bad }))).toBeNull();
@@ -265,14 +323,22 @@ describe("the drawing, with blocks", () => {
       expect(states[cell]!.depth).toBe(flow.depth[place]);
     });
     // Without the quarters given, they are read from the pieces: the same.
-    expect(cellStates(layout, game.masks, undefined, flow).map((state) => state.quarters)).toEqual(states.map((state) => state.quarters));
+    expect(cellStates(layout, game.masks, undefined, flow).map((state) => state.quarters)).toEqual(
+      states.map((state) => state.quarters),
+    );
   });
 });
 
 describe("turning and mirroring a board with blocks", () => {
   it("keeps the blocks: every one of the eight is a board that reads back, with its answer", () => {
     for (let seed = 1; seed <= 6; seed += 1) {
-      const made = makeUnscored({ width: 5 + (seed % 3), height: 6, bigs: 1 + (seed % 2), blocks: 1 + (seed % 3), seed });
+      const made = makeUnscored({
+        width: 5 + (seed % 3),
+        height: 6,
+        bigs: 1 + (seed % 2),
+        blocks: 1 + (seed % 3),
+        seed,
+      });
       const keys = new Set<string>();
       for (let op = 0; op < 8; op += 1) {
         const turned = transformLayout({ ...made.layout, cells: made.solution }, op);

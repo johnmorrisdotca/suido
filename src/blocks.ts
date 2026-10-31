@@ -100,7 +100,10 @@ export function blockInfo(layout: Pick<Layout, "width" | "height" | "bigs" | "bl
   if (bigs.length === 0 && turns.length === 0) return NONE;
   const kept = cache.get(layout);
   if (kept !== undefined) return kept;
-  const all = [...bigs.map((anchor) => ({ anchor, big: true })), ...turns.map((anchor) => ({ anchor, big: false }))].sort((a, b) => a.anchor - b.anchor);
+  const all = [
+    ...bigs.map((anchor) => ({ anchor, big: true })),
+    ...turns.map((anchor) => ({ anchor, big: false })),
+  ].sort((a, b) => a.anchor - b.anchor);
   const of = new Int32Array(layout.width * layout.height).fill(-1);
   const blocks = all.map(({ anchor, big }, index) => {
     const cells = blockCells(anchor, layout.width);
@@ -205,7 +208,8 @@ export function turnBlock(masks: readonly number[], block: Block, by = 1): numbe
 export function blockQuartersBetween(from: readonly number[], to: readonly number[], block: Block): number | null {
   for (let quarters = 0; quarters < 4; quarters += 1) {
     let same = true;
-    for (let at = 0; at < 4 && same; at += 1) same = turn(from[block.cells[at]!]!, quarters) === to[block.cells[(at + quarters) % 4]!];
+    for (let at = 0; at < 4 && same; at += 1)
+      same = turn(from[block.cells[at]!]!, quarters) === to[block.cells[(at + quarters) % 4]!];
     if (same) return quarters;
   }
   return null;
@@ -339,5 +343,7 @@ export function sameBlock(layout: Pick<Layout, "width" | "height" | "bigs" | "bl
 export function isJoinedInside(masks: readonly number[], block: Block): boolean {
   const [tl, tr, br, bl] = block.cells;
   const bit = (cell: number, side: number): number => (masks[cell]! >> side) & 1;
-  return bit(tl, 1) === bit(tr, 3) && bit(tr, 2) === bit(br, 0) && bit(bl, 1) === bit(br, 3) && bit(tl, 2) === bit(bl, 0);
+  return (
+    bit(tl, 1) === bit(tr, 3) && bit(tr, 2) === bit(br, 0) && bit(bl, 1) === bit(br, 3) && bit(tl, 2) === bit(bl, 0)
+  );
 }

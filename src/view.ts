@@ -111,7 +111,11 @@ export function clampView(view: SuidoView, box: SuidoBox, most = SUIDO_MOST_ZOOM
   const zoom = Math.min(most, Math.max(1, view.zoom));
   const across = box.width / zoom;
   const down = box.height / zoom;
-  return { zoom, x: Math.min(box.width - across, Math.max(0, view.x)), y: Math.min(box.height - down, Math.max(0, view.y)) };
+  return {
+    zoom,
+    x: Math.min(box.width - across, Math.max(0, view.x)),
+    y: Math.min(box.height - down, Math.max(0, view.y)),
+  };
 }
 
 /** The `viewBox` that shows a view.
@@ -163,7 +167,14 @@ const round = (value: number): number => Math.round(value * 100) / 100;
  * console.log(zoomAbout(view,1.5,100,100,box));
  * ```
  */
-export function zoomAbout(view: SuidoView, factor: number, ax: number, ay: number, box: SuidoBox, most = SUIDO_MOST_ZOOM): SuidoView {
+export function zoomAbout(
+  view: SuidoView,
+  factor: number,
+  ax: number,
+  ay: number,
+  box: SuidoBox,
+  most = SUIDO_MOST_ZOOM,
+): SuidoView {
   const zoom = Math.min(most, Math.max(1, view.zoom * factor));
   const scale = view.zoom / zoom;
   return clampView({ zoom, x: ax - (ax - view.x) * scale, y: ay - (ay - view.y) * scale }, box, most);
@@ -334,7 +345,12 @@ const DRAG_PX = 9;
  * viewer.destroy();
  * ```
  */
-export function attachSuidoView(box: HTMLElement, svg: SVGSVGElement, layout: { width: number; height: number }, options: SuidoViewerOptions = {}): SuidoViewer {
+export function attachSuidoView(
+  box: HTMLElement,
+  svg: SVGSVGElement,
+  layout: { width: number; height: number },
+  options: SuidoViewerOptions = {},
+): SuidoViewer {
   const size = boxOf(layout);
   const most = options.most ?? SUIDO_MOST_ZOOM;
   const whole = svg.getAttribute("viewBox");
@@ -441,13 +457,17 @@ export function attachSuidoView(box: HTMLElement, svg: SVGSVGElement, layout: { 
   box.addEventListener("wheel", onWheel, { passive: false });
   apply(SUIDO_FIT);
 
-  const middle = (): { x: number; y: number } => ({ x: view.x + size.width / view.zoom / 2, y: view.y + size.height / view.zoom / 2 });
+  const middle = (): { x: number; y: number } => ({
+    x: view.x + size.width / view.zoom / 2,
+    y: view.y + size.height / view.zoom / 2,
+  });
   return {
     get: () => view,
     zoomIn: () => apply(zoomAbout(view, 1.6, middle().x, middle().y, size, most)),
     zoomOut: () => apply(zoomAbout(view, 1 / 1.6, middle().x, middle().y, size, most)),
     fit: () => apply(SUIDO_FIT),
-    pan: (across, down) => apply(panView(view, (across * size.width) / view.zoom, (down * size.height) / view.zoom, size)),
+    pan: (across, down) =>
+      apply(panView(view, (across * size.width) / view.zoom, (down * size.height) / view.zoom, size)),
     show: (cell) => apply(viewShowing(view, size, layout.width, cell)),
     destroy: () => {
       box.removeEventListener("pointerdown", onDown);

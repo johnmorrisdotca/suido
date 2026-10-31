@@ -1,7 +1,18 @@
 import { describe, expect, it } from "vitest";
 
 import { checkSuidoAnswer } from "./check.ts";
-import { canTurn, flowOfGame, gameCode, gameFromProgress, gameProgress, hintFor, isGameSolved, newGame, tapsToAnswer, turnAt } from "./game.ts";
+import {
+  canTurn,
+  flowOfGame,
+  gameCode,
+  gameFromProgress,
+  gameProgress,
+  hintFor,
+  isGameSolved,
+  newGame,
+  tapsToAnswer,
+  turnAt,
+} from "./game.ts";
 import { makeUnscored } from "./generate.ts";
 import { quartersBetween, shapeOf, turn } from "./pieces.ts";
 
@@ -67,14 +78,20 @@ describe("a game", () => {
     expect(both).toBeGreaterThan(0);
     expect(clockwise).toBeGreaterThanOrEqual(both);
     expect(tapsToAnswer({ ...game, masks: made.solution }, made.solution)).toBe(0);
-    expect(tapsToAnswer(game, made.solution.map(() => 3))).toBe(Number.POSITIVE_INFINITY);
+    expect(
+      tapsToAnswer(
+        game,
+        made.solution.map(() => 3),
+      ),
+    ).toBe(Number.POSITIVE_INFINITY);
   });
 
   it("gives a hint: the piece nearest the pump that does not face its answer, and none when all do", () => {
     let game = newGame(made.code)!;
     const first = hintFor(game, made.solution)!;
     expect(game.masks[first]).not.toBe(made.solution[first]);
-    for (let cell = 0; cell < game.masks.length; cell += 1) for (let n = quartersBetween(game.masks[cell]!, made.solution[cell]!)!; n > 0; n -= 1) game = turnAt(game, cell);
+    for (let cell = 0; cell < game.masks.length; cell += 1)
+      for (let n = quartersBetween(game.masks[cell]!, made.solution[cell]!)!; n > 0; n -= 1) game = turnAt(game, cell);
     expect(hintFor(game, made.solution)).toBeNull();
   });
 

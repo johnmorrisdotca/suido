@@ -58,7 +58,8 @@ export type Deduction = {
  * ```
  */
 export function deduce(layout: Layout, solution: readonly number[]): Deduction {
-  if (layout.kind !== "network" && hasBlocks(layout)) throw new Error("Only a network can have big pieces or blocks that turn.");
+  if (layout.kind !== "network" && hasBlocks(layout))
+    throw new Error("Only a network can have big pieces or blocks that turn.");
   return layout.kind === "network" ? deduceNetwork(layout) : deduceDrains(layout, solution);
 }
 
@@ -76,18 +77,24 @@ function deduceNetwork(layout: Layout): Deduction {
   /** The cells whose facing is settled and that hold a piece. */
   const forced = (known: CellSets): number => {
     let found = 0;
-    for (let cell = 0; cell < count; cell += 1) if (known.open[cell] !== 0 && (known.open[cell]! & known.shut[cell]!) === 0) found += 1;
+    for (let cell = 0; cell < count; cell += 1)
+      if (known.open[cell] !== 0 && (known.open[cell]! & known.shut[cell]!) === 0) found += 1;
     return found;
   };
   let rounds = 0;
   let glance = 0;
   for (;;) {
     const next = Uint8Array.from(dom);
-    const after: CellSets = { open: Uint8Array.from(sets.open), shut: Uint8Array.from(sets.shut), bare: Uint8Array.from(sets.bare) };
+    const after: CellSets = {
+      open: Uint8Array.from(sets.open),
+      shut: Uint8Array.from(sets.shut),
+      bare: Uint8Array.from(sets.bare),
+    };
     let changed = false;
     for (let unit = 0; unit < units.count; unit += 1) {
       let keep = dom[unit]!;
-      for (let way = 0; way < units.facings[unit]!.length; way += 1) if (((keep >> way) & 1) === 1 && !wayHolds(units, near, sets, unit, way)) keep &= ~(1 << way);
+      for (let way = 0; way < units.facings[unit]!.length; way += 1)
+        if (((keep >> way) & 1) === 1 && !wayHolds(units, near, sets, unit, way)) keep &= ~(1 << way);
       if (keep === 0) return { pieces, glance, settled: forced(sets), rounds };
       if (keep !== dom[unit]) {
         next[unit] = keep;
@@ -131,4 +138,3 @@ function deduceDrains(layout: Layout, solution: readonly number[]): Deduction {
   }
   return { pieces, glance, settled, rounds };
 }
-

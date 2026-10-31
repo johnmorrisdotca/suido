@@ -1,13 +1,27 @@
 import { describe, expect, it } from "vitest";
 
-import { boxOf, clampView, needsZoom, panView, SUIDO_FIT, SUIDO_MOST_ZOOM, viewBoxOf, viewShowing, zoomAbout } from "./view.ts";
+import {
+  boxOf,
+  clampView,
+  needsZoom,
+  panView,
+  SUIDO_FIT,
+  SUIDO_MOST_ZOOM,
+  viewBoxOf,
+  viewShowing,
+  zoomAbout,
+} from "./view.ts";
 
 const box = boxOf({ width: 28, height: 28 });
 
 describe("the view of a big board", () => {
   it("is the whole board at first, and is never past an edge or further in than the most", () => {
     expect(viewBoxOf(SUIDO_FIT, box)).toBe("0 0 2800 2800");
-    expect(clampView({ zoom: 99, x: -50, y: 9999 }, box)).toEqual({ zoom: SUIDO_MOST_ZOOM, x: 0, y: 2800 - 2800 / SUIDO_MOST_ZOOM });
+    expect(clampView({ zoom: 99, x: -50, y: 9999 }, box)).toEqual({
+      zoom: SUIDO_MOST_ZOOM,
+      x: 0,
+      y: 2800 - 2800 / SUIDO_MOST_ZOOM,
+    });
     expect(clampView({ zoom: 0.2, x: 40, y: 40 }, box)).toEqual(SUIDO_FIT);
     expect(viewBoxOf({ zoom: 2, x: 100, y: 200 }, box)).toBe("100 200 1400 1400");
   });

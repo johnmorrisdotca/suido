@@ -1,6 +1,15 @@
 import { describe, expect, it } from "vitest";
 
-import { BIG_FAMILIES, BIG_KINDS, BIG_SHAPES, bigMasksOf, bigShapeById, bigShapeOf, placeBlocks, type BigKind } from "./bigPieces.ts";
+import {
+  BIG_FAMILIES,
+  BIG_KINDS,
+  BIG_SHAPES,
+  bigMasksOf,
+  bigShapeById,
+  bigShapeOf,
+  placeBlocks,
+  type BigKind,
+} from "./bigPieces.ts";
 import { blockCells, blockFacings, isJoinedInside } from "./blocks.ts";
 import { neighboursOf } from "./code.ts";
 import { makeUnscored } from "./generate.ts";
@@ -22,7 +31,11 @@ describe("the big pieces there can be", () => {
     expect(BIG_FAMILIES).toHaveLength(32);
     expect(BIG_FAMILIES.reduce((sum, family) => sum + family.shapes, 0)).toBe(699);
     expect(new Set(BIG_SHAPES.map((shape) => shape.id)).size).toBe(699);
-    expect(BIG_SHAPES.filter((shape) => shape.named !== null).map((shape) => shape.named).sort()).toEqual((Object.keys(BIG_KINDS) as BigKind[]).sort());
+    expect(
+      BIG_SHAPES.filter((shape) => shape.named !== null)
+        .map((shape) => shape.named)
+        .sort(),
+    ).toEqual((Object.keys(BIG_KINDS) as BigKind[]).sort());
   });
 
   it("are joined inside in every facing, with a piece in every cell and a way in to every pipe", () => {
@@ -30,11 +43,20 @@ describe("the big pieces there can be", () => {
       for (let quarters = 0; quarters < 4; quarters += 1) {
         const masks = bigMasksOf(shape.id, quarters);
         expect(isJoinedInside(byCell(masks), square), `${shape.id} ${quarters}`).toBe(true);
-        expect(masks.every((mask) => mask !== 0), `${shape.id} ${quarters}`).toBe(true);
+        expect(
+          masks.every((mask) => mask !== 0),
+          `${shape.id} ${quarters}`,
+        ).toBe(true);
       }
       expect(shape.openings, shape.id).toBeGreaterThanOrEqual(shape.pipes);
       expect(shape.openings, shape.id).toBeLessThanOrEqual(8);
-      expect(shape.family.split("+").map(Number).reduce((sum, openings) => sum + openings, 0), shape.id).toBe(shape.openings);
+      expect(
+        shape.family
+          .split("+")
+          .map(Number)
+          .reduce((sum, openings) => sum + openings, 0),
+        shape.id,
+      ).toBe(shape.openings);
       expect(shape.family.split("+")).toHaveLength(shape.pipes);
     }
   });
@@ -43,7 +65,10 @@ describe("the big pieces there can be", () => {
     expect([...new Set(BIG_SHAPES.map((shape) => shape.pipes))].sort()).toEqual([1, 2, 3]);
     for (const shape of BIG_SHAPES) {
       const [tl, tr, br, bl] = shape.masks;
-      const joins = [(tl >> 1) & (tr >> 3), (tr >> 2) & (br >> 0), (bl >> 1) & (br >> 3), (tl >> 2) & (bl >> 0)].reduce((sum, bit) => sum + (bit & 1), 0);
+      const joins = [(tl >> 1) & (tr >> 3), (tr >> 2) & (br >> 0), (bl >> 1) & (br >> 3), (tl >> 2) & (bl >> 0)].reduce(
+        (sum, bit) => sum + (bit & 1),
+        0,
+      );
       expect(joins, shape.id).toBeLessThanOrEqual(3);
     }
   });
@@ -67,7 +92,9 @@ describe("the big pieces there can be", () => {
   it("face two ways for the straight pairs of pipes and four for the others", () => {
     const counts = new Set(BIG_SHAPES.map((shape) => blockFacings(byCell(shape.masks), square).length));
     expect([...counts].sort()).toEqual([2, 4]);
-    expect(BIG_SHAPES.filter((shape) => blockFacings(byCell(shape.masks), square).length === 2).length).toBeGreaterThan(0);
+    expect(BIG_SHAPES.filter((shape) => blockFacings(byCell(shape.masks), square).length === 2).length).toBeGreaterThan(
+      0,
+    );
   });
 
   it("have a cross, a tee, and pipes side by side inside them among the shapes", () => {
@@ -81,11 +108,24 @@ describe("the big pieces there can be", () => {
 describe("placing big pieces drawn from all of them", () => {
   it("puts each where every opening has a cell beside it, and none beside another, and draws five kinds by default", () => {
     for (const mix of ["all", "five"] as const) {
-      const placed = placeBlocks(neighboursOf({ width: 12, height: 12, wrap: false }), 12, 12, 8, 2, seededRandom(11), mix);
+      const placed = placeBlocks(
+        neighboursOf({ width: 12, height: 12, wrap: false }),
+        12,
+        12,
+        8,
+        2,
+        seededRandom(11),
+        mix,
+      );
       expect(placed.filter((one) => one.kind !== null).length).toBeGreaterThanOrEqual(6);
-      for (const one of placed) if (one.kind !== null && mix === "five") expect(Object.keys(BIG_KINDS)).toContain(one.kind);
+      for (const one of placed)
+        if (one.kind !== null && mix === "five") expect(Object.keys(BIG_KINDS)).toContain(one.kind);
     }
-    const ids = new Set(placeBlocks(neighboursOf({ width: 20, height: 20, wrap: false }), 20, 20, 30, 0, seededRandom(3), "all").map((one) => one.kind));
+    const ids = new Set(
+      placeBlocks(neighboursOf({ width: 20, height: 20, wrap: false }), 20, 20, 30, 0, seededRandom(3), "all").map(
+        (one) => one.kind,
+      ),
+    );
     expect(ids.size).toBeGreaterThan(8);
   });
 
@@ -97,7 +137,13 @@ describe("placing big pieces drawn from all of them", () => {
 
   it("makes boards with exactly one answer, whichever big pieces they hold", () => {
     for (let seed = 1; seed <= 12; seed += 1) {
-      const made = makeUnscored({ size: 7 + (seed % 4), bigs: 2 + (seed % 3), blocks: seed % 2, bigKinds: "all", seed: seed * 977 });
+      const made = makeUnscored({
+        size: 7 + (seed % 4),
+        bigs: 2 + (seed % 3),
+        blocks: seed % 2,
+        bigKinds: "all",
+        seed: seed * 977,
+      });
       const found = solve(made.layout, 2);
       expect(found.complete, `seed ${seed}`).toBe(true);
       expect(found.count, `seed ${seed}`).toBe(1);

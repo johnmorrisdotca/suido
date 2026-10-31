@@ -68,7 +68,8 @@ export function isSuidoDay(text: string): boolean {
  */
 export function suidoDay(date: string | Date): SuidoDay {
   const day = typeof date === "string" ? date : Number.isNaN(date.getTime()) ? "" : date.toISOString().slice(0, 10);
-  if (!isSuidoDay(day)) throw new RangeError(`suido: ${typeof date === "string" ? date : "an invalid Date"} is not a day`);
+  if (!isSuidoDay(day))
+    throw new RangeError(`suido: ${typeof date === "string" ? date : "an invalid Date"} is not a day`);
   return day;
 }
 

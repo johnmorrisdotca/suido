@@ -28,7 +28,12 @@ export function bruteForce(layout: Layout): number {
   const walk = (cell: number): void => {
     if (cell === masks.length) {
       const flow = flowOf(layout, masks);
-      if (flow.solved) found.add(layout.kind !== "network" ? masks.map((mask, at) => (flow.wet[at] === true ? mask : -1)).join() : masks.join());
+      if (flow.solved)
+        found.add(
+          layout.kind !== "network"
+            ? masks.map((mask, at) => (flow.wet[at] === true ? mask : -1)).join()
+            : masks.join(),
+        );
       return;
     }
     for (const mask of options[cell]!) {

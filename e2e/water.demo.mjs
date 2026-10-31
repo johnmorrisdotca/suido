@@ -9,13 +9,17 @@ test.use({ reducedMotion: "no-preference" });
 // Every piece of an 8×8 board is tapped one by one, and a runner is slow at that in WebKit: the default 30 seconds is the margin it lives on.
 test.setTimeout(90_000);
 
-test("when the last pipe is joined the water runs out along the network, cell by cell, nearest the pump first", async ({ page }) => {
+test("when the last pipe is joined the water runs out along the network, cell by cell, nearest the pump first", async ({
+  page,
+}) => {
   await open(page, "?mode=make&size=8x8&seed=33");
   const made = boardFor({ size: 8, seed: 33 });
   const game = newGame(made.code);
   const solved = flowOf(made.layout, made.solution);
   // The piece to leave for last: the one nearest the pump that is not yet facing right, whose turn lets the water through.
-  const first = solved.order.find((index) => solved.depth[index] >= 1 && (quartersBetween(game.masks[index], made.solution[index]) ?? 0) > 0);
+  const first = solved.order.find(
+    (index) => solved.depth[index] >= 1 && (quartersBetween(game.masks[index], made.solution[index]) ?? 0) > 0,
+  );
   for (let index = 0; index < game.masks.length; index += 1) {
     if (index === first) continue;
     const need = quartersBetween(game.masks[index], made.solution[index]) ?? 0;
@@ -23,7 +27,10 @@ test("when the last pipe is joined the water runs out along the network, cell by
   }
   await page.waitForTimeout(400);
   const before = await state(page);
-  const mid = flowOf(made.layout, game.masks.map((mask, index) => (index === first ? mask : made.solution[index])));
+  const mid = flowOf(
+    made.layout,
+    game.masks.map((mask, index) => (index === first ? mask : made.solution[index])),
+  );
   expect(before.wet).toEqual(mid.wet);
   const wetBefore = before.wet.filter(Boolean).length;
   await page.evaluate(() => {
@@ -44,7 +51,11 @@ test("when the last pipe is joined the water runs out along the network, cell by
   await expect.poll(() => page.evaluate(() => window.sawFlow.size)).toBeGreaterThan(1);
   // And it ends with every pipe full.
   await page.waitForTimeout(2600);
-  const full = await page.evaluate(() => [...document.querySelectorAll(".sd-arm[data-w='in'] .sd-in, .sd-arm[data-w='out'] .sd-out")].every((path) => parseFloat(getComputedStyle(path).strokeDashoffset) === 0));
+  const full = await page.evaluate(() =>
+    [...document.querySelectorAll(".sd-arm[data-w='in'] .sd-in, .sd-arm[data-w='out'] .sd-out")].every(
+      (path) => parseFloat(getComputedStyle(path).strokeDashoffset) === 0,
+    ),
+  );
   expect(full).toBe(true);
   expect((await state(page)).wet.filter(Boolean).length).toBeGreaterThan(wetBefore);
 });
@@ -60,17 +71,28 @@ test("a pipe turned away from the water empties, and the pipes beyond it with it
   }
   await expect(page.locator(`${at("board")} svg`)).toHaveAttribute("data-solved", "true");
   // Break the pipe nearest the pump that a quarter turn takes the water from, so everything beyond it loses its water.
-  const near = solved.order.find((index) => solved.depth[index] >= 1 && ((turn(made.solution[index], 1) >> solved.entry[index]) & 1) === 0);
+  const near = solved.order.find(
+    (index) => solved.depth[index] >= 1 && ((turn(made.solution[index], 1) >> solved.entry[index]) & 1) === 0,
+  );
   expect(near).toBeDefined();
   await tap(page, cell(page, near));
   const s = await state(page);
-  const broken = flowOf(made.layout, made.solution.map((mask, index) => (index === near ? turn(mask, 1) : mask)));
+  const broken = flowOf(
+    made.layout,
+    made.solution.map((mask, index) => (index === near ? turn(mask, 1) : mask)),
+  );
   expect(s.wet).toEqual(broken.wet);
   expect(s.wet.filter(Boolean).length).toBeLessThan(solved.wetPieces);
   expect(s.solved).toBe(false);
   await expect(page.locator(sdp("status"))).toContainText("open end");
   // The pipe the water left is empty again once its transition has run.
   await page.waitForTimeout(500);
-  const emptied = await page.evaluate((index) => [...document.querySelectorAll(`.sd-cell[data-cell="${index}"] .sd-in, .sd-cell[data-cell="${index}"] .sd-out`)].every((path) => parseFloat(getComputedStyle(path).strokeDashoffset) === 1), near);
+  const emptied = await page.evaluate(
+    (index) =>
+      [
+        ...document.querySelectorAll(`.sd-cell[data-cell="${index}"] .sd-in, .sd-cell[data-cell="${index}"] .sd-out`),
+      ].every((path) => parseFloat(getComputedStyle(path).strokeDashoffset) === 1),
+    near,
+  );
   expect(emptied).toBe(true);
 });

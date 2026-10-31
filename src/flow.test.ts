@@ -13,7 +13,8 @@ function wetBySets(layout: Layout, masks: readonly number[]): boolean[] {
   for (let cell = 0; cell < masks.length; cell += 1) {
     for (let side = 0; side < 4; side += 1) {
       const next = near[cell * 4 + side]!;
-      if (next !== -1 && ((masks[cell]! >> side) & 1) === 1 && ((masks[next]! >> opposite(side)) & 1) === 1) group[find(cell)] = find(next);
+      if (next !== -1 && ((masks[cell]! >> side) & 1) === 1 && ((masks[next]! >> opposite(side)) & 1) === 1)
+        group[find(cell)] = find(next);
     }
   }
   const sourced = new Set(layout.sources.map(find));
@@ -41,7 +42,15 @@ describe("the water", () => {
 
   it("runs out of an opening that opens on nothing: the edge, bare ground, or a piece that does not open back", () => {
     // A pump facing east and west, a straight beside it, and bare ground beyond.
-    const row: Layout = { width: 3, height: 2, kind: "network", wrap: false, cells: [0, 0, 0, 10, 10, 0], sources: [3], drains: [] };
+    const row: Layout = {
+      width: 3,
+      height: 2,
+      kind: "network",
+      wrap: false,
+      cells: [0, 0, 0, 10, 10, 0],
+      sources: [3],
+      drains: [],
+    };
     const flow = flowOf(row);
     expect(flow.spills).toEqual([
       { cell: 3, side: 3 },
@@ -55,14 +64,29 @@ describe("the water", () => {
   });
 
   it("goes round the other side of a board whose edges join, and spills off one that does not", () => {
-    const base = { width: 3, height: 3, kind: "network" as const, cells: [0, 0, 0, 10, 10, 10, 0, 0, 0], sources: [3], drains: [] };
+    const base = {
+      width: 3,
+      height: 3,
+      kind: "network" as const,
+      cells: [0, 0, 0, 10, 10, 10, 0, 0, 0],
+      sources: [3],
+      drains: [],
+    };
     expect(flowOf({ ...base, wrap: true }).wet).toEqual([false, false, false, true, true, true, false, false, false]);
     expect(flowOf({ ...base, wrap: true }).spills).toEqual([]);
     expect(flowOf({ ...base, wrap: false }).spills).toHaveLength(2);
   });
 
   it("is deepest where it is furthest from the pump, and says which way it came in", () => {
-    const layout: Layout = { width: 4, height: 1 + 1, kind: "network", wrap: false, cells: [0, 0, 0, 0, 2, 10, 10, 8], sources: [4], drains: [] };
+    const layout: Layout = {
+      width: 4,
+      height: 1 + 1,
+      kind: "network",
+      wrap: false,
+      cells: [0, 0, 0, 0, 2, 10, 10, 8],
+      sources: [4],
+      drains: [],
+    };
     const flow = flowOf(layout);
     expect(flow.depth).toEqual([-1, -1, -1, -1, 0, 1, 2, 3]);
     expect(flow.from).toEqual([-1, -1, -1, -1, -1, 4, 5, 6]);
@@ -71,7 +95,15 @@ describe("the water", () => {
   });
 
   it("starts at every pump at once", () => {
-    const layout: Layout = { width: 5, height: 2, kind: "network", wrap: false, cells: [0, 0, 0, 0, 0, 2, 10, 0, 10, 8], sources: [5, 9], drains: [] };
+    const layout: Layout = {
+      width: 5,
+      height: 2,
+      kind: "network",
+      wrap: false,
+      cells: [0, 0, 0, 0, 0, 2, 10, 0, 10, 8],
+      sources: [5, 9],
+      drains: [],
+    };
     const flow = flowOf(layout);
     expect(flow.wet).toEqual([false, false, false, false, false, true, true, false, true, true]);
     expect(flow.depth[5]).toBe(0);
@@ -81,7 +113,15 @@ describe("the water", () => {
 
 describe("a solved board", () => {
   it("is one where, in a network, every piece is wet and nothing is open", () => {
-    const ring: Layout = { width: 2, height: 2, kind: "network", wrap: false, cells: [6, 12, 3, 9], sources: [0], drains: [] };
+    const ring: Layout = {
+      width: 2,
+      height: 2,
+      kind: "network",
+      wrap: false,
+      cells: [6, 12, 3, 9],
+      sources: [0],
+      drains: [],
+    };
     expect(isSolved(ring)).toBe(true);
     expect(isSolved(ring, [6, 12, 3, 3])).toBe(false);
     // Everything wet but a piece apart from the rest.
@@ -89,7 +129,15 @@ describe("a solved board", () => {
   });
 
   it("is one where, in a drains board, every drain is wet and nothing wet is open, whatever the spares do", () => {
-    const board: Layout = { width: 3, height: 2, kind: "drains", wrap: false, cells: [2, 10, 8, 15, 15, 15], sources: [0], drains: [2] };
+    const board: Layout = {
+      width: 3,
+      height: 2,
+      kind: "drains",
+      wrap: false,
+      cells: [2, 10, 8, 15, 15, 15],
+      sources: [0],
+      drains: [2],
+    };
     expect(isSolved(board)).toBe(true);
     expect(isSolved(board, [2, 10, 8, 1, 4, 2])).toBe(true);
     expect(isSolved(board, [2, 10, 4, 1, 4, 2])).toBe(false);
@@ -100,12 +148,28 @@ describe("a solved board", () => {
   });
 
   it("is never one with water running out, in either kind", () => {
-    const board: Layout = { width: 2, height: 2, kind: "network", wrap: false, cells: [3, 8, 4, 1], sources: [0], drains: [] };
+    const board: Layout = {
+      width: 2,
+      height: 2,
+      kind: "network",
+      wrap: false,
+      cells: [3, 8, 4, 1],
+      sources: [0],
+      drains: [],
+    };
     expect(flowOf(board, [3, 12, 5, 1]).solved).toBe(false);
   });
 
   it("counts pieces and drains", () => {
-    const board: Layout = { width: 3, height: 2, kind: "drains", wrap: false, cells: [2, 10, 8, 0, 4, 1], sources: [0], drains: [2, 5] };
+    const board: Layout = {
+      width: 3,
+      height: 2,
+      kind: "drains",
+      wrap: false,
+      cells: [2, 10, 8, 0, 4, 1],
+      sources: [0],
+      drains: [2, 5],
+    };
     const flow = flowOf(board);
     expect(flow.pieces).toBe(5);
     expect(flow.drains).toBe(2);

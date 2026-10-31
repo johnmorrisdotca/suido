@@ -9,16 +9,26 @@ import { expect, test } from "@playwright/test";
 import { flowOf, makeSuido, newGame, quartersBetween } from "../dist/index.js";
 
 const site = join(dirname(fileURLToPath(import.meta.url)), "..", "site");
-const TYPES = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".json": "application/json", ".svg": "image/svg+xml" };
+const TYPES = {
+  ".html": "text/html",
+  ".js": "text/javascript",
+  ".css": "text/css",
+  ".json": "application/json",
+  ".svg": "image/svg+xml",
+};
 
 /** Serve `site/` to a page at http://suido.test/. */
 export async function serve(page) {
-  if (!existsSync(join(site, "index.html"))) throw new Error("site/ is not built: run `pnpm site` first (`pnpm test:demo` does)");
+  if (!existsSync(join(site, "index.html")))
+    throw new Error("site/ is not built: run `pnpm site` first (`pnpm test:demo` does)");
   await page.route("http://suido.test/**", (route) => {
     const { pathname } = new URL(route.request().url());
     const file = join(site, pathname.endsWith("/") ? `${pathname}index.html` : pathname);
     if (!existsSync(file)) return route.fulfill({ status: 404, body: "" });
-    return route.fulfill({ body: readFileSync(file), contentType: TYPES[file.slice(file.lastIndexOf("."))] ?? "application/octet-stream" });
+    return route.fulfill({
+      body: readFileSync(file),
+      contentType: TYPES[file.slice(file.lastIndexOf("."))] ?? "application/octet-stream",
+    });
   });
 }
 
@@ -68,7 +78,9 @@ export async function state(page) {
     return {
       solved: svg.getAttribute("data-solved") === "true",
       wet: [...svg.querySelectorAll(".sd-cell")].map((cell) => cell.getAttribute("data-wet") === "true"),
-      quarters: [...svg.querySelectorAll(".sd-cell")].map((cell) => Number(cell.querySelector(".sd-turn").style.getPropertyValue("--q"))),
+      quarters: [...svg.querySelectorAll(".sd-cell")].map((cell) =>
+        Number(cell.querySelector(".sd-turn").style.getPropertyValue("--q")),
+      ),
       status: document.querySelector('[data-testid="board"] .sdp-status').textContent,
       meter: document.querySelector('[data-testid="board"] .sdp-meter').textContent,
     };
@@ -87,7 +99,10 @@ export async function solveByTapping(page, made) {
 
 /** Nothing the demo drew sits beyond the page's own width. */
 export async function noSidewaysScroll(page) {
-  const [scroll, client] = await page.evaluate(() => [document.documentElement.scrollWidth, document.documentElement.clientWidth]);
+  const [scroll, client] = await page.evaluate(() => [
+    document.documentElement.scrollWidth,
+    document.documentElement.clientWidth,
+  ]);
   expect(scroll).toBeLessThanOrEqual(client);
 }
 
@@ -118,7 +133,10 @@ export async function bare(page, html, { lang = "en" } = {}) {
   page.on("console", (message) => message.type() === "error" && errors.push(message.text()));
   await serve(page);
   await page.route("http://suido.test/bare.html", (route) =>
-    route.fulfill({ contentType: "text/html", body: `<!doctype html><html lang="${lang}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><style>body{margin:12px;background:#2f5d4a;color:#fff;font-family:system-ui}</style></head><body>${html}<script type="module">import "./dist/element-define.js";</script></body></html>` }),
+    route.fulfill({
+      contentType: "text/html",
+      body: `<!doctype html><html lang="${lang}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><style>body{margin:12px;background:#2f5d4a;color:#fff;font-family:system-ui}</style></head><body>${html}<script type="module">import "./dist/element-define.js";</script></body></html>`,
+    }),
   );
   await page.goto("http://suido.test/bare.html");
   await page.waitForFunction(() => customElements.get("suido-board") !== undefined);

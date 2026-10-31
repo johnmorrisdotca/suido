@@ -81,13 +81,17 @@ export const SUIDO_STRINGS: Record<SuidoLanguage, Record<string, string>> = {
     twistWalls: "Walls",
     twistWallsSays: "Water cannot cross a wall: a pipe open towards one runs out.",
     twistWrap: "Edges join",
-    twistWrapSays: "The edges of the board join: water leaving the right side comes in at the left, and the bottom at the top.",
+    twistWrapSays:
+      "The edges of the board join: water leaving the right side comes in at the left, and the bottom at the top.",
     twistInletOutlet: "Inlet to outlet",
-    twistInletOutletSays: "Water comes in at the top left and must leave at the bottom right, in one path with no branches. The other pieces are decoys and stay dry.",
+    twistInletOutletSays:
+      "Water comes in at the top left and must leave at the bottom right, in one path with no branches. The other pieces are decoys and stay dry.",
     twistBigPieces: "Big pieces",
-    twistBigPiecesSays: "A big piece fills four squares and has up to eight openings. One tap turns the whole piece a quarter, where it stands.",
+    twistBigPiecesSays:
+      "A big piece fills four squares and has up to eight openings. One tap turns the whole piece a quarter, where it stands.",
     twistBlockTurns: "Block turns",
-    twistBlockTurnsSays: "Where four pieces are ringed by a dashed line, a tap on the ring in the middle turns all four together: each moves round to the next place as it turns. They cannot be turned on their own.",
+    twistBlockTurnsSays:
+      "Where four pieces are ringed by a dashed line, a tap on the ring in the middle turns all four together: each moves round to the next place as it turns. They cannot be turned on their own.",
   },
   ja: {
     board: "水道の盤、{width}×{height}",
@@ -140,11 +144,14 @@ export const SUIDO_STRINGS: Record<SuidoLanguage, Record<string, string>> = {
     twistWrap: "端がつながる",
     twistWrapSays: "盤の端がつながっています。右へ出た水は左から、下へ出た水は上から入ります。",
     twistInletOutlet: "入口から出口へ",
-    twistInletOutletSays: "左上の入口から入った水を、右下の出口まで、枝分かれのない一本の道で通します。ほかの駒はおとりで、乾いたままです。",
+    twistInletOutletSays:
+      "左上の入口から入った水を、右下の出口まで、枝分かれのない一本の道で通します。ほかの駒はおとりで、乾いたままです。",
     twistBigPieces: "大きな駒",
-    twistBigPiecesSays: "大きな駒は4マスを使い、最大8か所に開口部があります。1回タップすると、その場で駒全体が4分の1回ります。",
+    twistBigPiecesSays:
+      "大きな駒は4マスを使い、最大8か所に開口部があります。1回タップすると、その場で駒全体が4分の1回ります。",
     twistBlockTurns: "ブロック回転",
-    twistBlockTurnsSays: "点線で囲まれた4つの駒は、真ん中の輪をタップすると4つがいっしょに回り、それぞれが次の場所へ動きながら向きも変わります。1つだけ回すことはできません。",
+    twistBlockTurnsSays:
+      "点線で囲まれた4つの駒は、真ん中の輪をタップすると4つがいっしょに回り、それぞれが次の場所へ動きながら向きも変わります。1つだけ回すことはできません。",
   },
 };
 

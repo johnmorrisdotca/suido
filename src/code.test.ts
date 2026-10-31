@@ -3,7 +3,15 @@ import { describe, expect, it } from "vitest";
 import { decodeLayout, encodeLayout, neighboursOf, withMasks, type Layout } from "./code.ts";
 import { seededRandom } from "./random.ts";
 
-const sample: Layout = { width: 3, height: 2, kind: "network", wrap: false, cells: [3, 5, 1, 7, 15, 12], sources: [4], drains: [2, 5] };
+const sample: Layout = {
+  width: 3,
+  height: 2,
+  kind: "network",
+  wrap: false,
+  cells: [3, 5, 1, 7, 15, 12],
+  sources: [4],
+  drains: [2, 5],
+};
 
 describe("a layout's code", () => {
   it("writes the size, the flags, and a character for every cell, marking sources and drains", () => {
@@ -19,13 +27,35 @@ describe("a layout's code", () => {
       const cells = Array.from({ length: width * height }, () => 1 + Math.floor(random() * 15));
       const sources = [Math.floor(random() * cells.length)];
       const drain = Math.floor(random() * cells.length);
-      const layout: Layout = { width, height, kind: random() < 0.5 ? "network" : "drains", wrap: width > 2 && height > 2 && random() < 0.5, cells, sources, drains: drain === sources[0] ? [] : [drain] };
+      const layout: Layout = {
+        width,
+        height,
+        kind: random() < 0.5 ? "network" : "drains",
+        wrap: width > 2 && height > 2 && random() < 0.5,
+        cells,
+        sources,
+        drains: drain === sources[0] ? [] : [drain],
+      };
       expect(decodeLayout(encodeLayout(layout))).toEqual(layout);
     }
   });
 
   it("refuses what is not a board", () => {
-    const bad = ["", "nonsense", "3x2:35C7p", "3x2:35C7pcc", "3x2:35C7pz", "3x2:0000g0", "1x6:gggggg", "41x2:" + "g".repeat(82), "3x2ww:35C7pc", "3x2wd:35C7pc", "2x3w:g00000", "3x2:35C7bc", "3x2:35C7ac"];
+    const bad = [
+      "",
+      "nonsense",
+      "3x2:35C7p",
+      "3x2:35C7pcc",
+      "3x2:35C7pz",
+      "3x2:0000g0",
+      "1x6:gggggg",
+      "41x2:" + "g".repeat(82),
+      "3x2ww:35C7pc",
+      "3x2wd:35C7pc",
+      "2x3w:g00000",
+      "3x2:35C7bc",
+      "3x2:35C7ac",
+    ];
     for (const code of bad) expect(decodeLayout(code), code).toBeNull();
     expect(decodeLayout(undefined as unknown as string)).toBeNull();
     // A source or a drain on bare ground is no source or drain.

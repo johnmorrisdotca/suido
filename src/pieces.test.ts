@@ -1,6 +1,19 @@
 import { describe, expect, it } from "vitest";
 
-import { armsOf, EAST, NORTH, opposite, quartersBetween, rotationsOf, SHAPE_MASKS, shapeOf, SOUTH, tapsBetween, turn, WEST } from "./pieces.ts";
+import {
+  armsOf,
+  EAST,
+  NORTH,
+  opposite,
+  quartersBetween,
+  rotationsOf,
+  SHAPE_MASKS,
+  shapeOf,
+  SOUTH,
+  tapsBetween,
+  turn,
+  WEST,
+} from "./pieces.ts";
 
 describe("the pieces", () => {
   it("name each of the sixteen masks by shape", () => {

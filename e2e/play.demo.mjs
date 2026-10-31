@@ -11,15 +11,21 @@ test.setTimeout(90_000);
 test("a first visit makes the board its address names, with the pieces as the package makes them", async ({ page }) => {
   const errors = await open(page, "?mode=make&size=6x6&seed=7");
   const made = boardFor({ size: 6, seed: 7 });
-  const shapes = await page.locator(`${at("board")} .sd-cell`).evaluateAll((cells) => cells.map((one) => one.dataset.shape));
+  const shapes = await page
+    .locator(`${at("board")} .sd-cell`)
+    .evaluateAll((cells) => cells.map((one) => one.dataset.shape));
   expect(shapes).toEqual(made.layout.cells.map(shapeOf));
-  const roles = await page.locator(`${at("board")} .sd-cell`).evaluateAll((cells) => cells.map((one) => one.dataset.role));
+  const roles = await page
+    .locator(`${at("board")} .sd-cell`)
+    .evaluateAll((cells) => cells.map((one) => one.dataset.role));
   expect(roles.flatMap((role, index) => (role === "source" ? [index] : []))).toEqual(made.layout.sources);
   expect(roles.flatMap((role, index) => (role === "drain" ? [index] : []))).toEqual(made.layout.drains);
   const s = await state(page);
   const flow = flowOf(made.layout);
   expect(s.wet).toEqual(flow.wet);
-  expect(s.status).toBe(`The water reaches ${flow.wetPieces} of ${flow.pieces} pieces · ${flow.spills.length === 1 ? "1 open end" : flow.spills.length === 0 ? "no leaks" : `${flow.spills.length} open ends`}`);
+  expect(s.status).toBe(
+    `The water reaches ${flow.wetPieces} of ${flow.pieces} pieces · ${flow.spills.length === 1 ? "1 open end" : flow.spills.length === 0 ? "no leaks" : `${flow.spills.length} open ends`}`,
+  );
   expect(s.solved).toBe(false);
   expect(errors).toEqual([]);
 });
@@ -70,7 +76,9 @@ test("a board that reaches the drains is solved with its spare pieces left dry",
     for (let n = 0; n < need; n += 1) await tap(page, cell(page, index));
   }
   await expect(page.locator(`${at("board")} svg`)).toHaveAttribute("data-solved", "true");
-  expect((await state(page)).status).toMatch(/^Solved in \d+ turns?\. The water reaches every drain and nothing is left open\.$/);
+  expect((await state(page)).status).toMatch(
+    /^Solved in \d+ turns?\. The water reaches every drain and nothing is left open\.$/,
+  );
   const dry = await page.locator(`${at("board")} .sd-cell[data-wet="false"]:not([data-shape="blank"])`).count();
   expect(dry).toBeGreaterThan(0);
 });
@@ -100,7 +108,12 @@ test("shift-click, right-click and the turning button turn a piece the other way
   expect((await state(page)).quarters[index]).toBe(-3);
   await cell(page, index).click({ modifiers: ["Shift"] });
   expect((await state(page)).quarters[index]).toBe(-2);
-  expect((await state(page)).wet).toEqual(flowOf(made.layout, made.layout.cells.map((mask, at) => (at === index ? turn(mask, -2) : mask))).wet);
+  expect((await state(page)).wet).toEqual(
+    flowOf(
+      made.layout,
+      made.layout.cells.map((mask, at) => (at === index ? turn(mask, -2) : mask)),
+    ).wet,
+  );
 });
 
 test("a cross and bare ground cannot be turned, and a tap on one counts nothing", async ({ page }) => {
@@ -146,7 +159,9 @@ test("a hint lights a piece that does not face its answer, and says so", async (
   await open(page, "?mode=make&size=6x6&seed=7");
   const made = boardFor({ size: 6, seed: 7 });
   await tap(page, action("hint"));
-  const lit = await page.locator(`${at("board")} .sd-cell[data-hint="true"]`).evaluateAll((cells) => cells.map((one) => Number(one.dataset.cell)));
+  const lit = await page
+    .locator(`${at("board")} .sd-cell[data-hint="true"]`)
+    .evaluateAll((cells) => cells.map((one) => Number(one.dataset.cell)));
   expect(lit).toHaveLength(1);
   expect(made.layout.cells[lit[0]]).not.toBe(made.solution[lit[0]]);
   await expect(page.locator(sdp("note"))).toHaveText("Try turning the piece that is lit.");
@@ -161,10 +176,18 @@ test("new board makes another, names it in the address, and the address makes th
   await expect.poll(() => page.url()).not.toBe(before);
   const url = page.url();
   expect(url).toContain("exact=1");
-  const shapes = await page.locator(`${at("board")} .sd-cell`).evaluateAll((cells) => cells.map((one) => one.dataset.shape + one.querySelector(".sd-turn").style.getPropertyValue("--q")));
+  const shapes = await page
+    .locator(`${at("board")} .sd-cell`)
+    .evaluateAll((cells) =>
+      cells.map((one) => one.dataset.shape + one.querySelector(".sd-turn").style.getPropertyValue("--q")),
+    );
   await page.goto(url);
   await ready(page);
-  const again = await page.locator(`${at("board")} .sd-cell`).evaluateAll((cells) => cells.map((one) => one.dataset.shape + one.querySelector(".sd-turn").style.getPropertyValue("--q")));
+  const again = await page
+    .locator(`${at("board")} .sd-cell`)
+    .evaluateAll((cells) =>
+      cells.map((one) => one.dataset.shape + one.querySelector(".sd-turn").style.getPropertyValue("--q")),
+    );
   expect(again).toEqual(shapes);
 });
 
@@ -195,7 +218,9 @@ test("the timer runs from the first turn to the solve and keeps the best", async
 
 test("nothing on the board can be selected", async ({ page }) => {
   await open(page, "?mode=make&size=6x6&seed=7");
-  const select = await page.locator(`${at("board")} svg`).evaluate((svg) => getComputedStyle(svg).userSelect || getComputedStyle(svg).webkitUserSelect);
+  const select = await page
+    .locator(`${at("board")} svg`)
+    .evaluate((svg) => getComputedStyle(svg).userSelect || getComputedStyle(svg).webkitUserSelect);
   expect(select).toBe("none");
   await page.locator(`${at("board")} svg`).scrollIntoViewIfNeeded();
   const box = await page.locator(`${at("board")} svg`).boundingBox();
@@ -212,7 +237,11 @@ test("the page keeps one steady box: nothing moves when the board is played or t
   // Measured from the top of the page each time: a tap scrolls a tall page, and a box that moved with it has not moved.
   const box = async () => {
     await page.evaluate(() => window.scrollTo(0, 0));
-    return { board: await page.locator(at("board")).boundingBox(), status: await page.locator(sdp("status")).boundingBox(), actions: await page.locator(at("new")).boundingBox() };
+    return {
+      board: await page.locator(at("board")).boundingBox(),
+      status: await page.locator(sdp("status")).boundingBox(),
+      actions: await page.locator(at("new")).boundingBox(),
+    };
   };
   const first = await box();
   for (const index of [1, 2, 3, 9, 16, 24]) await tap(page, cell(page, index));
@@ -245,7 +274,9 @@ test("it fits the width of the screen at every size offered, with no sideways sc
   }
 });
 
-test("the board is on the first screen: its middle is above the fold at a phone's width and a desk's", async ({ page }) => {
+test("the board is on the first screen: its middle is above the fold at a phone's width and a desk's", async ({
+  page,
+}) => {
   await open(page, "?size=7x7&level=1");
   await page.evaluate(() => window.scrollTo(0, 0));
   const box = await page.locator(`${at("board")} svg`).boundingBox();

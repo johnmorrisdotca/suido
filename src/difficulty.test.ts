@@ -1,6 +1,17 @@
 import { describe, expect, it } from "vitest";
 
-import { blendOf, DIFFICULTY_WEIGHTS, difficultyOf, MEASURE_NAMES, measureSuido, percentileIn, quantilesOf, referenceFor, referenceKey, scoreOf } from "./difficulty.ts";
+import {
+  blendOf,
+  DIFFICULTY_WEIGHTS,
+  difficultyOf,
+  MEASURE_NAMES,
+  measureSuido,
+  percentileIn,
+  quantilesOf,
+  referenceFor,
+  referenceKey,
+  scoreOf,
+} from "./difficulty.ts";
 import { DIFFICULTY_REFERENCE, DIFFICULTY_SIDES } from "./difficulty.reference.ts";
 import { makeUnscored } from "./generate.ts";
 
@@ -53,21 +64,40 @@ describe("the reference sets", () => {
   });
 
   it("are found for a board by the nearest size, its kind and its wrap", () => {
-    expect(referenceFor({ width: 8, height: 8, kind: "network", wrap: false })).toBe(DIFFICULTY_REFERENCE[referenceKey(8, "network", false)]);
-    expect(referenceFor({ width: 8, height: 8, kind: "drains", wrap: true })).toBe(DIFFICULTY_REFERENCE[referenceKey(8, "drains", true)]);
+    expect(referenceFor({ width: 8, height: 8, kind: "network", wrap: false })).toBe(
+      DIFFICULTY_REFERENCE[referenceKey(8, "network", false)],
+    );
+    expect(referenceFor({ width: 8, height: 8, kind: "drains", wrap: true })).toBe(
+      DIFFICULTY_REFERENCE[referenceKey(8, "drains", true)],
+    );
     // The huge sides have sets of their own: 20×20 and 28×28 by their side, and a 20×50, whose side is the square root of its cells, among the 32s.
-    expect(referenceFor({ width: 20, height: 20, kind: "network", wrap: false })).toBe(DIFFICULTY_REFERENCE[referenceKey(20, "network", false)]);
-    expect(referenceFor({ width: 28, height: 28, kind: "drains", wrap: true })).toBe(DIFFICULTY_REFERENCE[referenceKey(28, "drains", true)]);
-    expect(referenceFor({ width: 20, height: 50, kind: "network", wrap: false })).toBe(DIFFICULTY_REFERENCE[referenceKey(32, "network", false)]);
-    expect(referenceFor({ width: 17, height: 17, kind: "network", wrap: false })).toBe(DIFFICULTY_REFERENCE[referenceKey(16, "network", false)]);
+    expect(referenceFor({ width: 20, height: 20, kind: "network", wrap: false })).toBe(
+      DIFFICULTY_REFERENCE[referenceKey(20, "network", false)],
+    );
+    expect(referenceFor({ width: 28, height: 28, kind: "drains", wrap: true })).toBe(
+      DIFFICULTY_REFERENCE[referenceKey(28, "drains", true)],
+    );
+    expect(referenceFor({ width: 20, height: 50, kind: "network", wrap: false })).toBe(
+      DIFFICULTY_REFERENCE[referenceKey(32, "network", false)],
+    );
+    expect(referenceFor({ width: 17, height: 17, kind: "network", wrap: false })).toBe(
+      DIFFICULTY_REFERENCE[referenceKey(16, "network", false)],
+    );
     // A side too big for any set is ranked among the biggest there is.
-    expect(referenceFor({ width: 60, height: 60, kind: "inlet-outlet", wrap: false })).toBe(DIFFICULTY_REFERENCE[referenceKey(32, "inlet-outlet", false)]);
-    expect(referenceFor({ width: 2, height: 3, kind: "network", wrap: false })).toBe(DIFFICULTY_REFERENCE[referenceKey(4, "network", false)]);
-    expect(referenceFor({ width: 4, height: 16, kind: "network", wrap: false })).toBe(DIFFICULTY_REFERENCE[referenceKey(8, "network", false)]);
+    expect(referenceFor({ width: 60, height: 60, kind: "inlet-outlet", wrap: false })).toBe(
+      DIFFICULTY_REFERENCE[referenceKey(32, "inlet-outlet", false)],
+    );
+    expect(referenceFor({ width: 2, height: 3, kind: "network", wrap: false })).toBe(
+      DIFFICULTY_REFERENCE[referenceKey(4, "network", false)],
+    );
+    expect(referenceFor({ width: 4, height: 16, kind: "network", wrap: false })).toBe(
+      DIFFICULTY_REFERENCE[referenceKey(8, "network", false)],
+    );
   });
 
   it("weigh every kind's measures to one", () => {
-    for (const kind of ["network", "drains"] as const) expect(Object.values(DIFFICULTY_WEIGHTS[kind]).reduce((a, b) => a + b, 0)).toBeCloseTo(1);
+    for (const kind of ["network", "drains"] as const)
+      expect(Object.values(DIFFICULTY_WEIGHTS[kind]).reduce((a, b) => a + b, 0)).toBeCloseTo(1);
     expect(DIFFICULTY_WEIGHTS.network.spares).toBe(0);
   });
 });
@@ -108,7 +138,12 @@ describe("a board's difficulty", () => {
     const made = makeUnscored({ size: 8, seed: 3 });
     const set = referenceFor(made.layout);
     const measure = measureSuido(made.layout, made.solution);
-    const harder = { ...measure, rounds: measure.rounds + 20, unsettled: Math.min(1, measure.unsettled + 0.3), obscure: Math.min(1, measure.obscure + 0.2) };
+    const harder = {
+      ...measure,
+      rounds: measure.rounds + 20,
+      unsettled: Math.min(1, measure.unsettled + 0.3),
+      obscure: Math.min(1, measure.obscure + 0.2),
+    };
     const easier = { ...measure, rounds: 0, unsettled: 0, obscure: 0, guessing: 0 };
     expect(scoreOf(harder, set)).toBeGreaterThan(scoreOf(measure, set));
     expect(scoreOf(easier, set)).toBeLessThan(scoreOf(measure, set));
@@ -117,7 +152,10 @@ describe("a board's difficulty", () => {
 
   it("counts guessing as nothing for a board that never needed any, and more the more the solver tried", () => {
     const set = referenceFor({ width: 12, height: 12, kind: "network", wrap: true });
-    const base = measureSuido(makeUnscored({ size: 12, seed: 2, wrap: true }).layout, makeUnscored({ size: 12, seed: 2, wrap: true }).solution);
+    const base = measureSuido(
+      makeUnscored({ size: 12, seed: 2, wrap: true }).layout,
+      makeUnscored({ size: 12, seed: 2, wrap: true }).solution,
+    );
     const none = { ...base, guessing: 0 };
     const some = { ...base, guessing: 40 * 1_000_000 + 900 };
     expect(blendOf(some, set)).toBeGreaterThanOrEqual(blendOf(none, set));

@@ -60,11 +60,28 @@ export type GuidePiece = {
   facings: number | null;
 };
 
-const board = (width: number, height: number, cells: number[], more: Partial<Layout> = {}): Layout => ({ width, height, kind: "drains", wrap: false, cells, sources: [], drains: [], ...more });
+const board = (width: number, height: number, cells: number[], more: Partial<Layout> = {}): Layout => ({
+  width,
+  height,
+  kind: "drains",
+  wrap: false,
+  cells,
+  sources: [],
+  drains: [],
+  ...more,
+});
 
 const ways = (mask: number): number => rotationsOf(mask).length;
 
-const turning = (id: string, name: string, mask: number, text: string): GuidePiece => ({ id, group: "turn", name, text, layout: { ...board(1, 1, [mask]), kind: "network" }, water: false, facings: mask === 0 ? null : ways(mask) });
+const turning = (id: string, name: string, mask: number, text: string): GuidePiece => ({
+  id,
+  group: "turn",
+  name,
+  text,
+  layout: { ...board(1, 1, [mask]), kind: "network" },
+  water: false,
+  facings: mask === 0 ? null : ways(mask),
+});
 
 /** A big piece drawn alone, facing north: a square of four cells, one piece. */
 const plate = (shape: string): Layout => {
@@ -72,7 +89,15 @@ const plate = (shape: string): Layout => {
   return { ...board(2, 2, [tl!, tr!, bl!, br!]), kind: "network", bigs: [0] };
 };
 
-const big = (shape: string, id: string, name: string, text: string): GuidePiece => ({ id, group: "big", name, text, layout: plate(shape), water: false, facings: bigFacings(shape) });
+const big = (shape: string, id: string, name: string, text: string): GuidePiece => ({
+  id,
+  group: "big",
+  name,
+  text,
+  layout: plate(shape),
+  water: false,
+  facings: bigFacings(shape),
+});
 
 function bigFacings(shape: string): number {
   const faces = new Set([0, 1, 2, 3].map((quarters) => bigMasksOf(shape, quarters).join()));
@@ -90,32 +115,178 @@ function bigFacings(shape: string): number {
  * ```
  */
 export const SUIDO_PIECE_GUIDE: readonly GuidePiece[] = [
-  turning("ground", "Ground", 0, "Bare ground, with nothing on it. Only boards whose water need not reach every piece have it, and it is never turned."),
-  turning("end", "End", NORTH, "One opening: a pipe that stops. It faces any of four ways. Wherever the water reaches an end, the opening must meet the opening of a piece beside it, or the water runs out."),
-  turning("straight", "Straight", SHAPE_MASKS.straight, "Two openings on opposite sides. It faces two ways, along or across, so a tap on it flips it."),
+  turning(
+    "ground",
+    "Ground",
+    0,
+    "Bare ground, with nothing on it. Only boards whose water need not reach every piece have it, and it is never turned.",
+  ),
+  turning(
+    "end",
+    "End",
+    NORTH,
+    "One opening: a pipe that stops. It faces any of four ways. Wherever the water reaches an end, the opening must meet the opening of a piece beside it, or the water runs out.",
+  ),
+  turning(
+    "straight",
+    "Straight",
+    SHAPE_MASKS.straight,
+    "Two openings on opposite sides. It faces two ways, along or across, so a tap on it flips it.",
+  ),
   turning("elbow", "Elbow", SHAPE_MASKS.elbow, "Two openings on sides that meet, a corner. It faces any of four ways."),
-  turning("tee", "Tee", SHAPE_MASKS.tee, "Three openings, a pipe that branches. It faces any of four ways, and the water splits at it."),
-  turning("cross", "Cross", SHAPE_MASKS.cross, "Four openings, a crossing where all four neighbours join. It looks the same turned, so a tap on it changes nothing."),
-  { id: "pump", group: "water", name: "Pump", text: "Where the water comes from, drawn as a drop in a dark blue disc on a piece. A pump may sit on any piece but ground, and is turned like it. A board has one pump or several, and every pump fills its own pipes.", layout: board(1, 1, [SHAPE_MASKS.end], { sources: [0] }), water: false, facings: 4 },
-  { id: "drain", group: "water", name: "Drain", text: "Where the water must end up, a round bowl on a piece that fills when the water reaches it. On a board of drains the water must reach every drain, and pieces it does not need may stay dry and face any way.", layout: board(1, 1, [SHAPE_MASKS.end], { drains: [0] }), water: false, facings: 4 },
-  { id: "pump-and-drain", group: "water", name: "Pump to drain", text: "A pump and a drain with their openings joined: the water runs from the one to the other and fills both. It is the whole of the game: turn the pieces until every drain is reached and nothing leaks.", layout: board(2, 1, [2, 8], { sources: [0], drains: [1] }), water: true, facings: null },
-  { id: "locked", group: "twist", name: "Locked piece", text: "A piece that cannot be turned, marked by a small padlock. It stays as the board gives it, so it is a fixed point to work from.", layout: { ...board(1, 1, [3]), kind: "network", locked: [0] }, water: false, facings: null },
-  { id: "wall", group: "twist", name: "Wall", text: "A thick bar across the edge between two cells, which the water cannot cross: two pieces that face each other across it do not join.", layout: board(2, 1, [2, 8], { sources: [0], drains: [1], walls: [0] }), water: true, facings: null },
-  { id: "wrap", group: "twist", name: "Edges that join", text: "A board with a dashed red rim: a pipe that leaves one side comes in at the opposite side, so the board is a ring and its edge is no edge.", layout: board(3, 3, [0, 0, 0, 8, 0, 2, 0, 0, 0], { wrap: true, sources: [3], drains: [5] }), water: true, facings: null },
-  big("3c92", "big-snake", "Big piece: one pipe, one opening", "A square of four cells that is one piece, with one pipe in it that winds round and stops: a single opening. It turns as a whole, a quarter at a time."),
-  big("5593", "big-hairpin", "Big piece: a hairpin", "One pipe that goes in and comes straight back out, so both of its openings are side by side on one edge of the square."),
-  big("5555", "big-two-straights", "Big piece: two pipes side by side", "Two pipes that run past each other and never meet, however close: the water in one never reaches the other. Four openings, two on each of two opposite sides. It faces two ways."),
-  big("53a3", "big-two-elbows", "Big piece: one corner inside another", "Two pipes, each a corner, one bending inside the other. They never meet. Four openings, on two sides that meet."),
-  big("5775", "big-through-and-branch", "Big piece: one pipe through, one branching", "One pipe runs straight through the square while the other branches off to the side. Six openings, two on each of three sides."),
-  big("39aa", "big-hairpin-over-straight", "Big piece: a hairpin and a straight pipe", "A U-shaped pipe with both openings on one edge, and a straight pipe running across the opposite side of the square. They never meet."),
-  big("2baa", "big-branch-and-straight", "Big piece: a branching pipe and a straight one", "A pipe that comes in, branches, and has one branch ending inside the square, beside a pipe that runs straight across."),
-  big("2b8e", "big-two-stubbed-pipes", "Big piece: two pipes with a stub inside", "Two pipes of two openings each. Each is a tee with one of its branches ending inside the square."),
-  big("118a", "big-three-pipes", "Big piece: three pipes, one opening each", "Three separate pipes in a square of four cells: two short stubs and a longer one that goes in and stops inside. None is joined to another."),
-  big("2b6c", "big-three-pipes-two-openings", "Big piece: three pipes, two openings each", "Three separate pipes of two openings each: two plain corners and a pipe with a branch that stops inside the square."),
-  big("17fe", "big-crossing-and-stub", "Big piece: a crossing inside, and a stub", "One pipe with six openings, a cross and tees joined inside the square, and a stub of its own beside it."),
-  big("bffe", "big-grid", "Big piece: a grid of crossings", "One pipe with eight openings, the most a square has: every cell a tee or a cross, so the water goes every way inside it."),
-  big("bbee", "big-two-tee-pipes", "Big piece: two pipes of two tees", "Two pipes of four openings each, every cell a tee: eight openings in all, and water that never crosses from one pipe to the other."),
-  { id: "block-turn", group: "block", name: "Block that turns as one", text: "Four ordinary pieces, a corner, an end, a straight and a tee, that cannot be turned on their own. A tap turns the whole square a quarter, and each piece moves round to the next place as it turns, like a bigger piece that is not joined inside.", layout: { ...board(2, 2, [3, 8, 5, 7]), kind: "network", blocks: [0] }, water: false, facings: 4 },
+  turning(
+    "tee",
+    "Tee",
+    SHAPE_MASKS.tee,
+    "Three openings, a pipe that branches. It faces any of four ways, and the water splits at it.",
+  ),
+  turning(
+    "cross",
+    "Cross",
+    SHAPE_MASKS.cross,
+    "Four openings, a crossing where all four neighbours join. It looks the same turned, so a tap on it changes nothing.",
+  ),
+  {
+    id: "pump",
+    group: "water",
+    name: "Pump",
+    text: "Where the water comes from, drawn as a drop in a dark blue disc on a piece. A pump may sit on any piece but ground, and is turned like it. A board has one pump or several, and every pump fills its own pipes.",
+    layout: board(1, 1, [SHAPE_MASKS.end], { sources: [0] }),
+    water: false,
+    facings: 4,
+  },
+  {
+    id: "drain",
+    group: "water",
+    name: "Drain",
+    text: "Where the water must end up, a round bowl on a piece that fills when the water reaches it. On a board of drains the water must reach every drain, and pieces it does not need may stay dry and face any way.",
+    layout: board(1, 1, [SHAPE_MASKS.end], { drains: [0] }),
+    water: false,
+    facings: 4,
+  },
+  {
+    id: "pump-and-drain",
+    group: "water",
+    name: "Pump to drain",
+    text: "A pump and a drain with their openings joined: the water runs from the one to the other and fills both. It is the whole of the game: turn the pieces until every drain is reached and nothing leaks.",
+    layout: board(2, 1, [2, 8], { sources: [0], drains: [1] }),
+    water: true,
+    facings: null,
+  },
+  {
+    id: "locked",
+    group: "twist",
+    name: "Locked piece",
+    text: "A piece that cannot be turned, marked by a small padlock. It stays as the board gives it, so it is a fixed point to work from.",
+    layout: { ...board(1, 1, [3]), kind: "network", locked: [0] },
+    water: false,
+    facings: null,
+  },
+  {
+    id: "wall",
+    group: "twist",
+    name: "Wall",
+    text: "A thick bar across the edge between two cells, which the water cannot cross: two pieces that face each other across it do not join.",
+    layout: board(2, 1, [2, 8], { sources: [0], drains: [1], walls: [0] }),
+    water: true,
+    facings: null,
+  },
+  {
+    id: "wrap",
+    group: "twist",
+    name: "Edges that join",
+    text: "A board with a dashed red rim: a pipe that leaves one side comes in at the opposite side, so the board is a ring and its edge is no edge.",
+    layout: board(3, 3, [0, 0, 0, 8, 0, 2, 0, 0, 0], { wrap: true, sources: [3], drains: [5] }),
+    water: true,
+    facings: null,
+  },
+  big(
+    "3c92",
+    "big-snake",
+    "Big piece: one pipe, one opening",
+    "A square of four cells that is one piece, with one pipe in it that winds round and stops: a single opening. It turns as a whole, a quarter at a time.",
+  ),
+  big(
+    "5593",
+    "big-hairpin",
+    "Big piece: a hairpin",
+    "One pipe that goes in and comes straight back out, so both of its openings are side by side on one edge of the square.",
+  ),
+  big(
+    "5555",
+    "big-two-straights",
+    "Big piece: two pipes side by side",
+    "Two pipes that run past each other and never meet, however close: the water in one never reaches the other. Four openings, two on each of two opposite sides. It faces two ways.",
+  ),
+  big(
+    "53a3",
+    "big-two-elbows",
+    "Big piece: one corner inside another",
+    "Two pipes, each a corner, one bending inside the other. They never meet. Four openings, on two sides that meet.",
+  ),
+  big(
+    "5775",
+    "big-through-and-branch",
+    "Big piece: one pipe through, one branching",
+    "One pipe runs straight through the square while the other branches off to the side. Six openings, two on each of three sides.",
+  ),
+  big(
+    "39aa",
+    "big-hairpin-over-straight",
+    "Big piece: a hairpin and a straight pipe",
+    "A U-shaped pipe with both openings on one edge, and a straight pipe running across the opposite side of the square. They never meet.",
+  ),
+  big(
+    "2baa",
+    "big-branch-and-straight",
+    "Big piece: a branching pipe and a straight one",
+    "A pipe that comes in, branches, and has one branch ending inside the square, beside a pipe that runs straight across.",
+  ),
+  big(
+    "2b8e",
+    "big-two-stubbed-pipes",
+    "Big piece: two pipes with a stub inside",
+    "Two pipes of two openings each. Each is a tee with one of its branches ending inside the square.",
+  ),
+  big(
+    "118a",
+    "big-three-pipes",
+    "Big piece: three pipes, one opening each",
+    "Three separate pipes in a square of four cells: two short stubs and a longer one that goes in and stops inside. None is joined to another.",
+  ),
+  big(
+    "2b6c",
+    "big-three-pipes-two-openings",
+    "Big piece: three pipes, two openings each",
+    "Three separate pipes of two openings each: two plain corners and a pipe with a branch that stops inside the square.",
+  ),
+  big(
+    "17fe",
+    "big-crossing-and-stub",
+    "Big piece: a crossing inside, and a stub",
+    "One pipe with six openings, a cross and tees joined inside the square, and a stub of its own beside it.",
+  ),
+  big(
+    "bffe",
+    "big-grid",
+    "Big piece: a grid of crossings",
+    "One pipe with eight openings, the most a square has: every cell a tee or a cross, so the water goes every way inside it.",
+  ),
+  big(
+    "bbee",
+    "big-two-tee-pipes",
+    "Big piece: two pipes of two tees",
+    "Two pipes of four openings each, every cell a tee: eight openings in all, and water that never crosses from one pipe to the other.",
+  ),
+  {
+    id: "block-turn",
+    group: "block",
+    name: "Block that turns as one",
+    text: "Four ordinary pieces, a corner, an end, a straight and a tee, that cannot be turned on their own. A tap turns the whole square a quarter, and each piece moves round to the next place as it turns, like a bigger piece that is not joined inside.",
+    layout: { ...board(2, 2, [3, 8, 5, 7]), kind: "network", blocks: [0] },
+    water: false,
+    facings: 4,
+  },
 ];
 
 /** The entry with this id, or undefined.

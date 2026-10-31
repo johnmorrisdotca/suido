@@ -58,7 +58,8 @@ export function paintSuido(svg: Element, layout: Layout, masks: readonly number[
     cell.setAttribute("data-wet", String(state.wet));
     cell.style.setProperty("--k", String(depth));
     cell.querySelector<SVGGElement>(".sd-turn")?.style.setProperty("--q", String(state.quarters));
-    for (const arm of cell.querySelectorAll<SVGGElement>(".sd-arm")) arm.setAttribute("data-w", state.arms[Number(arm.getAttribute("data-side"))] ?? "");
+    for (const arm of cell.querySelectorAll<SVGGElement>(".sd-arm"))
+      arm.setAttribute("data-w", state.arms[Number(arm.getAttribute("data-side"))] ?? "");
   }
   svg.setAttribute("data-solved", String(flow.solved));
   (svg as unknown as SVGElement).style.setProperty("--sd-step", `${stepFor(Math.max(0, ...flow.depth))}ms`);

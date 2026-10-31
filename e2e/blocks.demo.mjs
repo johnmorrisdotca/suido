@@ -25,7 +25,9 @@ test.setTimeout(90_000);
 const made = () => makeSuido({ width: 8, height: 8, kind: "network", sources: 1, bigs: 3, blocks: 3, seed: 7 });
 const QUERY = "?mode=make&size=8x8&seed=7&exact=1&bigs=many&blocks=many";
 
-test("a board with big pieces and blocks is drawn with a plate under each square and a ring where it turns", async ({ page }) => {
+test("a board with big pieces and blocks is drawn with a plate under each square and a ring where it turns", async ({
+  page,
+}) => {
   const errors = await open(page, QUERY);
   const board = made();
   const layout = decodeLayout(board.code);
@@ -33,13 +35,17 @@ test("a board with big pieces and blocks is drawn with a plate under each square
   await expect(page.locator(`${at("board")} .sd-plate[data-kind="big"]`)).toHaveCount(layout.bigs.length);
   await expect(page.locator(`${at("board")} .sd-plate[data-kind="turn"]`)).toHaveCount(layout.blocks.length);
   await expect(page.locator(`${at("board")} .sd-pivot`)).toHaveCount(layout.bigs.length + layout.blocks.length);
-  const chips = await page.locator(`${sdp("chips")} li`).evaluateAll((items) => items.map((item) => item.dataset.twist));
+  const chips = await page
+    .locator(`${sdp("chips")} li`)
+    .evaluateAll((items) => items.map((item) => item.dataset.twist));
   expect(chips).toEqual(["big-pieces", "block-turns"]);
   await noSidewaysScroll(page);
   expect(errors).toEqual([]);
 });
 
-test("a tap on any piece of a square turns the whole square, each piece moving round to the next place as it turns", async ({ page }) => {
+test("a tap on any piece of a square turns the whole square, each piece moving round to the next place as it turns", async ({
+  page,
+}) => {
   await open(page, QUERY);
   const board = made();
   const info = blockInfo(board.layout);
@@ -50,7 +56,9 @@ test("a tap on any piece of a square turns the whole square, each piece moving r
     await tap(page, which);
     const after = await state(page);
     // The four pieces of the square each turned a quarter; no other piece did anything.
-    const changed = after.quarters.map((turns, index) => (turns === before.quarters[index] ? null : index)).filter((index) => index !== null);
+    const changed = after.quarters
+      .map((turns, index) => (turns === before.quarters[index] ? null : index))
+      .filter((index) => index !== null);
     expect(changed, `tap ${at}`).toEqual([...block.cells].sort((a, b) => a - b));
     for (const piece of block.cells) expect(after.quarters[piece] - before.quarters[piece], `piece ${piece}`).toBe(1);
   }
@@ -75,7 +83,10 @@ test("a board of big pieces and blocks is solved by turning each square, and the
       const need = blockQuartersBetween(game.masks, board.solution, block) ?? 0;
       for (let n = 0; n < need; n += 1) await tap(page, block.anchor);
     } else {
-      const need = ((board.solution[index] === game.masks[index] ? 0 : [1, 2, 3].find((turns) => turnTo(game.masks[index], turns) === board.solution[index])) ?? 0);
+      const need =
+        (board.solution[index] === game.masks[index]
+          ? 0
+          : [1, 2, 3].find((turns) => turnTo(game.masks[index], turns) === board.solution[index])) ?? 0;
       for (let n = 0; n < need; n += 1) await tap(page, index);
     }
   }

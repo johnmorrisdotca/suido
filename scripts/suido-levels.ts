@@ -54,7 +54,14 @@ function hash(text: string): number {
 }
 
 /** The kinds of level: `plain`, or one to four twists joined with `+`. */
-const PART_TWIST: Record<string, Twist> = { drains: "drains", pumps: "pumps", locked: "locked", walls: "walls", wrap: "wrap", path: "inlet-outlet" };
+const PART_TWIST: Record<string, Twist> = {
+  drains: "drains",
+  pumps: "pumps",
+  locked: "locked",
+  walls: "walls",
+  wrap: "wrap",
+  path: "inlet-outlet",
+};
 
 function twistsOfProfile(name: string): Twist[] {
   const parts = name === "plain" ? [] : name.split("+");
@@ -84,9 +91,22 @@ function optionsFor(name: string, width: number, height: number, random: Random)
 
 /** The kinds a block introduces: its 15th level teaches the first of its kind, its 16th tests it. */
 const TEACH: Record<number, string> = { 2: "drains", 3: "pumps", 4: "locked", 5: "walls", 6: "wrap", 7: "path" };
-const COMBO: Record<number, string> = { 8: "wrap+locked", 9: "walls+locked", 10: "pumps+drains", 11: "path+locked", 12: "drains+wrap", 13: "pumps+wrap", 14: "path+walls", 15: "pumps+wrap+drains", 16: "wrap+drains+walls" };
+const COMBO: Record<number, string> = {
+  8: "wrap+locked",
+  9: "walls+locked",
+  10: "pumps+drains",
+  11: "path+locked",
+  12: "drains+wrap",
+  13: "pumps+wrap",
+  14: "path+walls",
+  15: "pumps+wrap+drains",
+  16: "wrap+drains+walls",
+};
 /** Every kind in the order it is introduced, with the block it comes in at. */
-const INTRODUCED: [string, number][] = [...Object.entries(TEACH), ...Object.entries(COMBO)].map(([block, name]) => [name, Number(block)]);
+const INTRODUCED: [string, number][] = [...Object.entries(TEACH), ...Object.entries(COMBO)].map(([block, name]) => [
+  name,
+  Number(block),
+]);
 
 /**
  * What the four blocks of a huge size teach: drains, pumps, then wrap. Not locked pieces or walls, which only make a
@@ -120,13 +140,21 @@ function poolOf(size: string, profile: string, count: number, seen: Set<string>)
     const options = optionsFor(profile, width, height, seededRandom(seed ^ 0x9e3779b9));
     const made = makeUnscored({ ...options, seed });
     const { layout } = made;
-    if (twistsOf(layout).join() !== want || flowOf(layout).solved || turnsFromAnswer(layout.cells, made.solution) <= 2) continue;
+    if (twistsOf(layout).join() !== want || flowOf(layout).solved || turnsFromAnswer(layout.cells, made.solution) <= 2)
+      continue;
     const found = solve(layout, 2, 200_000);
     if (found.count !== 1 || !found.complete) continue;
     const key = symmetryKey(layout, made.solution);
     if (seen.has(key)) continue;
     seen.add(key);
-    out.push({ layout, code: made.code, turns: turnsOf(layout, made.solution)!, score: exactDifficultyOf(layout, made.solution), key, profile });
+    out.push({
+      layout,
+      code: made.code,
+      turns: turnsOf(layout, made.solution)!,
+      score: exactDifficultyOf(layout, made.solution),
+      key,
+      profile,
+    });
   }
   return out.sort((a, b) => a.score - b.score || (a.key < b.key ? -1 : 1));
 }
@@ -163,13 +191,16 @@ function poolSizes(size: string): { plain: number; twist: number } {
 function make(size: string): void {
   const started = performance.now();
   const count = SUIDO_LEVEL_COUNTS[size]!;
-  const slots = Array.from({ length: count }, (_, at) => profileAt(Math.floor(at / SUIDO_BLOCK) + 1, (at % SUIDO_BLOCK) + 1, count <= SUIDO_BLOCK * 4));
+  const slots = Array.from({ length: count }, (_, at) =>
+    profileAt(Math.floor(at / SUIDO_BLOCK) + 1, (at % SUIDO_BLOCK) + 1, count <= SUIDO_BLOCK * 4),
+  );
   const kinds = [...new Set(slots)];
   const sizes = poolSizes(size);
   const seen = new Set<string>();
   const pools = new Map<string, Candidate[]>();
   // Plain first: its boards keep their place when another kind finds the same puzzle.
-  for (const kind of kinds.sort((a, b) => (a === "plain" ? -1 : b === "plain" ? 1 : 0))) pools.set(kind, poolOf(size, kind, kind === "plain" ? sizes.plain : sizes.twist, seen));
+  for (const kind of kinds.sort((a, b) => (a === "plain" ? -1 : b === "plain" ? 1 : 0)))
+    pools.set(kind, poolOf(size, kind, kind === "plain" ? sizes.plain : sizes.twist, seen));
   const made = performance.now();
   const used = new Set<Candidate>();
   const rows: LevelRow[] = [];
@@ -199,10 +230,15 @@ function make(size: string): void {
     before = pick.score;
     rows.push([pick.code, pick.turns, twistsOf(pick.layout).join(" ")]);
   }
-  writeFileSync(`src/levels/size${size}.data.ts`, withLevelExamples(fileFor(size, rows), `@johnmorrisdotca/suido/levels-${size}`));
+  writeFileSync(
+    `src/levels/size${size}.data.ts`,
+    withLevelExamples(fileFor(size, rows), `@johnmorrisdotca/suido/levels-${size}`),
+  );
   const worst = Math.max(...picked.map((one, at) => Math.abs(one.score - (1 + (99 * at) / (count - 1)))));
   const twisted = picked.filter((one) => one.profile !== "plain").length;
-  console.log(`${size}: ${count} levels (${twisted} with twists), furthest from its aim ${worst.toFixed(1)}, ${fallbacks.length} fallbacks, pools in ${Math.round((made - started) / 1000)} s, all in ${Math.round((performance.now() - started) / 1000)} s`);
+  console.log(
+    `${size}: ${count} levels (${twisted} with twists), furthest from its aim ${worst.toFixed(1)}, ${fallbacks.length} fallbacks, pools in ${Math.round((made - started) / 1000)} s, all in ${Math.round((performance.now() - started) / 1000)} s`,
+  );
   for (const line of fallbacks) console.log(`  ${line}`);
 }
 
@@ -239,7 +275,9 @@ async function marks(): Promise<void> {
   const rolesBy: Record<string, Record<number, TwistRole>> = {};
   for (const size of SUIDO_SIZES) {
     if (!existsSync(`src/levels/size${size}.data.ts`)) continue;
-    const rows = ((await import(`../src/levels/size${size}.data.ts`)) as Record<string, readonly LevelRow[]>)[`SUIDO_${upper(size)}`]!;
+    const rows = ((await import(`../src/levels/size${size}.data.ts`)) as Record<string, readonly LevelRow[]>)[
+      `SUIDO_${upper(size)}`
+    ]!;
     marksBy[size] = rows.map((row) => String(marksOf(difficultyOf(levelBoard(row)!, levelSolution(row)!)))).join("");
     rolesBy[size] = Object.fromEntries(
       rows.flatMap((_, at) => {
@@ -247,9 +285,14 @@ async function marks(): Promise<void> {
         return role === null ? [] : [[at + 1, role]];
       }),
     );
-    console.log(`${size}: marks and roles written (${Object.keys(rolesBy[size]!).length} twist levels in places 15 and 16)`);
+    console.log(
+      `${size}: marks and roles written (${Object.keys(rolesBy[size]!).length} twist levels in places 15 and 16)`,
+    );
   }
-  writeFileSync("src/levels/marks.data.ts", withLevelExamples(marksFile(marksBy, rolesBy), "@johnmorrisdotca/suido/marks"));
+  writeFileSync(
+    "src/levels/marks.data.ts",
+    withLevelExamples(marksFile(marksBy, rolesBy), "@johnmorrisdotca/suido/marks"),
+  );
 }
 
 /** What a size's boards of each kind measure: their scores at a few places, and how long they take to make. */
@@ -258,8 +301,13 @@ function probe(size: string): void {
   for (const kind of kinds) {
     const started = performance.now();
     const pool = poolOf(size, kind, 200, new Set());
-    const at = (share: number): string => (pool.length === 0 ? "-" : pool[Math.min(pool.length - 1, Math.floor(share * (pool.length - 1)))]!.score.toFixed(0));
-    console.log(`${size} ${kind.padEnd(20)} ${String(pool.length).padStart(3)} boards  ${[0, 0.1, 0.25, 0.5, 0.75, 0.9, 1].map(at).join(" ")}   ${Math.round(performance.now() - started)} ms`);
+    const at = (share: number): string =>
+      pool.length === 0
+        ? "-"
+        : pool[Math.min(pool.length - 1, Math.floor(share * (pool.length - 1)))]!.score.toFixed(0);
+    console.log(
+      `${size} ${kind.padEnd(20)} ${String(pool.length).padStart(3)} boards  ${[0, 0.1, 0.25, 0.5, 0.75, 0.9, 1].map(at).join(" ")}   ${Math.round(performance.now() - started)} ms`,
+    );
   }
 }
 
