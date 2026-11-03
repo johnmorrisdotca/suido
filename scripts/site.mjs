@@ -14,8 +14,11 @@ import {
   familyHeader,
   familyUnreviewed,
 } from "./family-template.mjs";
+import { publishThumbnails, thumbnailHead } from "./family-thumbnail.mjs";
 
 const id = "suido";
+const ALT =
+  "Suido: three 8×8 pipe boards, one half way with its leaks, one with several pumps and one with walls, the water running blue.";
 const total = Object.values(SUIDO_LEVEL_COUNTS)
   .reduce((sum, count) => sum + count, 0)
   .toLocaleString("en-US");
@@ -53,6 +56,7 @@ const page = `<!doctype html>
       ogTitle: "Suido 水道 — Pipe-connecting puzzle",
       ogDescription: `Turn the pipes until the water reaches every drain. ${total} levels, each with one answer.`,
     })}
+    ${thumbnailHead(JSON.parse(readFileSync("package.json", "utf8")), { alt: ALT })}
     <link rel="icon" href="${ICON}" />
     <link rel="stylesheet" href="family.css" />
     <link rel="stylesheet" href="suido.css" />
@@ -196,6 +200,8 @@ mkdirSync("site", { recursive: true });
 cpSync("demo", "site", { recursive: true });
 cpSync("dist", "site/dist", { recursive: true });
 writeFileSync("site/index.html", page);
+// The family's card, dark card and icon, at <site>/thumbnail.png, thumbnail-dark.png and icon.png.
+publishThumbnails(".", "site");
 // The API reference, made from the source: every export of every entry point.
 writeFileSync("site/api.css", API_CSS);
 writeFileSync("site/api.html", apiPage({ id, name: "Suido", icon: ICON }));

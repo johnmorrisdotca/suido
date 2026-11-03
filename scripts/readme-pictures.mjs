@@ -92,4 +92,40 @@ await takePictures({
     sheet("big-families", "pieces-families"),
     { subject: "huge-board", views: ["desk"], scale: 1, url: url("20x20", 1), ready, target: `${BOARD} svg` },
   ],
+  // The family's thumbnail, dark thumbnail and icon (scripts/family-thumbnail.mjs): three 8×8 levels as their own
+  // pictures show them, a network half way with its leaks, several pumps solved and walls solved; the icon is a whole
+  // 5×5 level, solved.
+  thumbnail: {
+    url: url("8x8", 12),
+    ready,
+    target: "#thumbnail-stage",
+    icon: { target: "#thumbnail-icon" },
+    label: "Suido 水道",
+    async prepare(page) {
+      const boards = [];
+      for (const [number, share] of [
+        [12, 0.5],
+        [await twist("pumps", "8x8"), 1],
+        [await twist("walls", "8x8"), 1],
+      ]) {
+        await page.goto(`http://suido.test${url("8x8", number)}`);
+        await page.waitForSelector(ready);
+        await solved("8x8", number, share)(page);
+        boards.push(await page.locator(`${BOARD} svg`).evaluate((svg) => svg.outerHTML));
+      }
+      await page.goto(`http://suido.test${url("5x5", 20)}`);
+      await page.waitForSelector(ready);
+      await solved("5x5", 20, 1)(page);
+      boards.push(await page.locator(`${BOARD} svg`).evaluate((svg) => svg.outerHTML));
+      await page.evaluate((drawn) => {
+        const stage = `<div id="thumbnail-stage" style="display:flex;gap:36px;align-items:center;padding:8px;width:max-content">${drawn
+          .slice(0, 3)
+          .map((svg) => `<div style="width:360px">${svg}</div>`)
+          .join("")}</div>`;
+        const icon = `<div id="thumbnail-icon" style="width:420px;padding:8px">${drawn[3]}</div>`;
+        document.body.replaceChildren();
+        document.body.insertAdjacentHTML("beforeend", stage + icon);
+      }, boards);
+    },
+  },
 });

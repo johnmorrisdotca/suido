@@ -1,3 +1,5 @@
+<p align="center"><a href="https://johnmorrisdotca.github.io/suido/"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/johnmorrisdotca/suido/main/docs/images/thumbnail-dark.png"><img src="https://raw.githubusercontent.com/johnmorrisdotca/suido/main/docs/images/thumbnail.png" alt="Suido: three 8×8 pipe boards, one half way with its leaks, one with several pumps and one with walls, the water running blue." width="1200"></picture></a></p>
+
 <h1 align="center">Suido <sub>水道</sub> — Pipe-connecting puzzle</h1>
 
 <p align="center"><strong>A pipe puzzle for JavaScript and TypeScript.</strong><br>
@@ -767,7 +769,7 @@ second answer uses, or a lock on a piece the two answers face differently, makes
 before any pipe is moved. An inlet-outlet board is a random spanning tree's path from the top left to the
 bottom right with decoys everywhere else, mended the same way.
 
-The time to make one board is under a millisecond to a few milliseconds up to 12×12 and about a tenth of a second at 16×16 with a difficulty asked for, and the huge sizes take from 4 milliseconds (a 20×20 network) to two seconds (a 28×28 drains board), on a laptop; the tables, and how big pieces and blocks are placed, are in [docs/GENERATOR.md](docs/GENERATOR.md).
+Making one board takes under a millisecond to a few milliseconds up to 12×12, and up to two seconds at the huge sizes, on a laptop; the tables, and how big pieces and blocks are placed, are in [docs/GENERATOR.md](docs/GENERATOR.md).
 
 ## Architecture
 
