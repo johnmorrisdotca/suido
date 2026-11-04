@@ -153,6 +153,8 @@ test("a pinch of two fingers zooms the board about the middle between them", asy
     "real touches are sent through Chromium's own input",
   );
   await open(page, "?mode=levels&size=28x28&level=1");
+  // The touches go to a point of the window, so the middle of the board must be in it.
+  await box(page).evaluate((element) => element.scrollIntoView({ block: "center" }));
   const frame = await box(page).boundingBox();
   const middle = { x: frame.x + frame.width / 2, y: frame.y + frame.height / 2 };
   const steps = [
