@@ -11,7 +11,7 @@ Turn the pieces until the water from the pump reaches every drain and nothing is
   <a href="./LICENSE"><img alt="MIT licence" src="https://img.shields.io/badge/licence-MIT-2f5d4a"></a>
   <img alt="No dependencies" src="https://img.shields.io/badge/dependencies-0-2f5d4a">
   <img alt="TypeScript" src="https://img.shields.io/badge/types-TypeScript-3178c6">
-  <a href="https://johnmorrisdotca.github.io/suido/docs/api/main/index.html"><img alt="46.4 kB minified and gzipped" src="https://img.shields.io/badge/min%2Bgzip-46.4%20kB-2f5d4a"></a>
+  <a href="https://johnmorrisdotca.github.io/suido/docs/api/main/index.html"><img alt="46.1 kB minified and gzipped" src="https://img.shields.io/badge/min%2Bgzip-46.1%20kB-2f5d4a"></a>
   <a href="https://www.npmjs.com/package/@johnmorrisdotca/suido#provenance"><img alt="Published with npm provenance" src="https://img.shields.io/badge/npm-provenance-2f5d4a"></a>
 </p>
 
