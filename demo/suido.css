@@ -334,5 +334,9 @@ header nav a[data-say="pageDocs"] {
 .embed-options .fam-button {
   min-height: 48px;
 }
-.embed-picker { margin: 0 0 12px; }
-.embed-picker button { min-height: 48px; }
+.embed-picker {
+  margin: 0 0 12px;
+}
+.embed-picker button {
+  min-height: 48px;
+}
