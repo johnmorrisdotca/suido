@@ -42,7 +42,7 @@ import { attachSuidoView, needsZoom, SUIDO_FIT, type SuidoView, type SuidoViewer
  *
  * A board whose pieces would be smaller than a thumb across the box it is in (twenty by twenty on a phone) can
  * be zoomed and moved about: a row of three buttons under it (Zoom out, Zoom in, Whole board), a pinch, the
- * wheel with control held, and a drag once it is zoomed in (`view.ts`). `zoom: "off"` leaves the board as it is.
+ * wheel over the board, and a drag once it is zoomed in (`view.ts`). `zoom: "off"` leaves the board as it is.
  *
  * Needs a page. The rules it plays by are `game.ts`'s, the drawing is
  * `drawSuido`'s, and both are usable alone.

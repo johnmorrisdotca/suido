@@ -7,6 +7,9 @@ board and its answer, and a seed makes the board it always made.
 
 ## [Unreleased]
 
+### Changed
+
+- **The wheel zooms the board.** On a board big enough to be zoomed, the wheel over it now zooms about the pointer, as a pinch (control or command and the wheel) did; before, the wheel alone only moved a board already zoomed in. A sideways swipe, or Shift and the wheel, moves a zoomed board across. With the pointer anywhere else the page scrolls, and so it does for a wheel that starts with the zoom already at its end, so the page is never trapped. The README and the code's notes say so.
 - The README opens with the package's thumbnail, and the demo carries it as its link preview (og:image) and publishes the card, a dark card and an icon on Pages at `thumbnail.png`, `thumbnail-dark.png` and `icon.png`.
 
 ## [1.6.1] - 2026-10-31

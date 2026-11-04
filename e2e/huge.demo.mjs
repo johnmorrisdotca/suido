@@ -116,6 +116,37 @@ test("a finger moves a zoomed board, and a drag is not a tap on the piece under 
   await expect(page.locator(at("board"))).toHaveAttribute("data-turns", "0");
 });
 
+test("the wheel over a big board zooms it, and a wheel that starts at the whole board is left to the page", async ({
+  page,
+  browserName,
+}) => {
+  test.skip(browserName !== "chromium", "The wheel is sent through Chromium's own input");
+  await open(page, "?mode=levels&size=28x28&level=1");
+  const wanted = (await box(page).boundingBox()).width / 28 < 22;
+  test.skip(!wanted, "at this width the pieces are comfortable and no zoom is offered");
+  await box(page).scrollIntoViewIfNeeded();
+  const frame = await box(page).boundingBox();
+  await page.mouse.move(frame.x + frame.width / 2, frame.y + frame.height / 2);
+  await page.evaluate(() => {
+    window.claims = [];
+    document.addEventListener("wheel", (event) => window.claims.push(event.defaultPrevented));
+  });
+  const claims = () => page.evaluate(() => window.claims);
+  // At the whole board the wheel down is not the board's: the page scrolls.
+  await page.mouse.wheel(0, 200);
+  await expect(box(page)).toHaveAttribute("data-zoom", "1.00");
+  expect(await claims()).toEqual([false]);
+  await page.waitForTimeout(600);
+  const again = await box(page).boundingBox();
+  await page.mouse.move(again.x + again.width / 2, again.y + again.height / 2);
+  await page.mouse.wheel(0, -200);
+  await expect.poll(async () => Number(await box(page).getAttribute("data-zoom"))).toBeGreaterThan(1.2);
+  // Every turn of the wheel the board takes is claimed, and a zoomed board is not scrolled with the page.
+  await page.waitForTimeout(400);
+  await page.mouse.wheel(0, 200);
+  await expect(box(page)).toHaveAttribute("data-zoom", "1.00");
+});
+
 test("a pinch of two fingers zooms the board about the middle between them", async ({ page, browserName }) => {
   test.skip(
     browserName !== "chromium" || test.info().project.use.hasTouch !== true,

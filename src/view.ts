@@ -10,8 +10,9 @@
  *  - ONE FINGER or the mouse, held down and moved, moves the board once it is zoomed in; a press that did not
  *    move is a tap on the piece under it. At the whole-board view a drag is left to the page, which scrolls.
  *  - TWO FINGERS pinch to zoom about the middle between them and move the view with it.
- *  - THE WHEEL zooms about the pointer when control or command is held (a trackpad's pinch is that), and
- *    moves a zoomed board otherwise.
+ *  - THE WHEEL over the board zooms about the pointer, as does a trackpad's pinch (control or command and the
+ *    wheel). A sideways swipe, or shift and the wheel, moves a zoomed board across. A wheel that starts with the
+ *    zoom already at its end, and any sideways wheel at the whole-board view, is left to the page to scroll.
  *  - `zoomIn`, `zoomOut` and `fit` are for buttons; `show` brings a piece into view, for the keyboard.
  */
 
@@ -316,6 +317,8 @@ export type SuidoViewerOptions = {
 
 /** A finger or the mouse has to move this far, in pixels, before a press is a drag and no longer a tap. */
 const DRAG_PX = 9;
+/** Wheel steps closer together than this, in milliseconds, belong to one turn of the wheel, so a zoom that reaches its end part-way through does not hand the rest to the page. */
+const WHEEL_GESTURE_MS = 300;
 
 /**
  * Lets the box `box` move and zoom the board drawn in `svg` (which must have a `viewBox` of the whole board). A
@@ -437,16 +440,28 @@ export function attachSuidoView(
     event.preventDefault();
     event.stopImmediatePropagation();
   };
+  let wheelTaken = Number.NEGATIVE_INFINITY;
   const onWheel = (event: WheelEvent): void => {
-    if (event.ctrlKey || event.metaKey) {
+    const pinch = event.ctrlKey || event.metaKey;
+    const now = Number.isFinite(event.timeStamp) ? event.timeStamp : 0;
+    if (!pinch && (event.shiftKey || Math.abs(event.deltaX) > Math.abs(event.deltaY))) {
+      if (view.zoom <= 1) return;
       event.preventDefault();
-      const about = boardPoint(event.clientX, event.clientY);
-      apply(zoomAbout(view, Math.exp(-event.deltaY * (event.ctrlKey ? 0.01 : 0.004)), about.x, about.y, size, most));
-    } else if (view.zoom > 1) {
-      event.preventDefault();
-      const per = unitsPerPx();
-      apply(panView(view, event.deltaX * per, event.deltaY * per, size));
+      wheelTaken = now;
+      apply(panView(view, (event.deltaX || event.deltaY) * unitsPerPx(), 0, size));
+      return;
     }
+    const lines = event.deltaMode === 1 ? 33 : event.deltaMode === 2 ? 800 : 1;
+    const factor = pinch
+      ? Math.exp(-event.deltaY * (event.ctrlKey ? 0.01 : 0.004))
+      : Math.min(2, Math.max(0.5, Math.exp(-event.deltaY * lines * 0.002)));
+    const atEnd = factor >= 1 ? view.zoom >= most : view.zoom <= 1;
+    if (!pinch && atEnd && !(now >= wheelTaken && now - wheelTaken < WHEEL_GESTURE_MS)) return;
+    event.preventDefault();
+    wheelTaken = now;
+    if (atEnd) return;
+    const about = boardPoint(event.clientX, event.clientY);
+    apply(zoomAbout(view, factor, about.x, about.y, size, most));
   };
 
   box.addEventListener("pointerdown", onDown);
