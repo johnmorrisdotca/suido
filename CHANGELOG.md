@@ -7,9 +7,19 @@ board and its answer, and a seed makes the board it always made.
 
 ## [Unreleased]
 
+## [1.7.0] - 2026-11-03
+
+### Added
+
+- **Put it in your page.** The demo ends with the family's shared panel (kazoku-ui's `<kazoku-embed-panel>`): choose a grid and a level, hints and a size, then pick how your page is made (a script tag, an ES module, React, Vue, Angular, Svelte or an iframe) and copy the code. The picture beside the code is the board those choices make.
+- **Every way of using the package is tested.** `examples/` holds a file for each: a script tag from jsDelivr and from unpkg, an iframe of the embed page, Vite, webpack, React (and its server render), Vue, Svelte, Angular, TypeScript and Node. `pnpm test:usage` builds, type-checks or runs each against the package as npm packs it, opens the ones with a page in a browser, and checks that the guides hold the same text word for word. CI runs it.
+- Five guides, each with a Japanese twin: plain HTML and CDNs, embed in an iframe, Vite and webpack, React, Vue, Svelte and Angular, and TypeScript and Node.
+- `scripts/check-standard.mjs`, the family's must-have list, as a test (demo, embed page, documentation site in two languages, tested usage).
+
 ### Changed
 
 - **The wheel zooms the board.** On a board big enough to be zoomed, the wheel over it now zooms about the pointer, as a pinch (control or command and the wheel) did; before, the wheel alone only moved a board already zoomed in. A sideways swipe, or Shift and the wheel, moves a zoomed board across. With the pointer anywhere else the page scrolls, and so it does for a wheel that starts with the zoom already at its end, so the page is never trapped. The README and the code's notes say so.
+- The header's language chooser and theme switch are kazoku-ui's, as in the rest of the family; the demo page is `demo/index.html`.
 - The README opens with the package's thumbnail, and the demo carries it as its link preview (og:image) and publishes the card, a dark card and an icon on Pages at `thumbnail.png`, `thumbnail-dark.png` and `icon.png`.
 
 ## [1.6.1] - 2026-10-31
@@ -269,7 +279,8 @@ drawing, and a demo to play.
 - A demo in English and Japanese, with the family's cloth patches, a hint, a
   timer, and keyboard play.
 
-[Unreleased]: https://github.com/johnmorrisdotca/suido/compare/v1.6.0...HEAD
+[Unreleased]: https://github.com/johnmorrisdotca/suido/compare/v1.7.0...HEAD
+[1.7.0]: https://github.com/johnmorrisdotca/suido/compare/v1.6.1...v1.7.0
 [1.6.0]: https://github.com/johnmorrisdotca/suido/compare/v1.5.0...v1.6.0
 [1.4.1]: https://github.com/johnmorrisdotca/suido/compare/v1.4.0...v1.4.1
 [1.3.0]: https://github.com/johnmorrisdotca/suido/compare/v1.2.0...v1.3.0

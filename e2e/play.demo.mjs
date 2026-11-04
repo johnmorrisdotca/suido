@@ -238,6 +238,7 @@ test("the page keeps one steady box: nothing moves when the board is played or t
   const box = async () => {
     await page.evaluate(() => window.scrollTo(0, 0));
     return {
+      header: (await page.locator("header").boundingBox()).height,
       board: await page.locator(at("board")).boundingBox(),
       status: await page.locator(sdp("status")).boundingBox(),
       actions: await page.locator(at("new")).boundingBox(),
@@ -249,7 +250,8 @@ test("the page keeps one steady box: nothing moves when the board is played or t
   await page.goto("http://suido.test/?mode=make&size=7x7&seed=21&lang=ja");
   await ready(page);
   const ja = await box();
-  expect(ja.board.y).toBe(first.board.y);
+  // The header's buttons can wrap onto another row in Japanese; what is under the header does not move relative to it.
+  expect(ja.board.y - ja.header).toBe(first.board.y - first.header);
   expect(ja.board.height).toBe(first.board.height);
   await noSidewaysScroll(page);
 });
@@ -258,7 +260,7 @@ test("it reads in Japanese, and says the Japanese has not been reviewed", async 
   await open(page, "?mode=make&size=6x6&seed=7&lang=ja");
   await expect(page.locator(sdp("status"))).toContainText("個のパイプに水が届いています");
   await expect(page.locator("#unreviewed")).toBeVisible();
-  await page.locator('button[data-lang="en"]').click();
+  await page.locator('kazoku-language-picker [data-v="en"]').click();
   await expect(page.locator(sdp("status"))).toContainText("The water reaches");
   await expect(page.locator("#unreviewed")).toBeHidden();
 });

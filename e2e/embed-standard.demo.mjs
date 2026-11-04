@@ -12,7 +12,7 @@ test("the shared puzzle builder covers options, previews a level and writes ever
     await expect(page.locator("#bld-code")).not.toHaveText("");
   }
   await expect(page.locator("#bld-code")).toContainText("grid=7x7");
-  await page.locator('[data-lang="ja"]').click();
+  await page.locator('kazoku-language-picker [data-v="ja"]').click();
   await expect(page.locator("#bld-maker-says")).toContainText("管");
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   expect(errors).toEqual([]);

@@ -123,6 +123,9 @@ const WORDS = {
       "The board above is the package itself: the rules, the solver, the generator, the levels and the drawing. Each line below is all it takes.",
     tagTitle: "As a tag",
     tagText: "The same board in one element, with no framework: its twists as chips, and a hint to ask for.",
+    embedTitle: "Put it in your page",
+    embedText:
+      "Choose a grid and a level, a size, and how your page is made, then copy the code. The picture beside the code is made from the same choices.",
     foot: "Every level was made once and is proved on every build to have exactly one answer. Nothing here leaves your device.",
   },
   ja: {
@@ -213,6 +216,9 @@ const WORDS = {
       "上の盤面は、このパッケージそのもの（ルール、ソルバー、盤面の生成、レベル、描画）で動いています。下の各行がそれぞれ必要なコードのすべてです。",
     tagTitle: "タグとして",
     tagText: "同じ盤面を、フレームワークなしの一つの要素で。仕掛けがチップで出て、ヒントも頼めます。",
+    embedTitle: "自分のページに入れる",
+    embedText:
+      "盤の大きさとレベル、表示の大きさ、ページの作り方を選んで、コードをコピーします。コードの横の絵は、同じ選択からできています。",
     foot: "どのレベルも一度だけ作られ、ビルドのたびに答えがちょうど一つであることが確かめられています。このページの情報は、端末の外に出ません。",
   },
 };

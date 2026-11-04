@@ -162,6 +162,7 @@ test("a long pipe board is drawn in its own shape, fits the screen, and keeps on
     await noSidewaysScroll(page);
     await page.evaluate(() => window.scrollTo(0, 0));
     const table = await page.locator(at("board")).boundingBox();
+    const header = (await page.locator("header").boundingBox()).height;
     const made = await levelFor(size, 1);
     for (const index of made.layout.cells.flatMap((mask, at) => (shapeOf(mask) === "elbow" ? [at] : [])).slice(0, 4))
       await tap(page, cell(page, index));
@@ -170,7 +171,8 @@ test("a long pipe board is drawn in its own shape, fits the screen, and keeps on
     await page.goto(`http://suido.test/?mode=levels&size=${size}&level=1&lang=ja`);
     await ready(page);
     const ja = await page.locator(at("board")).boundingBox();
-    expect(ja.y).toBe(table.y);
+    // The header's buttons can wrap onto another row in Japanese; the board does not move relative to it.
+    expect(ja.y - (await page.locator("header").boundingBox()).height).toBe(table.y - header);
     expect(ja.height).toBe(table.height);
   }
 });
@@ -194,7 +196,7 @@ test("the twists and the levels read in Japanese", async ({ page }) => {
   await expect(page.locator(at("role"))).toContainText("このレベルで学ぶこと");
   await expect(page.locator(at("open"))).toContainText("16レベルのまとまり");
   await expect(page.locator(at("meter"))).toContainText("レベル 63");
-  await page.locator('button[data-lang="en"]').click();
+  await page.locator('kazoku-language-picker [data-v="en"]').click();
   await expect(page.locator(`${sdp("chips")} li`).first()).toHaveText("Locked pieces");
 });
 

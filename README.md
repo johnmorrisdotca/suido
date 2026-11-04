@@ -234,60 +234,46 @@ Importing the main entry on a server is safe: it touches no page.
 
 ### 3. A bundler, and a framework
 
-`import "@johnmorrisdotca/suido/element/define"` once, in code that runs in the browser, and `<suido-board>` is a tag like any other. The tag draws itself in the page's own DOM, so the page's CSS reaches it. Its attributes are read again when they change, and it speaks through DOM events (`suido-change`, `suido-turn`, `suido-hint`, `suido-turning`, `suido-solve`) that carry a `detail`.
+`import "@johnmorrisdotca/suido/element/define"` once, in code that runs in the browser (or on a server: it registers nothing there), and `<suido-board>` is a tag like any other. The tag draws itself in the page's own DOM, so the page's CSS reaches it. Its attributes are read again when they change, and it speaks through DOM events (`suido-change`, `suido-turn`, `suido-hint`, `suido-turning`, `suido-solve`) that carry a `detail`.
 
-```jsx
-// React 19
-import { useEffect, useRef } from "react";
+```tsx
+// React 19: examples/react/Level.tsx
 import "@johnmorrisdotca/suido/element/define";
 
-export function Level({ size, level, onSolved }) {
-  const board = useRef(null);
-  useEffect(() => {
-    const listen = (event) => onSolved(event.detail.code, event.detail.turns);
-    board.current?.addEventListener("suido-solve", listen);
-    return () => board.current?.removeEventListener("suido-solve", listen);
-  }, [onSolved]);
-  return <suido-board ref={board} size={size} level={String(level)} hints />;
+export function Level({ grid = "7x7", level = 12 }: { grid?: string; level?: number }) {
+  return <suido-board grid={grid} level={String(level)} hints />;
 }
 ```
 
 ```vue
-<!-- Vue 3: tell the compiler the tag is not a Vue component -->
-<script setup>
+<!-- Vue 3: examples/vue/Level.vue; in vite.config, vue({ template: { compilerOptions: { isCustomElement: (tag) => tag.startsWith("suido-") } } }) -->
+<script setup lang="ts">
 import "@johnmorrisdotca/suido/element/define";
-defineProps({ size: String, level: Number });
+
+withDefaults(defineProps<{ grid?: string; level?: number }>(), { grid: "7x7", level: 12 });
 </script>
+
 <template>
-  <suido-board :size="size" :level="level" hints @suido-solve="(event) => console.log(event.detail.code)" />
+  <suido-board :grid="grid" :level="level" hints></suido-board>
 </template>
-<!-- in vite.config: vue({ template: { compilerOptions: { isCustomElement: (tag) => tag.startsWith("suido-") } } }) -->
 ```
 
 ```svelte
-<!-- Svelte 5 -->
-<script>
+<!-- Svelte 5: examples/svelte/Level.svelte -->
+<script lang="ts">
   import "@johnmorrisdotca/suido/element/define";
-  let { size, level } = $props();
-  let board;
-  $effect(() => {
-    const listen = (event) => console.log(event.detail.code);
-    board.addEventListener("suido-solve", listen);
-    return () => board.removeEventListener("suido-solve", listen);
-  });
+
+  let { grid = "7x7", level = 12 }: { grid?: string; level?: number } = $props();
 </script>
-<suido-board bind:this={board} size={size} level={level} hints></suido-board>
+
+<suido-board {grid} {level} hints></suido-board>
 ```
 
-Angular (a standalone component with `CUSTOM_ELEMENTS_SCHEMA`), Next.js and other server-rendering frameworks (import the define entry from a client component, or call `mountSuido` in an effect) are in [docs/FRAMEWORKS.md](docs/FRAMEWORKS.md); `pnpm test:frameworks` builds all of these recipes from the packed tarball, for each of the five, in Chromium and WebKit.
+Each way of using it is a file in [`examples/`](./examples), built, type-checked or run against the package as npm packs it (`pnpm test:usage`), and its guide holds the same text word for word: [script tag](./docs/guides/html-and-cdn.md), [iframe](./docs/guides/embed-in-an-iframe.md), [Vite and webpack](./docs/guides/bundlers.md), [React, Vue, Svelte and Angular](./docs/guides/frameworks.md), [TypeScript and Node](./docs/guides/typescript-and-node.md).
 
-### What a developer gets
+Next.js and other server-rendering frameworks (the define entry is safe to import on a server, or call `mountSuido` in an effect) are in [docs/FRAMEWORKS.md](docs/FRAMEWORKS.md); `pnpm test:frameworks` builds those recipes from the packed tarball, for each of the five, in Chromium and WebKit.
 
-- **Typed results**, with a doc comment on every export. Every function is pure and returns new values.
-- **No dependencies.** ES modules, an entry per concern, and `sideEffects` set so that only the define entry has an effect.
-- **Where it runs.** See [Browser support](#browser-support).
-
-The cookbook, with the output of each example, is under [Examples](#examples).
+The package is typed, has no dependencies, and only the define entry has an effect. The cookbook is under [Examples](#examples).
 
 ## Examples
 
@@ -795,7 +781,7 @@ Using Suido in something? Open an *Add my project* issue and we will add you.
 ### The family
 
 <!-- family:start (made by scripts/family-readme.mjs from scripts/family-template.mjs; change those, not this) -->
-Suido is one of thirty-two packages, each made for the same site, each at
+Suido is one of thirty-three packages, each made for the same site, each at
 [github.com/johnmorrisdotca](https://github.com/johnmorrisdotca) or [github.com/spxis](https://github.com/spxis). The code of every one is MIT.
 
 **Games — board**
@@ -839,6 +825,7 @@ Suido is one of thirty-two packages, each made for the same site, each at
 **Geography & data**
 
 - [address-plus](https://github.com/johnmorrisdotca/address-plus) (アドレスプラス): parse and format addresses in the United States, Canada, Japan, Australia, France, Germany and the United Kingdom. [Demo](https://johnmorrisdotca.github.io/address-plus/).
+- [Chikyu Earth](https://github.com/johnmorrisdotca/chikyu-earth) (地球): a line-drawn globe that turns at the Earth's own rate, with an optional realistic Earth from space and markers for any place. [Demo](https://johnmorrisdotca.github.io/chikyu-earth/).
 - [Chizu](https://github.com/johnmorrisdotca/chizu) (地図): maps of the world and of countries' regions, in English and Japanese, with a quiz and callouts. [Demo](https://johnmorrisdotca.github.io/chizu/).
 - [Hata](https://github.com/johnmorrisdotca/hata) (旗): country and regional flags as SVG, at their true proportions and keyed by ISO code. [Demo](https://johnmorrisdotca.github.io/hata/).
 - [Kuni](https://github.com/johnmorrisdotca/kuni) (国): countries and their regions, with ISO codes and names in English and Japanese. [Demo](https://johnmorrisdotca.github.io/kuni/).
@@ -855,7 +842,7 @@ Suido is one of thirty-two packages, each made for the same site, each at
 - [REST in Pieces](https://github.com/spxis/rest-in-pieces) (レスト・イン・ピーシーズ): seeded test data and REST APIs for frontend development, with latency and error drills. [Demo](https://spxis.github.io/rest-in-pieces/).
 
 
-**This package is Suido.** The demos of all thirty-two share one header and footer, so each links the rest.
+**This package is Suido.** The demos of all thirty-three share one header and footer, so each links the rest.
 <!-- family:end -->
 
 ## Development
@@ -885,7 +872,7 @@ Please follow the [code of conduct](./CODE_OF_CONDUCT.md). A way to make the che
 
 See [CHANGELOG.md](./CHANGELOG.md).
 
-The latest release, 1.6.1, changes nothing a player sees.
+The latest release, 1.7.0, makes the wheel zoom a big board and adds an embed panel and tested usage examples; 1.6.1 changes nothing a player sees.
 
 ## Licence
 

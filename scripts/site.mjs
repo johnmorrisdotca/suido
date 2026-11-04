@@ -2,6 +2,7 @@
 // shared header and footer, with the family's stylesheet, Suido's own, the board's style, the page's
 // script and the compiled library beside it.
 import { cpSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { build } from "esbuild";
 import { SUIDO_LEVEL_COUNTS } from "../dist/levels.js";
 import { SUIDO_PLAY_STYLE } from "../dist/play-entry.js";
 import { API_CSS, apiPage } from "./api.mjs";
@@ -43,157 +44,35 @@ const uses = [
   `openSuidoLevels("8x8", solved)  // 16, 32, …`,
 ];
 const escapeHtml = (text) => text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-const DROPLET = `<svg class="pump" viewBox="-14 -18 28 36" aria-hidden="true"><path d="M0 -17C-9 -4 -12 1 -12 6a12 12 0 0 0 24 0c0-5-3-10-12-23z" fill="currentColor"/></svg>`;
-const button = (attributes, text = "") => `<button type="button" ${attributes}>${text}</button>`;
 
-const page = `<!doctype html>
-<html lang="en">
-  <head>
-    ${familyHead({
-      id,
-      title: "Suido 水道 — Pipe-connecting puzzle",
-      description: `Play Suido, the pipe puzzle: ${total} levels from 5×5 to 28×28 and long pipe boards, easy to hard, with walls, locked pieces, wrap-around edges, several pumps, drains and inlet-to-outlet paths. Every level has exactly one answer. Free and open source, in English and Japanese.`,
-      ogTitle: "Suido 水道 — Pipe-connecting puzzle",
-      ogDescription: `Turn the pipes until the water reaches every drain. ${total} levels, each with one answer.`,
-    })}
-    ${thumbnailHead(JSON.parse(readFileSync("package.json", "utf8")), { alt: ALT })}
-    <link rel="icon" href="${ICON}" />
-    <link rel="stylesheet" href="family.css" />
-    <link rel="stylesheet" href="suido.css" />
-    <style>${SUIDO_PLAY_STYLE}</style>
-  </head>
-  <body>
-    <main>
-      ${familyHeader({
-        id,
-        links: [
-          { href: "docs/index.html", say: "pageDocs" },
-          { href: "api.html", say: "pageApi" },
-        ],
-      })}
-      <div class="setup fam-row" data-help-en="Levels are fixed boards from easy to hard: solve a block of sixteen to open the next. Make a board makes a new one from a seed, with the twists you choose." data-help-ja="「レベル」は、やさしい順に並んだ決まった盤面です。16レベルのまとまりを解くと次が開きます。「盤面を作る」は、選んだ仕掛けで新しい盤面を作ります。">
-        <span class="fam-label" data-say="mode"></span>
-        <div class="fam-seg" role="group" data-say-label="mode" id="modes" data-testid="modes">
-          ${button(`data-mode="levels" data-say="modeLevels"`)}${button(`data-mode="make" data-say="modeMake"`)}
-        </div>
-      </div>
-      <div class="setup fam-row" data-for="levels" data-help-en="Levels by size are fixed boards of one size, easy to hard. Big pieces is a set of sixty-four levels from the easiest to the hardest across every size, each with big 2×2 pieces among its ordinary ones, more of them and trickier ones as the levels go on." data-help-ja="「大きさ別」は、ひとつの大きさの決まった盤面がやさしい順に並んだものです。「大きな駒」は、あらゆる大きさにまたがって、やさしい順に並んだ64レベルで、どのレベルにも2×2の大きな駒がふつうの駒にまじり、進むほど数も中身も増えます。">
-        <span class="fam-label" data-say="set"></span>
-        <div class="fam-seg" role="group" data-say-label="set" id="sets" data-testid="sets">
-          ${button(`data-set="classic" data-say="setClassic"`)}${button(`data-set="big" data-say="setBig"`)}
-        </div>
-      </div>
-      <div class="setup fam-row" data-for="levels" data-help-en="Go to the previous or the next level, or jump to today's level, the same for everybody. A level opens when every level of the block before it is solved. You can also press a level in the block below." data-help-ja="前のレベル、次のレベルへ進むか、今日のレベル（だれにとっても同じ）に飛びます。ひとつ前のまとまりをすべて解くと、次のレベルが開きます。下のまとまりから選ぶこともできます。">
-        <span class="fam-label" data-say="level"></span>
-        ${button(`class="fam-button" id="previous" data-testid="previous" data-say-label="previous"`, "←")}
-        <span class="fam-chip" data-lit="true" data-testid="level"><span id="level-number">1</span><span id="level-of" class="of"></span></span>
-        ${button(`class="fam-button" id="next" data-testid="next" data-say-label="next"`, "→")}
-        ${button(`class="fam-button" id="today" data-testid="today" data-say="today"`)}
-      </div>
-      <div class="levelinfo">
-        <span class="marks" id="marks" data-testid="marks" role="img"></span>
-        <span class="roleline" id="role" data-testid="role" aria-live="polite"></span>
-      </div>
-      <div class="table fam-felt" id="table">
-        <div id="board" data-testid="board" aria-busy="true"></div>
-      </div>
-      <p class="meter" id="meter" data-testid="meter"></p>
-      <div class="controls">
-        <div class="setup fam-actions">
-          ${button(`class="fam-button" id="new" data-testid="new" data-primary="true" data-say="newBoard" data-for="make"`)}
-          ${button(`class="fam-button" id="timer-toggle" data-testid="timer-toggle" data-say="timer" aria-pressed="false"`)}
-        </div>
-      </div>
-      <section class="settings" aria-labelledby="board-title">
-        <h2 id="board-title" data-say="boardTitle"></h2>
-        <div class="setup fam-row" id="classic-sizes" data-help-en="How big the board is, from 5×5 to 28×28. Choosing a size opens its levels, or makes a new board. The huge boards can be zoomed and moved about." data-help-ja="盤の大きさです（5×5から28×28まで）。選ぶと、その大きさのレベルが開くか、新しい盤を作ります。大きな盤は拡大して動かせます。">
-          <span class="fam-label" data-say="size"></span>
-          <div class="fam-seg" role="group" data-say-label="size" id="sizes" data-testid="sizes"></div>
-        </div>
-        <div class="setup fam-row" id="classic-shapes" data-help-en="Long boards, 5×7, 6×10, 8×14 and the huge 20×50, as tall as a pipe. They have their own levels." data-help-ja="細長い盤（5×7、6×10、8×14、そして巨大な20×50）です。それぞれに専用のレベルがあります。">
-          <span class="fam-label" data-say="shapes"></span>
-          <div class="fam-seg" role="group" data-say-label="shapes" id="shapes" data-testid="shapes"></div>
-        </div>
-        <p class="open" id="open" data-testid="open" data-for="levels"></p>
-        <section class="makeset" data-for="make" aria-label="Make a board">
-          <div class="setup fam-row" data-help-en="Whole network: every piece must carry water. Reach the drains: only the drains must be reached. Inlet to outlet: one path from the top left to the bottom right. Choosing makes a new board." data-help-ja="「全部つなぐ」はすべての駒に水を通します。「排水口まで」は排水口に水が届けばよいルールです。「入口から出口へ」は左上から右下まで一本の道で水を通します。選ぶと新しい盤を作ります。">
-            <span class="fam-label" data-say="kind"></span>
-            <div class="fam-seg" role="group" data-say-label="kind" id="kinds" data-testid="kinds">
-              ${button(`data-kind="network" data-say="kindNetwork"`)}${button(`data-kind="drains" data-say="kindDrains"`)}${button(`data-kind="inlet-outlet" data-say="kindPath"`)}
-            </div>
-          </div>
-          <p class="kind-note" id="kind-note" aria-live="polite"></p>
-          <div class="setup fam-row" data-help-en="Edges join lets water leave one edge and come back on the opposite one. The droplets set one, two or three pumps. Choosing makes a new board." data-help-ja="「端がつながる」は、水が盤の端から出て反対側の端から戻るようにします。しずくの数でポンプを1〜3つにします。選ぶと新しい盤を作ります。">
-            <span class="fam-label" data-say="options"></span>
-            ${button(`class="fam-button" id="wrap" data-testid="wrap" data-say="wrap" aria-pressed="false"`)}
-            <div class="fam-seg" role="group" data-say-label="sources" id="sources" data-testid="sources">
-              ${[1, 2, 3].map((count) => button(`data-sources="${count}" data-say-label="pumps${count}"`, `${count}${DROPLET}`)).join("")}
-            </div>
-          </div>
-          <div class="setup fam-row" data-help-en="Locked pieces have a padlock and cannot be turned: they already face the right way. Walls stop the water crossing an edge. Choosing makes a new board." data-help-ja="固定駒には鍵がついていて回せません。向きは最初から正しい状態です。壁は水が通れない辺です。選ぶと新しい盤を作ります。">
-            <span class="fam-label" data-say="lockedSetting"></span>
-            <div class="fam-seg" role="group" data-say-label="lockedSetting" id="lockedamount" data-testid="locked-amount">
-              ${button(`data-amount="none" data-say="none"`)}${button(`data-amount="few" data-say="few"`)}${button(`data-amount="many" data-say="many"`)}
-            </div>
-            <span class="fam-label" data-say="wallsSetting"></span>
-            <div class="fam-seg" role="group" data-say-label="wallsSetting" id="wallsamount" data-testid="walls-amount">
-              ${button(`data-amount="none" data-say="none"`)}${button(`data-amount="few" data-say="few"`)}${button(`data-amount="many" data-say="many"`)}
-            </div>
-          </div>
-          <div class="setup fam-row" data-help-en="Big pieces fill four squares and turn as one piece. Block turns are four ordinary pieces that turn together, from the ring where they meet. Only a whole network has them. Choosing makes a new board." data-help-ja="大きな駒は4マスを使い、1つの駒として回ります。ブロック回転は、4つの駒が真ん中の輪からいっしょに回ります。「全部つなぐ」のときだけ使えます。選ぶと新しい盤を作ります。">
-            <span class="fam-label" data-say="bigsSetting"></span>
-            <div class="fam-seg" role="group" data-say-label="bigsSetting" id="bigsamount" data-testid="bigs-amount">
-              ${button(`data-amount="none" data-say="none"`)}${button(`data-amount="few" data-say="few"`)}${button(`data-amount="many" data-say="many"`)}
-            </div>
-            <span class="fam-label" data-say="blocksSetting"></span>
-            <div class="fam-seg" role="group" data-say-label="blocksSetting" id="blocksamount" data-testid="blocks-amount">
-              ${button(`data-amount="none" data-say="none"`)}${button(`data-amount="few" data-say="few"`)}${button(`data-amount="many" data-say="many"`)}
-            </div>
-          </div>
-          <div class="setup fam-row" data-help-en="Slide for an easier or a harder board. A new board is made when you let go." data-help-ja="スライダーで、やさしい盤か難しい盤かを選びます。手を離すと新しい盤を作ります。">
-            <span class="fam-label" data-say="difficulty"></span>
-            <input type="range" id="difficulty" data-testid="difficulty" min="1" max="100" value="50" data-say-label="difficulty" />
-            <span class="fam-chip" id="difficulty-value" data-testid="difficulty-value" data-lit="true"></span>
-          </div>
-        </section>
-      </section>
-      <section class="more blocks" aria-labelledby="block-title" data-for="levels">
-        <h2 id="block-title"></h2>
-        <p data-say="blockText"></p>
-        <div class="block" id="block" data-testid="block"></div>
-      </section>
-      ${familyUnreviewed({ id })}
-      <section class="more pieces" id="pieces" aria-labelledby="pieces-title" data-testid="pieces">
-        <h2 id="pieces-title" data-say="piecesTitle"></h2>
-        <p data-say="piecesText"></p>
-        <div class="sheet" id="pieces-small" data-testid="pieces-small"></div>
-        <h3 data-say="bigTitle"></h3>
-        <p data-say="bigText"></p>
-        <div class="sheet" id="pieces-big" data-testid="pieces-big"></div>
-        <h3 data-say="familiesTitle"></h3>
-        <p data-say="familiesText"></p>
-        <div class="sheet" id="pieces-families" data-testid="pieces-families"></div>
-      </section>
-      <section class="more" aria-labelledby="more-title">
-        <h2 id="more-title" data-say="moreTitle"></h2>
-        <p data-say="moreText"></p>
-        <ul class="uses">
-          ${uses.map((line) => `<li><code>${escapeHtml(line)}</code></li>`).join("\n          ")}
-        </ul>
-      </section>
-      <section class="more tag" aria-labelledby="tag-title">
-        <h2 id="tag-title" data-say="tagTitle"></h2>
-        <p data-say="tagText"></p>
-        <suido-board id="tag" data-testid="tag" size="6x6" level="3" chips hints></suido-board>
-      </section>
-      ${familyFooter({ id })}
-    </main>
-    <script>${FAMILY_SCRIPT}</script>
-    <script type="module" src="dist/element-define.js"></script>
-    <script type="module" src="demo.js"></script>
-  </body>
-</html>
-`;
+// The page is demo/index.html; each <!-- family:key --> in it is replaced by the text below.
+const pageParts = {
+  head: familyHead({
+    id,
+    title: "Suido 水道 — Pipe-connecting puzzle",
+    description: `Play Suido, the pipe puzzle: ${total} levels from 5×5 to 28×28 and long pipe boards, easy to hard, with walls, locked pieces, wrap-around edges, several pumps, drains and inlet-to-outlet paths. Every level has exactly one answer. Free and open source, in English and Japanese.`,
+    ogTitle: "Suido 水道 — Pipe-connecting puzzle",
+    ogDescription: `Turn the pipes until the water reaches every drain. ${total} levels, each with one answer.`,
+  }),
+  thumbnail: thumbnailHead(JSON.parse(readFileSync("package.json", "utf8")), { alt: ALT }),
+  icon: ICON,
+  style: SUIDO_PLAY_STYLE,
+  header: familyHeader({
+    id,
+    links: [
+      { href: "docs/index.html", say: "pageDocs" },
+      { href: "api.html", say: "pageApi" },
+    ],
+  }),
+  unreviewed: familyUnreviewed({ id }),
+  uses: uses.map((line) => `<li><code>${escapeHtml(line)}</code></li>`).join("\n          "),
+  footer: familyFooter({ id }),
+  script: `<script>${FAMILY_SCRIPT}</script>\n    <script type="module" src="kazoku-parts.js"></script>\n    <script type="module" src="embed-panel.js"></script>`,
+};
+const page = readFileSync("demo/index.html", "utf8").replace(
+  /<!-- family:([A-Za-z]+) -->/g,
+  (_match, key) => pageParts[key],
+);
 
 rmSync("site", { recursive: true, force: true });
 mkdirSync("site", { recursive: true });
@@ -202,6 +81,29 @@ cpSync("dist", "site/dist", { recursive: true });
 writeFileSync("site/index.html", page);
 // The family's card, dark card and icon, at <site>/thumbnail.png, thumbnail-dark.png and icon.png.
 publishThumbnails(".", "site");
+// The family header's language picker and theme switch, as one small module for every page of the site (the demo, the builder, the API reference and the docs).
+await build({
+  stdin: {
+    contents:
+      'import "@johnmorrisdotca/kazoku-ui/language-picker/define";\nimport "@johnmorrisdotca/kazoku-ui/theme-switch/define";\n',
+    resolveDir: process.cwd(),
+  },
+  outfile: "site/kazoku-parts.js",
+  bundle: true,
+  format: "esm",
+  minify: true,
+  logLevel: "silent",
+});
+// The demo's "Put it in your page": kazoku-ui's embed panel, filled with this board's choices and code.
+await build({
+  entryPoints: ["demo/embed-panel.js"],
+  outfile: "site/embed-panel.js",
+  external: ["./dist/*"],
+  bundle: true,
+  format: "esm",
+  minify: true,
+  logLevel: "silent",
+});
 // The API reference, made from the source: every export of every entry point.
 writeFileSync("site/api.css", API_CSS);
 writeFileSync("site/api.html", apiPage({ id, name: "Suido", icon: ICON }));
@@ -229,7 +131,7 @@ const builderParts = {
   }),
   unreviewed: familyUnreviewed({ id }),
   footer: familyFooter({ id }),
-  script: `<script>${FAMILY_SCRIPT}</script>`,
+  script: `<script>${FAMILY_SCRIPT}</script>\n    <script type="module" src="kazoku-parts.js"></script>`,
 };
 writeFileSync(
   "site/builder.html",
